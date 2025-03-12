@@ -16,7 +16,7 @@ from ..exceptions import InvalidBenchmark, NeedsExtraInstalled
 from ..utils import raise_if_model_output_contains_nan_values
 
 if t.TYPE_CHECKING:
-    from transformers import BatchEncoding
+    from transformers import BatchEncoding, EvalPrediction
 
     from ..types import Labels, Predictions
 
@@ -28,7 +28,7 @@ logger = logging.getLogger("euroeval")
 
 
 def compute_metrics(
-    model_outputs_and_labels: tuple["Predictions", "Labels"],
+    model_outputs_and_labels: "tuple[Predictions, Labels] | EvalPrediction",
     has_misc_tags: bool,
     dataset_config: "DatasetConfig",
     benchmark_config: "BenchmarkConfig",
@@ -51,7 +51,11 @@ def compute_metrics(
         values.
     """
     model_outputs, labels = model_outputs_and_labels
-    raise_if_model_output_contains_nan_values(model_output=model_outputs)
+
+    # If the model outputs is a pair, then the first element corresponds to the model
+    # predictions
+    if isinstance(model_outputs, tuple) and len(model_outputs) == 2:
+        model_outputs = model_outputs[0]
 
     metrics = {
         metric_cfg.name: (
@@ -92,6 +96,8 @@ def compute_metrics(
 
     else:
         predictions = model_outputs  # type: ignore[assignment]
+
+    raise_if_model_output_contains_nan_values(model_output=predictions)
 
     # Replace predicted tag with either MISC or O tags if they are not part of the
     # dataset

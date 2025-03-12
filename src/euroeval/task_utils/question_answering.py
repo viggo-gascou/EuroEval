@@ -8,7 +8,7 @@ from collections import defaultdict
 import evaluate
 import numpy as np
 from evaluate import EvaluationModule
-from transformers import PreTrainedTokenizer
+from transformers import PreTrainedTokenizer, PreTrainedTokenizerBase
 from transformers.trainer import Trainer
 
 from ..data_models import BenchmarkConfig, DatasetConfig, GenerativeModelOutput
@@ -23,7 +23,6 @@ if t.TYPE_CHECKING:
     from transformers import (
         EvalPrediction,
         PreTrainedModel,
-        PreTrainedTokenizerBase,
         TrainerCallback,
         TrainingArguments,
     )
@@ -62,7 +61,7 @@ class QuestionAnsweringTrainer(Trainer):
 
         # Get the CLS token id for the tokenizer
         if self.tokenizer is not None:
-            assert isinstance(self.tokenizer, PreTrainedTokenizer)
+            assert isinstance(self.tokenizer, PreTrainedTokenizerBase)
             special_token_metadata = get_special_token_metadata(self.tokenizer)
             self.cls_token_id = special_token_metadata["cls_token_id"]
 
@@ -144,7 +143,7 @@ class QuestionAnsweringTrainer(Trainer):
 
 
 def compute_metrics(
-    model_outputs_and_labels: tuple["Predictions", "Labels"],
+    model_outputs_and_labels: "tuple[Predictions, Labels] | EvalPrediction",
     dataset_config: "DatasetConfig",
     benchmark_config: "BenchmarkConfig",
 ) -> dict[str, float]:
@@ -164,6 +163,13 @@ def compute_metrics(
         values.
     """
     model_outputs, labels = model_outputs_and_labels
+
+    # If the model outputs is a pair, then the first element corresponds to the model
+    # predictions
+    if isinstance(model_outputs, tuple) and len(model_outputs) == 2:
+        model_outputs = model_outputs[0]
+
+    assert not isinstance(model_outputs, tuple)
     raise_if_model_output_contains_nan_values(model_output=model_outputs)
 
     metrics = {

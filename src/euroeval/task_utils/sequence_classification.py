@@ -13,6 +13,8 @@ from ..data_models import BenchmarkConfig, GenerativeModelOutput
 from ..utils import log_once, raise_if_model_output_contains_nan_values
 
 if t.TYPE_CHECKING:
+    from transformers import EvalPrediction
+
     from ..data_models import DatasetConfig
     from ..types import Labels, Predictions
 
@@ -21,7 +23,7 @@ logger = logging.getLogger("euroeval")
 
 
 def compute_metrics(
-    model_outputs_and_labels: tuple["Predictions", "Labels"],
+    model_outputs_and_labels: "tuple[Predictions, Labels] | EvalPrediction",
     dataset_config: "DatasetConfig",
     benchmark_config: "BenchmarkConfig",
 ) -> dict[str, float]:
@@ -42,7 +44,11 @@ def compute_metrics(
     """
     model_outputs, labels = model_outputs_and_labels
     label2id = {label: idx for idx, label in dataset_config.id2label.items()}
-    raise_if_model_output_contains_nan_values(model_output=model_outputs)
+
+    # If the model outputs is a pair, then the first element corresponds to the model
+    # predictions
+    if isinstance(model_outputs, tuple) and len(model_outputs) == 2:
+        model_outputs = model_outputs[0]
 
     metrics = {
         metric_cfg.name: (
@@ -60,6 +66,9 @@ def compute_metrics(
         predictions = np.asarray(model_outputs).argmax(axis=-1)
     else:
         predictions = model_outputs
+
+    assert not isinstance(model_outputs, tuple)
+    raise_if_model_output_contains_nan_values(model_output=model_outputs)
 
     prompt_label_to_label_mapping = {
         prompt_label: label
