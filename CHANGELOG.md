@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.3.0] - 2025-03-12
 ### Added
 - Added support for evaluating Italian 🇮🇹! This includes the reading comprehension
   dataset [SQuAD-it](https://hf.co/datasets/crux82/squad_it), the summarization
