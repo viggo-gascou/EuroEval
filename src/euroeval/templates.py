@@ -22,33 +22,37 @@ def get_task_templates(task: Task, language: Language) -> PromptTemplate:
 
     Raises:
         NotImplementedError: If the task is not supported/implemented
+        KeyError: If the language doesn't have a template for the task
 
     Returns:
         PromptTemplate: The `PromptTemplate` dataclass for the given task and language
     """
-    match task.name:
-        case COMMON_SENSE.name:
-            return COMMON_SENSE_TEMPLATE[language]
-        case KNOW.name:
-            return KNOW_TEMPLATE[language]
-        case LA.name:
-            return LA_TEMPLATE[language]
-        case MCRC.name:
-            return MCRC_TEMPLATE[language]
-        case NER.name:
-            return NER_TEMPLATE[language]
-        case RC.name:
-            return RC_TEMPLATE[language]
-        case SENT.name:
-            return SENT_TEMPLATE[language]
-        case SPEED.name:
-            return PromptTemplate(
-                prompt_prefix="", prompt_template="", instruction_prompt=""
-            )
-        case SUMM.name:
-            return SUMM_TEMPLATE[language]
-        case _:
-            raise NotImplementedError(f"Unsupported task: {task}.")
+    try:
+        match task.name:
+            case COMMON_SENSE.name:
+                return COMMON_SENSE_TEMPLATE[language]
+            case KNOW.name:
+                return KNOW_TEMPLATE[language]
+            case LA.name:
+                return LA_TEMPLATE[language]
+            case MCRC.name:
+                return MCRC_TEMPLATE[language]
+            case NER.name:
+                return NER_TEMPLATE[language]
+            case RC.name:
+                return RC_TEMPLATE[language]
+            case SENT.name:
+                return SENT_TEMPLATE[language]
+            case SPEED.name:
+                return PromptTemplate(
+                    prompt_prefix="", prompt_template="", instruction_prompt=""
+                )
+            case SUMM.name:
+                return SUMM_TEMPLATE[language]
+            case _:
+                raise NotImplementedError(f"Unsupported task: {task}.")
+    except KeyError:
+        raise KeyError(f"No template found for language '{language}' in task '{task}'")
 
 
 ### COMMON SENSE REASONING TEMPLATES ###
