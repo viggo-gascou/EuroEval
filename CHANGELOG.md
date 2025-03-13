@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.3.1] - 2025-03-13
 ### Fixed
 - Now handles`ConnectionError`s when loading datasets, rather than aborting evaluations.
 
