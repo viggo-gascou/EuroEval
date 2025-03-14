@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   dictionary}. This has been fixed now.
 
 ### Changed
+- Moved the `demjson3` dependency from the `generative` extra to the main dependencies,
+  to allow benchmarking API-based models without any extras.
 - Now does not include the speed benchmark by default, as it is not used in the official
   leaderboards. It can still be used by including `--task speed` when benchmarking a
   model, or by using the `task` argument if using the `Benchmarker` API.
