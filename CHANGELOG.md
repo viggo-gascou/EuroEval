@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   completion, which is for instance the case for the QwQ reasoning model.
 
 ### Changed
+- Update `vllm` to `>=0.8.0`, `transformers` to `>=4.49.0` and `torch` to `>=2.6.0`.
 - Moved the `demjson3` dependency from the `generative` extra to the main dependencies,
   to allow benchmarking API-based models without any extras.
 - Now does not include the speed benchmark by default, as it is not used in the official
