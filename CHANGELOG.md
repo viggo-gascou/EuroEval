@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Benchmark configurations specified when calling `Benchmarker.benchmark` did not
   properly override the default configurations set during initialisation when
   benchmarking generative models. This has been fixed now.
+- Now sets the `VLLM_WORKER_MULTIPROC_METHOD` environment variable to `spawn`, to avoid
+  a `RuntimeError` when using newer versions of vLLM with multiple GPUs.
 
 ### Changed
 - Moved the `demjson3` dependency from the `generative` extra to the main dependencies,
