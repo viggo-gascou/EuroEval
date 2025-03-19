@@ -8,7 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- Added support for Spanish! 🇪🇸This includes two reading comprehension datasets: [XQuAD](https://huggingface.co/datasets/google/xquad/viewer/xquad.es) and [MLQA-es](https://huggingface.co/datasets/facebook/mlqa/viewer/mlqa.es.es), the [sentiment-headlines dataset](https://huggingface.co/datasets/pysentimiento/spanish-targeted-sentiment-headlines), the linguistic acceptability dataset ScaLA with the [Spanish Universal Dependencies](https://github.com/UniversalDependencies/UD_Spanish-AnCora), the Spanish part of [mlsum](https://huggingface.co/datasets/reciTAL/mlsum), the knowledge dataset [MMLU-es](https://hf.co/datasets/alexandrainst/m_mmlu), the common-sense reasoning dataset [HellaSwag-es](https://hf.co/datasets/alexandrainst/m_hellaswag), and the named entity recognition dataset [CoNLL-es](https://aclanthology.org/W02-2024/).
+- Added support for Spanish! 🇪🇸This includes two reading comprehension datasets:
+  [XQuAD](https://huggingface.co/datasets/google/xquad/viewer/xquad.es) and
+  [MLQA-es](https://huggingface.co/datasets/facebook/mlqa/viewer/mlqa.es.es), the
+  [sentiment-headlines
+  dataset](https://huggingface.co/datasets/pysentimiento/spanish-targeted-sentiment-headlines),
+  the linguistic acceptability dataset ScaLA with the [Spanish Universal
+  Dependencies](https://github.com/UniversalDependencies/UD_Spanish-AnCora), the Spanish
+  part of [mlsum](https://huggingface.co/datasets/reciTAL/mlsum), the knowledge dataset
+  [MMLU-es](https://hf.co/datasets/alexandrainst/m_mmlu), the common-sense reasoning
+  dataset [HellaSwag-es](https://hf.co/datasets/alexandrainst/m_hellaswag), and the
+  named entity recognition dataset [CoNLL-es](https://aclanthology.org/W02-2024/). This
+  was contributed by [@oliverkinch](https://github.com/oliverkinch) ✨
 - Now extracts number of parameters and context length for Ollama models, using the
   `ollama` package. Vocabulary size is currently not available available in the `ollama`
   package, so this is not extracted for Ollama models. For this reason, the `ollama`
@@ -28,6 +39,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   a `RuntimeError` when using newer versions of vLLM with multiple GPUs.
 - Now also detects reasoning tokens specified in the prompt rather than in the
   completion, which is for instance the case for the QwQ reasoning model.
+- Now recognises models with the pipeline tags `image-text-to-text`,
+  `audio-text-to-text` and `video-text-to-text` as generative models, which mistakenly
+  were detected as encoder models before.
 
 ### Changed
 - Update `vllm` to `>=0.8.0`, `transformers` to `>=4.49.0` and `torch` to `>=2.6.0`.
