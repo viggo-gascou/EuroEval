@@ -1,4 +1,4 @@
-"""Create the Spanish sentiment headlines dataset and upload to HF Hub."""
+"""Create the SentimentHeadlines-es dataset and upload to HF Hub."""
 
 import pandas as pd
 from datasets import Dataset, DatasetDict, Split, load_dataset

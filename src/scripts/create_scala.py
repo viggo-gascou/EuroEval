@@ -113,22 +113,22 @@ def main() -> None:
             # it after we have made the splits to ensure that the dataset is minimally
             # affected.
             new_train_df = train_df.copy()
-            new_train_df["text_len"] = new_train_df.text.str.len()
+            new_train_df["text_len"] = new_train_df.doc.str.len()
             new_train_df = new_train_df.query(
                 "text_len >= @MIN_NUM_CHARS_IN_DOCUMENT"
             ).query("text_len <= @MAX_NUM_CHARS_IN_DOCUMENT")
             new_val_df = val_df.copy()
-            new_val_df["text_len"] = new_val_df.text.str.len()
+            new_val_df["text_len"] = new_val_df.doc.str.len()
             new_val_df = new_val_df.query(
                 "text_len >= @MIN_NUM_CHARS_IN_DOCUMENT"
             ).query("text_len <= @MAX_NUM_CHARS_IN_DOCUMENT")
             new_test_df = test_df.copy()
-            new_test_df["text_len"] = new_test_df.text.str.len()
+            new_test_df["text_len"] = new_test_df.doc.str.len()
             new_test_df = new_test_df.query(
                 "text_len >= @MIN_NUM_CHARS_IN_DOCUMENT"
             ).query("text_len <= @MAX_NUM_CHARS_IN_DOCUMENT")
             new_full_train_df = full_train_df.copy()
-            new_full_train_df["text_len"] = new_full_train_df.text.str.len()
+            new_full_train_df["text_len"] = new_full_train_df.doc.str.len()
             new_full_train_df = new_full_train_df.query(
                 "text_len >= @MIN_NUM_CHARS_IN_DOCUMENT"
             ).query("text_len <= @MAX_NUM_CHARS_IN_DOCUMENT")
