@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.4.0] - 2025-03-24
 ### Added
 - Added support for Spanish! 🇪🇸This includes two reading comprehension datasets:
   [XQuAD-es](https://huggingface.co/datasets/google/xquad/viewer/xquad.es) and
