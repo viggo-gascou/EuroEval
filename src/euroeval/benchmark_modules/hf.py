@@ -1021,6 +1021,7 @@ def setup_model_for_question_answering(model: "PreTrainedModel") -> "PreTrainedM
     """
     # Get the models' token type embedding children, if they exist
     children = get_children_of_module(name="model", module=model)
+    assert isinstance(children, dict)
 
     # If the model has token type embeddings then get them
     if children:
