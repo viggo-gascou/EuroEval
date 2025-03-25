@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.4.1] - 2025-03-25
 ### Fixed
 - Disallow `vllm` v0.8.1, as it causes severe degradation in generation output of
   some models, resulting in artificially low scores.
