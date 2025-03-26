@@ -1,7 +1,8 @@
 name: 🐛 Bug Report
 description: Have you experienced a bug using the `euroeval` package?
 title: "[BUG] <name-of-bug>"
-labels: bug
+issue_types:
+  - bug
 
 body:
 - type: markdown
