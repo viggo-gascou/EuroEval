@@ -1,7 +1,7 @@
 name: 🚀 Feature Request
 description: Is the EuroEval benchmark missing a feature?
 title: "[FEATURE REQUEST] <name-of-feature>"
-labels: enhancement
+type: feature
 
 body:
 - type: textarea

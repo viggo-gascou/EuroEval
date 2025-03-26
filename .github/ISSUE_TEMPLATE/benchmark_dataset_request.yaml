@@ -2,6 +2,7 @@ name: 📚 Benchmark Dataset Request
 description: Do you think a particular benchmark dataset is missing in EuroEval?
 title: "[BENCHMARK DATASET REQUEST] <dataset-name>"
 labels: "benchmark dataset request"
+type: task
 
 body:
 - type: input

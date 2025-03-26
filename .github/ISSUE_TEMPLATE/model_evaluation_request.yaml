@@ -2,6 +2,7 @@ name: 📊 Model Evaluation Request
 description: Would you like to have a particular model included in the leaderboards?
 title: "[MODEL EVALUATION REQUEST] <model-name>"
 labels: "model evaluation request"
+type: task
 
 body:
 - type: input
