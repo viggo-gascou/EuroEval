@@ -30,6 +30,7 @@ body:
       - label: Icelandic
       - label: Italian
       - label: Norwegian (Bokmål or Nynorsk)
+      - label: Spanish
       - label: Swedish
   validations:
     required: true
