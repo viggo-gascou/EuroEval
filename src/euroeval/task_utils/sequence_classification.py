@@ -162,9 +162,8 @@ def get_closest_logprobs_labels(
     """
     english_labels = list(dataset_config.id2label.values())
     english2local = dataset_config.prompt_label_mapping
-    candidate_labels = [
-        english2local[lbl].lower() for lbl in english_labels
-    ] + english_labels
+    local_labels = [english2local[lbl].lower() for lbl in english_labels]
+    candidate_labels = local_labels + english_labels
 
     output_labels: list[str] = list()
     for sample in generation_logprobs:
@@ -179,18 +178,44 @@ def get_closest_logprobs_labels(
             ]
             generated_labels = [label for label in generated_labels if label != ""]
 
-            # We want to use the first generated label which starts with a candidate
+            # We want to use the first generated label which contains a unique candidate
             # label, as the output label
             output_label: str | None = None
-            for generated_label in generated_labels:
-                candidate_output_labels = [
-                    candidate_label
+            previously_generated_labels: list[str] = list()
+            for label_idx, generated_label in enumerate(generated_labels):
+                generated_label = "".join(previously_generated_labels) + generated_label
+
+                # Get the candidate labels that starts with the generated label
+                candidate_output_labels = {
+                    english2local.get(candidate_label, candidate_label)
                     for candidate_label in candidate_labels
                     if candidate_label.startswith(generated_label)
-                ]
-                if candidate_output_labels:
-                    output_label = candidate_output_labels[0]
+                }
+
+                # If we can uniquely determine the output label, we break the loop. If
+                # there are multiple possible labels then we store the current one, and
+                # concatenate it with the next generated label. We can only do this if
+                # the current one is the first one, however, since we're using greedy
+                # sampling. In case this happens for a label that is not the first one,
+                # we warn the user.
+                if len(candidate_output_labels) == 1:
+                    output_label = candidate_output_labels.pop()
                     break
+                elif len(candidate_output_labels) > 1:
+                    if label_idx == 0:
+                        previously_generated_labels.append(generated_label)
+                    else:
+                        output_label = candidate_output_labels.pop()
+                        logger.warning(
+                            "Multiple candidate labels found for the generated label "
+                            f"{generated_label!r}: {candidate_output_labels}. Since "
+                            "this is not the first generated label, we cannot "
+                            "concatenate it with the next generated label. We are thus "
+                            "forced to use the arbitrary {output_label!r} as the "
+                            "output label, potentially resulting in worse performance. "
+                            "Please report this issue to the EuroEval team at "
+                            "github.com/EuroEval/EuroEval/issues."
+                        )
 
             if output_label is not None:
                 output_label = english2local.get(output_label, output_label)

@@ -20,6 +20,7 @@ from huggingface_hub.utils import (
     HFValidationError,
     LocalTokenNotFoundError,
 )
+from peft import PeftConfig
 from requests.exceptions import RequestException
 from torch import nn
 from transformers import (
@@ -73,6 +74,7 @@ from ..utils import (
     get_class_by_name,
     get_eos_token,
     internet_connection_available,
+    log_once,
 )
 from .base import BenchmarkModule
 
@@ -756,24 +758,21 @@ def get_model_repo_info(
     # Get all the Hugging Face repository tags for the model. If the model is an adapter
     # model, then we also get the tags for the base model
     tags = model_info.tags or list()
-    has_base_model_tag = any(
-        tag.startswith("base_model:") and tag.count(":") == 1 for tag in tags
-    )
     base_model_id: str | None = None
-    if has_base_model_tag:
-        has_adapter_config = model_info.siblings is not None and any(
-            sibling.rfilename == "adapter_config.json"
-            for sibling in model_info.siblings
+    has_adapter_config = model_info.siblings is not None and any(
+        sibling.rfilename == "adapter_config.json" for sibling in model_info.siblings
+    )
+    if has_adapter_config:
+        adapter_config = PeftConfig.from_pretrained(model_id, revision=revision)
+        base_model_id = adapter_config.base_model_name_or_path
+        log_once(
+            f"Model {model_id!r} identified as an adapter model, with base model "
+            f"{base_model_id!r}.",
+            level=logging.DEBUG,
         )
-        if has_adapter_config:
-            base_model_id = [
-                tag.split(":")[1]
-                for tag in tags
-                if tag.startswith("base_model:") and tag.count(":") == 1
-            ][0]
+        if base_model_id is not None:
             base_model_info = hf_api.model_info(
                 repo_id=base_model_id,
-                revision=revision,
                 token=benchmark_config.api_key
                 or os.getenv("HUGGINGFACE_API_KEY")
                 or True,
@@ -786,7 +785,7 @@ def get_model_repo_info(
     pipeline_tag = model_info.pipeline_tag
     if pipeline_tag is None:
         hf_config = load_hf_model_config(
-            model_id=model_id,
+            model_id=base_model_id or model_id,
             num_labels=0,
             id2label=dict(),
             label2id=dict(),
@@ -812,7 +811,6 @@ def get_model_repo_info(
             pipeline_tag = "fill-mask"
 
     if benchmark_config.only_allow_safetensors:
-        # Check if any file ends with .safetensors
         repo_files = hf_api.list_repo_files(repo_id=model_id, revision=revision)
         has_safetensors = any(f.endswith(".safetensors") for f in repo_files)
         if not has_safetensors:
@@ -825,6 +823,26 @@ def get_model_repo_info(
                     "to `True`."
                 )
             raise InvalidModel(msg)
+
+        # Also check base model if we are evaluating an adapter
+        if base_model_id is not None:
+            base_repo_files = hf_api.list_repo_files(repo_id=base_model_id)
+            base_has_safetensors = any(
+                f.endswith(".safetensors") for f in base_repo_files
+            )
+            if not base_has_safetensors:
+                msg = (
+                    f"Base model {base_model_id} does not have safetensors weights "
+                    "available."
+                )
+                if benchmark_config.run_with_cli:
+                    msg += " Skipping since the `--only-allow-safetensors` flag is set."
+                else:
+                    msg += (
+                        " Skipping since the `only_allow_safetensors` argument is set "
+                        "to `True`."
+                    )
+                raise InvalidModel(msg)
 
     return HFModelInfo(
         pipeline_tag=pipeline_tag, tags=tags, adapter_base_model_id=base_model_id
@@ -1021,6 +1039,7 @@ def setup_model_for_question_answering(model: "PreTrainedModel") -> "PreTrainedM
     """
     # Get the models' token type embedding children, if they exist
     children = get_children_of_module(name="model", module=model)
+    assert isinstance(children, dict)
 
     # If the model has token type embeddings then get them
     if children:

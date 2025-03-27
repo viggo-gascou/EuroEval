@@ -1,6 +1,6 @@
 [project]
 name = "EuroEval"
-version = "15.3.1.dev"
+version = "15.4.1.dev"
 description = "The robust European language model benchmark."
 readme = "README.md"
 authors = [
@@ -15,7 +15,7 @@ dependencies = [
     "torch>=2.6.0",
     "pandas>=2.2.0",
     "numpy>=1.23.0,<2.0.0",
-    "transformers>=4.49.0",
+    "transformers>=4.50.0",
     "accelerate>=0.34.2",
     "evaluate>=0.4.1",
     "datasets>=2.15.0",
@@ -39,20 +39,23 @@ dependencies = [
     "setuptools>=75.8.2",
     "demjson3>=3.0.6",
     "ollama>=0.4.7",
+    "peft>=0.15.0",
 ]
 
 [project.optional-dependencies]
 generative = [
+    "outlines>=0.1.11",
     "bitsandbytes>=0.43.1; platform_system == 'Linux'",
-    "vllm>=0.8.0; platform_system == 'Linux'",
+    "vllm>=0.8.0,!=0.8.1; platform_system == 'Linux'",
     "fbgemm-gpu>=1.0.0; platform_system == 'Linux'",
 ]
 human_evaluation = [
     "gradio>=4.26.0",
 ]
 all = [
+    "outlines>=0.1.11",
     "bitsandbytes>=0.43.1; platform_system == 'Linux'",
-    "vllm>=0.8.0; platform_system == 'Linux'",
+    "vllm>=0.8.0,!=0.8.1; platform_system == 'Linux'",
     "fbgemm-gpu>=1.0.0; platform_system == 'Linux'",
     "gradio>=4.26.0",
 ]
@@ -84,7 +87,6 @@ dev-dependencies = [
     "nbstripout>=0.7.1",
     "coverage>=5.5",
     "lxml>=5.1.0",
-    "peft>=0.13.2",
     "mkdocs-material>=9.5.45",
     "mkdocs-include-markdown-plugin>=7.0.1",
     "mkdocs-include-dir-to-nav>=1.2.0",

@@ -2,22 +2,13 @@ name: 📊 Model Evaluation Request
 description: Would you like to have a particular model included in the leaderboards?
 title: "[MODEL EVALUATION REQUEST] <model-name>"
 labels: "model evaluation request"
+type: task
 
 body:
 - type: input
   attributes:
     label: Model ID
     description: What is the Hugging Face model ID?
-  validations:
-    required: true
-- type: dropdown
-  attributes:
-    label: Model type
-    description: What is the architecture of the model?
-    options:
-      - Decoder model (e.g., GPT)
-      - Encoder model (e.g., BERT)
-      - Sequence-to-sequence model (e.g., T5)
   validations:
     required: true
 - type: checkboxes
@@ -36,7 +27,27 @@ body:
       - label: Icelandic
       - label: Italian
       - label: Norwegian (Bokmål or Nynorsk)
+      - label: Spanish
       - label: Swedish
+  validations:
+    required: true
+- type: dropdown
+  attributes:
+    label: Model type
+    description: What is the architecture of the model?
+    options:
+      - Decoder model (e.g., GPT)
+      - Encoder model (e.g., BERT)
+      - Sequence-to-sequence model (e.g., T5)
+  validations:
+    required: true
+- type: dropdown
+  attributes:
+    label: Model size
+    description: What is the size of the model?
+    options:
+      - Small (<=8B parameters)
+      - Large (>8B parameters)
   validations:
     required: true
 - type: dropdown

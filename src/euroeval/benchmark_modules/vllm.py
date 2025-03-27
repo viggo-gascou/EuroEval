@@ -73,7 +73,6 @@ from .hf import HuggingFaceEncoderModel, get_model_repo_info, load_hf_model_conf
 if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
     from vllm import LLM, RequestOutput, SamplingParams
     from vllm.lora.request import LoRARequest
-    from vllm.sampling_params import GuidedDecodingParams
 
     try:
         from vllm.model_executor.parallel_utils.parallel_state import (
@@ -81,6 +80,10 @@ if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
         )
     except ImportError:
         from vllm.distributed.parallel_state import destroy_model_parallel
+
+if t.TYPE_CHECKING or importlib.util.find_spec("outlines") is not None:
+    from outlines.models.vllm import adapt_tokenizer
+    from outlines.processors import JSONLogitsProcessor
 
 if t.TYPE_CHECKING or importlib.util.find_spec("ray") is not None:
     import ray
@@ -142,6 +145,7 @@ class VLLMModel(HuggingFaceEncoderModel):
         if self.model_config.adapter_base_model_id is not None:
             adapter_path = snapshot_download(
                 repo_id=self.model_config.model_id,
+                revision=self.model_config.revision,
                 cache_dir=Path(self.model_config.model_cache_dir),
             )
             self.buffer["lora_request"] = LoRARequest(
@@ -319,12 +323,18 @@ class VLLMModel(HuggingFaceEncoderModel):
                 for tag_name in ner_tag_names
             }
             pydantic_class = create_model("AnswerFormat", **keys_and_their_types)
-            schema = pydantic_class.model_json_schema()
-            guided_decoding = GuidedDecodingParams(
-                json=schema, backend="outlines", whitespace_pattern=r" ?"
+            logits_processor = JSONLogitsProcessor(
+                schema=pydantic_class,
+                tokenizer=adapt_tokenizer(tokenizer=self._tokenizer),  #  type: ignore
+                whitespace_pattern=r" ?",
+            )
+            log_once(
+                "Using structured generation with the schema "
+                f"{pydantic_class.model_json_schema()}",
+                level=logging.DEBUG,
             )
         else:
-            guided_decoding = None
+            logits_processor = None
 
         # Define the parameters used for vLLM generation
         max_tokens: int = (
@@ -337,7 +347,7 @@ class VLLMModel(HuggingFaceEncoderModel):
             logprobs=MAX_LOGPROBS if self.buffer["output_scores"] else None,
             temperature=0.0,
             stop=[stop_token for stop_token in stop_tokens if stop_token],
-            guided_decoding=guided_decoding,
+            logits_processors=[logits_processor] if logits_processor else None,
         )
 
         # If any of the prompts are empty then we need to replace them with a BOS token
@@ -364,12 +374,27 @@ class VLLMModel(HuggingFaceEncoderModel):
 
         # Generate sequences using vLLM
         input_is_a_test = len(prompts) == 1 and len(set(prompts[0])) == 1
-        raw_outputs = self._model.generate(
-            prompts=prompts,
-            sampling_params=sampling_params,
-            use_tqdm=(not input_is_a_test),
-            lora_request=self.buffer.get("lora_request"),
-        )
+        num_attempts = 3
+        for _ in range(num_attempts):
+            try:
+                raw_outputs = self._model.generate(
+                    prompts=prompts,
+                    sampling_params=sampling_params,
+                    use_tqdm=(not input_is_a_test),
+                    lora_request=self.buffer.get("lora_request"),
+                )
+                break
+            except TypeError as e:
+                logger.debug(
+                    f"Encountered error during vLLM generation: {str(e)}. Retrying..."
+                )
+                sleep(1)
+        else:
+            raise InvalidBenchmark(
+                f"Could not generate sequences after {num_attempts} attempts."
+            )
+
+        # Parse the raw model outputs
         completion_ids: list[list[int]] = [
             output.outputs[0].token_ids for output in raw_outputs
         ]
@@ -837,13 +862,16 @@ def load_model_and_tokenizer(
     # Prefer base model ID if the model is an adapter - the adapter will be added on
     # during inference in this case
     model_id = model_config.adapter_base_model_id or model_config.model_id
+    revision = (
+        model_config.revision if model_config.adapter_base_model_id is None else "main"
+    )
 
     hf_model_config = load_hf_model_config(
         model_id=model_id,
         num_labels=0,
         id2label=dict(),
         label2id=dict(),
-        revision=model_config.revision,
+        revision=revision,
         model_cache_dir=model_config.model_cache_dir,
         api_key=benchmark_config.api_key,
         trust_remote_code=benchmark_config.trust_remote_code,
@@ -907,7 +935,7 @@ def load_model_and_tokenizer(
             max_model_len=min(true_max_model_len, 5_000),
             download_dir=download_dir,
             trust_remote_code=benchmark_config.trust_remote_code,
-            revision=model_config.revision,
+            revision=revision,
             seed=4242,
             distributed_executor_backend=executor_backend,
             tensor_parallel_size=torch.cuda.device_count(),
@@ -985,6 +1013,7 @@ def load_tokenizer(
     Returns:
         The loaded tokenizer.
     """
+    revision = revision if adapter_base_model_id is None else "main"
     config = AutoConfig.from_pretrained(
         adapter_base_model_id or model_id,
         revision=revision,

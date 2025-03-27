@@ -1,7 +1,7 @@
 name: 🐛 Bug Report
 description: Have you experienced a bug using the `euroeval` package?
 title: "[BUG] <name-of-bug>"
-labels: bug
+type: bug
 
 body:
 - type: markdown
@@ -46,8 +46,9 @@ body:
       - 3.10.x
       - 3.11.x
       - 3.12.x
+      - 3.13.x
       - Older than 3.10.x
-      - Newer than 3.12.x
+      - Newer than 3.13.x
   validations:
     required: true
 - type: input
@@ -55,6 +56,20 @@ body:
     label: EuroEval version
     description: What version of EuroEval are you using?
     placeholder: Output of `pip list | grep EuroEval`
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: Transformers version
+    description: What version of 🤗 transformers are you using?
+    placeholder: Output of `pip list | grep transformers`
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: vLLM version
+    description: What version of vLLM are you using?
+    placeholder: Output of `pip list | grep vllm`
   validations:
     required: true
 - type: markdown
