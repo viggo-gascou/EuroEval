@@ -25,6 +25,17 @@ from transformers import PreTrainedTokenizer, PreTrainedTokenizerBase
 from transformers import logging as tf_logging
 
 from .exceptions import InvalidModel, NaNValueInModelOutput
+from .templates import (
+    COMMON_SENSE_TEMPLATES,
+    KNOW_TEMPLATES,
+    LA_TEMPLATES,
+    MCRC_TEMPLATES,
+    NER_TEMPLATES,
+    RC_TEMPLATES,
+    SENT_TEMPLATES,
+    SUMM_TEMPLATES,
+    PromptConfig,
+)
 
 if importlib.util.find_spec("ray") is not None:
     import ray
@@ -573,3 +584,99 @@ def log_once(message: str, level: int = logging.INFO) -> None:
             logger.critical(message)
         case _:
             raise ValueError(f"Invalid logging level: {level}")
+
+
+def get_prompt_config(task_name: str, language_code: str) -> "PromptConfig":
+    """Gets the prompt config for a specific task and language.
+
+    Args:
+        task_name: The name of the task to get template for.
+        language_code: The language code to get the template for.
+
+    Raises:
+        NotImplementedError: If the task is not supported/implemented.
+        KeyError: If the language doesn't have a template for the task.
+
+    Returns:
+        PromptConfig: The `PromptConfig` dataclass for the given task and language.
+    """
+    try:
+        if task_name == "common-sense-reasoning":
+            return COMMON_SENSE_TEMPLATES[language_code]
+        elif task_name == "knowledge":
+            return KNOW_TEMPLATES[language_code]
+        elif task_name == "linguistic-acceptability":
+            return LA_TEMPLATES[language_code]
+        elif task_name == "multiple-choice-reading-comprehension":
+            return MCRC_TEMPLATES[language_code]
+        elif task_name == "named-entity-recognition":
+            return NER_TEMPLATES[language_code]
+        elif task_name == "reading-comprehension":
+            return RC_TEMPLATES[language_code]
+        elif task_name == "sentiment-classification":
+            return SENT_TEMPLATES[language_code]
+        elif task_name == "speed":
+            return PromptConfig(
+                labels=[],
+                prompt_label_mapping={},
+                num_few_shot_examples=0,
+                max_generated_tokens=5,
+                prompt_prefix="",
+                prompt_template="",
+                instruction_prompt="",
+            )
+        elif task_name == "summarization":
+            return SUMM_TEMPLATES[language_code]
+        else:
+            raise NotImplementedError(f"Unsupported task: {task_name}.")
+    except KeyError:
+        raise KeyError(
+            f"No template found for language '{language_code}' in task '{task_name}'"
+        )
+
+
+def get_labels_str(labels: list[str], language: str) -> str:
+    """Gets the labels as natural string in the specified language.
+
+    Args:
+        labels: The list of labels.
+        language: The language to be used when converting the labels.
+
+    Returns:
+        str: The natural string representation of the labels in specified language. If
+        the list is empty, an empty string is returned. If the language is not found,
+        it defaults to English.
+
+    Example:
+        >>> print(get_labels_str(["a", "b", "c"]), "da")
+        "'a', 'b', 'c' eller 'd'"
+    """
+    LANG_TO_OR = {
+        "da": "eller",
+        "de": "oder",
+        "en": "or",
+        "es": "o",
+        "fo": "ella",
+        "fr": "ou",
+        "is": "eða",
+        "it": "o",
+        "nb": "eller",
+        "nl": "of",
+        "nn": "eller",
+        "no": "eller",
+        "sv": "eller",
+    }
+
+    or_word = LANG_TO_OR.get(language, "or")
+
+    # Convert labels to single-quoted labels.
+    quoted_labels = [f"'{label}'" for label in labels]
+
+    if not quoted_labels:
+        return ""
+    elif len(quoted_labels) == 1:
+        return quoted_labels[0]
+    elif len(quoted_labels) == 2:
+        return f"{quoted_labels[0]} {or_word} {quoted_labels[1]}"
+    else:
+        return f"{', '.join(quoted_labels[:-1])} {or_word} {quoted_labels[-1]}"
