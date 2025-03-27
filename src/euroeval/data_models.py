@@ -369,15 +369,21 @@ class DatasetConfig:
             # TODO: should we just use the first language in the list?
             main_language = self.languages[0]
             template = TEMPLATES_DICT[self.task.name][main_language.code]
+
             if not self.labels:
                 self.labels = template.labels
+
             labels_str = get_labels_str(self.labels, main_language.code)
+
+            def replace_labels(text: str) -> str:
+                return text.replace("{labels_str}", labels_str)
+
             if not self.prompt_template:
-                self.prompt_template = template.prompt_template.format(labels_str)
+                self.prompt_template = replace_labels(template.prompt_template)
             if not self.prompt_prefix:
-                self.prompt_prefix = template.prompt_prefix.format(labels_str)
+                self.prompt_prefix = replace_labels(template.prompt_prefix)
             if not self.instruction_prompt:
-                self.instruction_prompt = template.instruction_prompt.format(labels_str)
+                self.instruction_prompt = replace_labels(template.instruction_prompt)
             if not self.prompt_label_mapping:
                 self.prompt_label_mapping = template.prompt_label_mapping
             if not self.max_generated_tokens:

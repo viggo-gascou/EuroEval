@@ -6,7 +6,10 @@ from ..types import TemplateDict
 from .base import BasePromptConfig, PromptConfig
 
 COMMON_SENSE_DEFAULTS = BasePromptConfig(
-    labels=["a", "b", "c", "d"], num_few_shot_examples=5, max_generated_tokens=5
+    labels=["a", "b", "c", "d"],
+    num_few_shot_examples=5,
+    max_generated_tokens=5,
+    prompt_label_mapping="auto"
 )
 
 COMMON_SENSE_TEMPLATES: TemplateDict = {
