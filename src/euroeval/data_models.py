@@ -12,8 +12,9 @@ import pydantic
 import torch
 
 from .enums import Device, InferenceBackend, ModelType, TaskGroup
-from .templates import get_prompt_config
+from .templates import TEMPLATES_DICT
 from .types import ScoreDict
+from .utils import get_labels_str
 
 
 @dataclass
@@ -74,62 +75,6 @@ class Language:
 
 
 @dataclass
-class PromptConfig:
-    """Configuration for task-specific prompting and labeling across languages.
-
-    Defines the prompt templates and label configurations needed for evaluating a
-    specific task in a given language.
-
-    Attributes:
-        prompt_prefix:
-            The prefix to use in the few-shot prompt.
-        prompt_template:
-            The template for the prompt to use when benchmarking the dataset using
-            few-shot evaluation.
-        instruction_prompt:
-            The prompt to use when benchmarking the dataset using instruction-based
-            evaluation.
-    """
-
-    prompt_prefix: str
-    prompt_template: str
-    instruction_prompt: str
-
-    def get_labels_str(self, labels: list[str]) -> str:
-        """Gets the labels from `PromptConfig` formatted as a string in `Language`.
-
-        Returns:
-            str: The natural string representation of labels from `PromptConfig`.
-        """
-        LANG_TO_AND = {
-            "da": "og",
-            "de": "und",
-            "en": "and",
-            "fo": "og",
-            "fr": "et",
-            "is": "og",
-            "it": "e",
-            "nb": "og",
-            "nl": "en",
-            "nn": "og",
-            "no": "og",
-            "sv": "och",
-        }
-        try:
-            and_word = LANG_TO_AND[Language.code]
-        except KeyError:
-            raise
-        if not labels:
-            return ""
-        elif len(labels) == 1:
-            return labels[0]
-        elif len(labels) == 2:
-            return f"{labels[0]} {and_word} {labels[1]}"
-        else:
-            return f"{', '.join(labels[:-1])}, {and_word} {labels[-1]}"
-
-
-@dataclass
 class Task:
     """A dataset task.
 
@@ -145,15 +90,10 @@ class Task:
     name: str
     task_group: TaskGroup
     metrics: list[MetricConfig]
-    template: PromptConfig = field(init=False)
 
     def __hash__(self) -> int:
         """Return a hash of the task."""
         return hash(self.name)
-
-    def set_template(self, languages: list[Language]) -> None:
-        """Set the template for this task in the given languages."""
-        self.template = get_prompt_config(self, languages[0])
 
 
 @dataclass
@@ -361,26 +301,30 @@ class DatasetConfig:
             The mapping from label to ID.
         num_labels:
             The number of labels in the dataset.
-        prompt_template:
+        prompt_template (optional):
             The template for the prompt to use when benchmarking the dataset using
-            few-shot evaluation.
-        max_generated_tokens:
+            few-shot evaluation. Defaults to the template for the task and language.
+        max_generated_tokens (optional):
             The maximum number of tokens to generate when benchmarking the dataset
-            using few-shot evaluation.
-        prompt_prefix:
-            The prefix to use in the few-shot prompt.
-        num_few_shot_examples:
+            using few-shot evaluation. Defaults to the template for the task and
+            language.
+        prompt_prefix (optional):
+            The prefix to use in the few-shot prompt. Defaults to the template for the
+            task and language.
+        num_few_shot_examples (optional):
             The number of examples to use when benchmarking the dataset using few-shot
             evaluation. For a classification task, these will be drawn evenly from
-            each label.
-        instruction_prompt:
+            each label. Defaults to the template for the task and language.
+        instruction_prompt (optional):
             The prompt to use when benchmarking the dataset using instruction-based
-            evaluation.
+            evaluation. Defaults to the template for the task and language.
         labels (optional):
-            The labels in the dataset. Defaults to an empty list.
+            The labels in the dataset. Defaults to the template for the task and
+            language.
         prompt_label_mapping (optional):
             A mapping from the labels to another phrase which is used as a substitute
-            for the label in few-shot evaluation. Defaults to an empty dictionary.
+            for the label in few-shot evaluation. Defaults to the template for the task
+            and language.
         unofficial (optional):
             Whether the dataset is unofficial. Defaults to False.
     """
@@ -390,11 +334,11 @@ class DatasetConfig:
     huggingface_id: str
     task: Task
     languages: list[Language]
-    prompt_template: str
-    max_generated_tokens: int
-    prompt_prefix: str
-    num_few_shot_examples: int
-    instruction_prompt: str
+    prompt_template: str = field(default="")
+    max_generated_tokens: int = field(default=0)
+    prompt_prefix: str = field(default="")
+    num_few_shot_examples: int = field(default=0)
+    instruction_prompt: str = field(default="")
     labels: list[str] = field(default_factory=list)
     prompt_label_mapping: dict[str, str] = field(default_factory=dict)
     unofficial: bool = False
@@ -417,6 +361,29 @@ class DatasetConfig:
     def __hash__(self) -> int:
         """Return a hash of the dataset configuration."""
         return hash(self.name)
+
+    def __post_init__(self) -> None:
+        """Post Initialisation setup of defaults."""
+        # Skip setting defaults if the task is "speed" as it doesn't have any
+        if self.task.name != "speed":
+            # TODO: should we just use the first language in the list?
+            main_language = self.languages[0]
+            template = TEMPLATES_DICT[self.task.name][main_language.code]
+            if not self.labels:
+                self.labels = template.labels
+            labels_str = get_labels_str(self.labels, main_language.code)
+            if not self.prompt_template:
+                self.prompt_template = template.prompt_template.format(labels_str)
+            if not self.prompt_prefix:
+                self.prompt_prefix = template.prompt_prefix.format(labels_str)
+            if not self.instruction_prompt:
+                self.instruction_prompt = template.instruction_prompt.format(labels_str)
+            if not self.prompt_label_mapping:
+                self.prompt_label_mapping = template.prompt_label_mapping
+            if not self.max_generated_tokens:
+                self.max_generated_tokens = template.max_generated_tokens
+            if not self.num_few_shot_examples:
+                self.num_few_shot_examples = template.num_few_shot_examples
 
 
 @dataclass
