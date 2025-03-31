@@ -162,8 +162,7 @@ def get_closest_logprobs_labels(
     """
     english_labels = list(dataset_config.id2label.values())
     english2local = dataset_config.prompt_label_mapping
-    local_labels = [english2local[lbl].lower() for lbl in english_labels]
-    candidate_labels = local_labels + english_labels
+    candidate_labels = [english2local[lbl].lower() for lbl in english_labels]
 
     output_labels: list[str] = list()
     for sample in generation_logprobs:
@@ -187,7 +186,7 @@ def get_closest_logprobs_labels(
 
                 # Get the candidate labels that starts with the generated label
                 candidate_output_labels = {
-                    english2local.get(candidate_label, candidate_label)
+                    candidate_label
                     for candidate_label in candidate_labels
                     if candidate_label.startswith(generated_label)
                 }
@@ -206,19 +205,20 @@ def get_closest_logprobs_labels(
                         previously_generated_labels.append(generated_label)
                     else:
                         output_label = candidate_output_labels.pop()
-                        logger.warning(
+                        candidate_output_labels.add(output_label)
+                        log_once(
                             "Multiple candidate labels found for the generated label "
                             f"{generated_label!r}: {candidate_output_labels}. Since "
                             "this is not the first generated label, we cannot "
                             "concatenate it with the next generated label. We are thus "
-                            "forced to use the arbitrary {output_label!r} as the "
+                            f"forced to use the arbitrary {output_label!r} as the "
                             "output label, potentially resulting in worse performance. "
                             "Please report this issue to the EuroEval team at "
-                            "github.com/EuroEval/EuroEval/issues."
+                            "github.com/EuroEval/EuroEval/issues.",
+                            level=logging.WARNING,
                         )
 
             if output_label is not None:
-                output_label = english2local.get(output_label, output_label)
                 output_labels.append(output_label)
                 break
         else:
