@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.4.2] - 2025-03-31
 ### Added
 - Now added version metadata to results, to easier track which versions of the various
   dependencies were used when evaluating a model. This currently includes
