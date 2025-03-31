@@ -1643,7 +1643,7 @@ ORANGE_SUM_CONFIG = DatasetConfig(
 
 ILPOST_SUM_CONFIG = DatasetConfig(
     name="ilpost-sum",
-    pretty_name="the truncated version of the Italian summarisation dataset IlPost",
+    pretty_name="the truncated version of the Italian summarisation dataset IlPost-Sum",
     huggingface_id="EuroEval/ilpost-sum",
     task=SUMM,
     languages=[IT],

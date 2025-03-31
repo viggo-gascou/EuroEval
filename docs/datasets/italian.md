@@ -518,7 +518,7 @@ $ euroeval --model <model-id> --dataset hellaswag-it
 
 ## Summarization
 
-### IlPost-sum
+### IlPost-Sum
 
 This dataset was published in [this paper](https://www.mdpi.com/2078-2489/13/5/228) and
 consists of news articles from [Il Post](https://www.ilpost.it/). The summaries were
