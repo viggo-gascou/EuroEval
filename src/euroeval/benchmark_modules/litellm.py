@@ -303,13 +303,19 @@ class LiteLLMModel(BenchmarkModule):
                     raise InvalidBenchmark(
                         f"Failed to generate text. The error message was: {e}"
                     )
-            except (APIConnectionError, APIError) as e:
+            except APIError as e:
                 raise InvalidBenchmark(
                     f"Failed to generate text. The error message was: {e}"
                 )
-            except (Timeout, ServiceUnavailableError, InternalServerError):
+            except (
+                APIConnectionError,
+                Timeout,
+                ServiceUnavailableError,
+                InternalServerError,
+            ) as e:
                 logger.debug(
-                    "Service temporarily unavailable. Retrying in 5 seconds..."
+                    f"Service temporarily unavailable. The error message was: {e}. "
+                    f"Retrying in 5 seconds..."
                 )
                 sleep(5)
             except AuthenticationError:
