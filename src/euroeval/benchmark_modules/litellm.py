@@ -273,7 +273,8 @@ class LiteLLMModel(BenchmarkModule):
             logprobs_messages = [
                 "you are not allowed to request logprobs",
                 "you've reached the maximum number of requests with logprobs",
-                "Logprobs is not supported",
+                "logprobs is not supported",
+                "logprobs is not enabled",
             ]
             temperature_messages = [
                 "'temperature' is not supported with this model.",

@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   in any case, as the models are very confident in their predictions.
 - Updated `litellm` to `>=1.63.0`, allowing better support for reasoning models.
 
+### Fixed
+- The Gemini-2.5-pro model uses different error messages than the other Gemini models,
+  which caused an error when evaluating it. This has been fixed now.
+
 
 ## [v15.4.2] - 2025-03-31
 ### Added
