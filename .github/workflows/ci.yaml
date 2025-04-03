@@ -43,7 +43,6 @@ jobs:
       - name: Install uv and set up Python
         uses: astral-sh/setup-uv@v4
         with:
-          enable-cache: true
           python-version: ${{ matrix.python-version }}
 
       - name: Install Dependencies
@@ -75,7 +74,6 @@ jobs:
       - name: Install uv and set up Python
         uses: astral-sh/setup-uv@v4
         with:
-          enable-cache: true
           python-version: ${{ matrix.python-version }}
 
       - name: Install Dependencies
@@ -91,6 +89,7 @@ jobs:
           HF_TOKEN: ${{ secrets.HUGGINGFACE_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Delete EuroEval cache
         run: rm -rf .euroeval_cache

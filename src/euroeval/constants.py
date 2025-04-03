@@ -7,6 +7,13 @@ from .tasks import NER
 DUMMY_FILL_VALUE = 100
 
 
+# This is the maximum allowed context length for models for the purpose of this
+# benchmark. We will still report the models' true maximum context length in the
+# metadata, but we won't use it for evaluation, as vLLM needs to allocate memory for
+# all tokens in the context.
+MAX_CONTEXT_LENGTH = 5_000
+
+
 # We need to raise the amount of tokens generated for reasoning models, to give them
 # time to think
 REASONING_MAX_TOKENS = 8_192
@@ -47,10 +54,13 @@ TASK_GROUPS_USING_LOGPROBS = [
 MAX_LOGPROBS = 10
 
 
-# We make sure to remove these metric attributed after each iteration, to avoid memory
+# We make sure to remove these metric attributes after each iteration, to avoid memory
 # leaks
 METRIC_ATTRIBUTES_TAKING_UP_MEMORY = ["cached_bertscorer"]
 
 
 # Hugging Face Hub tags used to classify models as merge models
 MERGE_TAGS = ["merge", "mergekit"]
+
+# The minimum required CUDA compute capability for using bfloat16 in vLLM
+VLLM_BF16_MIN_CUDA_COMPUTE_CAPABILITY = 8.0

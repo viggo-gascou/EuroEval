@@ -2,11 +2,11 @@
 
 import gc
 import importlib
+import importlib.metadata
 import importlib.util
 import logging
 import os
 import random
-import re
 import sys
 import typing as t
 import warnings
@@ -16,7 +16,6 @@ from types import TracebackType
 
 import litellm
 import numpy as np
-import pkg_resources
 import requests
 import torch
 from datasets.utils import disable_progress_bar
@@ -82,33 +81,6 @@ def enforce_reproducibility(seed: int = 4242) -> np.random.Generator:
     torch.backends.cudnn.deterministic = True
     torch.use_deterministic_algorithms(True, warn_only=True)
     return rng
-
-
-def is_module_installed(module: str) -> bool:
-    """Check if a module is installed.
-
-    This is used when dealing with spaCy models, as these are installed as separate
-    Python packages.
-
-    Args:
-        module:
-            The name of the module.
-
-    Returns:
-        Whether the module is installed or not.
-    """
-    # Get list of all modules, including their versions
-    installed_modules_with_versions = list(pkg_resources.working_set)
-
-    # Strip the module versions from the list of modules. Also make the modules lower
-    # case and replace dashes with underscores
-    installed_modules = [
-        re.sub("[0-9. ]", "", str(module)).lower().replace("-", "_")
-        for module in installed_modules_with_versions
-    ]
-
-    # Check if the module is installed by checking if the module name is in the list
-    return module.lower() in installed_modules
 
 
 def block_terminal_output() -> None:
@@ -204,6 +176,21 @@ def get_class_by_name(class_name: str | list[str], module_name: str) -> t.Type |
 
     # If the class could not be found, return None
     return None
+
+
+def get_min_cuda_compute_capability() -> float | None:
+    """Gets the lowest cuda capability.
+
+    Returns:
+        Device capability as float, or None if CUDA is not available.
+    """
+    if not torch.cuda.is_available():
+        return None
+
+    device_range = range(torch.cuda.device_count())
+    capabilities = map(torch.cuda.get_device_capability, device_range)
+    major, minor = min(capabilities)
+    return float(f"{major}.{minor}")
 
 
 def kebab_to_pascal(kebab_string: str) -> str:
@@ -575,47 +562,17 @@ def log_once(message: str, level: int = logging.INFO) -> None:
             raise ValueError(f"Invalid logging level: {level}")
 
 
-def get_labels_str(labels: list[str], language: str) -> str:
-    """Converts a list of labels to a natural string, in the specified language.
+def get_package_version(package_name: str) -> str | None:
+    """Get the version of a package.
 
     Args:
-        labels: The list of labels.
-        language: The language to be used when converting the labels.
+        package_name:
+            The name of the package.
 
     Returns:
-        str: The natural string representation of the labels in specified language. If
-        the language is not found, it defaults to English.
-
-    Example:
-        >>> print(get_labels_str(["a", "b", "c"]), "da")
-        "'a', 'b', 'c' eller 'd'"
+        The version of the package, or None if the package is not installed.
     """
-    LANG_TO_OR = {
-        "da": "eller",
-        "de": "oder",
-        "en": "or",
-        "es": "o",
-        "fo": "ella",
-        "fr": "ou",
-        "is": "eða",
-        "it": "o",
-        "nb": "eller",
-        "nl": "of",
-        "nn": "eller",
-        "no": "eller",
-        "sv": "eller",
-    }
-
-    or_word = LANG_TO_OR.get(language, "or")
-
-    # Convert labels to single-quoted labels.
-    quoted_labels = [f"'{label}'" for label in labels]
-
-    if not quoted_labels:
-        return ""
-    elif len(quoted_labels) == 1:
-        return quoted_labels[0]
-    elif len(quoted_labels) == 2:
-        return f"{quoted_labels[0]} {or_word} {quoted_labels[1]}"
-    else:
-        return f"{', '.join(quoted_labels[:-1])} {or_word} {quoted_labels[-1]}"
+    try:
+        return importlib.metadata.version(package_name)
+    except importlib.metadata.PackageNotFoundError:
+        return None

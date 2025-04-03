@@ -25,11 +25,13 @@ from urllib3.exceptions import RequestError
 
 from ..constants import (
     GENERATIVE_PIPELINE_TAGS,
+    MAX_CONTEXT_LENGTH,
     MAX_LOGPROBS,
     MERGE_TAGS,
     REASONING_MAX_TOKENS,
     TASK_GROUPS_USING_LOGPROBS,
     TASKS_USING_JSON,
+    VLLM_BF16_MIN_CUDA_COMPUTE_CAPABILITY,
 )
 from ..data_models import (
     BenchmarkConfig,
@@ -65,6 +67,7 @@ from ..utils import (
     get_bos_token,
     get_end_of_chat_token_ids,
     get_eos_token,
+    get_min_cuda_compute_capability,
     log_once,
     should_prompts_be_stripped,
 )
@@ -377,8 +380,10 @@ class VLLMModel(HuggingFaceEncoderModel):
         num_attempts = 3
         for _ in range(num_attempts):
             try:
-                raw_outputs = self._model.generate(
-                    prompts=prompts,
+                raw_outputs = self._model.chat(
+                    messages=[
+                        [dict(role="user", content=prompt)] for prompt in prompts
+                    ],
                     sampling_params=sampling_params,
                     use_tqdm=(not input_is_a_test),
                     lora_request=self.buffer.get("lora_request"),
@@ -900,6 +905,23 @@ def load_model_and_tokenizer(
         )
         dtype = torch.float16
 
+    if hf_model_config.torch_dtype == torch.bfloat16:
+        min_cuda_compute_capability = get_min_cuda_compute_capability()
+        required_capability = VLLM_BF16_MIN_CUDA_COMPUTE_CAPABILITY
+
+        if min_cuda_compute_capability is not None:
+            if min_cuda_compute_capability < required_capability:
+                logger.info(
+                    "You are loading a model with "
+                    f"dtype {hf_model_config.torch_dtype}, "
+                    "which vLLM only supports for CUDA devices with"
+                    f"CUDA compute capability >={required_capability}. "
+                    "You are using one or more devices with "
+                    f"compute capability {min_cuda_compute_capability}. "
+                    "Setting dtype to float16 instead."
+                )
+                dtype = torch.float16
+
     if model_config.adapter_base_model_id is not None:
         download_dir = str(Path(model_config.model_cache_dir) / "base_model")
     else:
@@ -921,7 +943,7 @@ def load_model_and_tokenizer(
     if len(true_max_model_len_candidates) > 0:
         true_max_model_len = min(true_max_model_len_candidates)
     else:
-        true_max_model_len = 5_000
+        true_max_model_len = MAX_CONTEXT_LENGTH
 
     clear_vllm()
 
@@ -932,7 +954,7 @@ def load_model_and_tokenizer(
             model=model_id,
             tokenizer=model_id,
             gpu_memory_utilization=0.95,
-            max_model_len=min(true_max_model_len, 5_000),
+            max_model_len=min(true_max_model_len, MAX_CONTEXT_LENGTH),
             download_dir=download_dir,
             trust_remote_code=benchmark_config.trust_remote_code,
             revision=revision,
@@ -1139,8 +1161,8 @@ def get_end_of_reasoning_token_id(
     # Generate a completion and remove the BOS token from it, to not confuse it with the
     # potential reasoning token
     completion = (
-        model.generate(
-            prompts=[prompt],
+        model.chat(
+            messages=[dict(role="user", content=prompt)],
             sampling_params=SamplingParams(max_tokens=3, temperature=0.0),
             use_tqdm=False,
         )[0]
