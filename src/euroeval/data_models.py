@@ -13,9 +13,8 @@ import torch
 from euroeval.utils import get_package_version
 
 from .enums import Device, InferenceBackend, ModelType, TaskGroup
-from .templates import TEMPLATES_DICT
+from .templates import LANG_TO_OR, TEMPLATES_DICT
 from .types import ScoreDict
-from .utils import get_labels_str
 
 
 @dataclass
@@ -367,6 +366,35 @@ class DatasetConfig:
         """Return a hash of the dataset configuration."""
         return hash(self.name)
 
+    def _get_labels_str(self, language: str) -> str:
+        """Converts the dataset labels to a natural string, in the specified language.
+
+        Args:
+            labels: The list of labels.
+            language: The language to be used when converting the labels.
+
+        Returns:
+            str: The natural string representation of the labels in specified language.
+            If the language is not found, it defaults to English.
+
+        Example:
+            >>> print(get_labels_str(["a", "b", "c"]), "da")
+            "'a', 'b', 'c' eller 'd'"
+        """
+        or_word = LANG_TO_OR.get(language, "or")
+
+        # Convert labels to single-quoted labels.
+        quoted_labels = [f"'{label}'" for label in self.labels]
+
+        if not quoted_labels:
+            return ""
+        elif len(quoted_labels) == 1:
+            return quoted_labels[0]
+        elif len(quoted_labels) == 2:
+            return f"{quoted_labels[0]} {or_word} {quoted_labels[1]}"
+        else:
+            return f"{', '.join(quoted_labels[:-1])} {or_word} {quoted_labels[-1]}"
+
     def __post_init__(self) -> None:
         """Post Initialisation setup of defaults."""
         # Skip setting defaults if the task is "speed" as it doesn't have any
@@ -378,7 +406,7 @@ class DatasetConfig:
             if not self.labels:
                 self.labels = template.labels
 
-            labels_str = get_labels_str(self.labels, main_language.code)
+            labels_str = self._get_labels_str(main_language.code)
 
             def replace_labels(text: str) -> str:
                 return text.replace("{labels_str}", labels_str)
