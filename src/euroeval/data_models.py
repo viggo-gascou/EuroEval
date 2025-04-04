@@ -11,7 +11,7 @@ import pydantic
 import torch
 
 from .enums import Device, InferenceBackend, ModelType, TaskGroup
-from .templates import LANG_TO_OR, TEMPLATES_DICT
+from .templates import LANG_TO_AND, LANG_TO_OR, TEMPLATES_DICT
 from .types import ScoreDict
 from .utils import get_package_version
 
@@ -366,10 +366,12 @@ class DatasetConfig:
         return hash(self.name)
 
     def _get_labels_str(self, language: str) -> str:
-        """Converts the dataset labels to a natural string, in the specified language.
+        """Converts a set of labels to a natural string, in the specified language.
+
+        If the task is NER, we separate using 'and' and use the mapped labels instead of
+        the BIO NER labels.
 
         Args:
-            labels: The list of labels.
             language: The language to be used when converting the labels.
 
         Returns:
@@ -380,19 +382,25 @@ class DatasetConfig:
             >>> print(get_labels_str(["a", "b", "c"]), "da")
             "'a', 'b', 'c' eller 'd'"
         """
-        or_word = LANG_TO_OR.get(language, "or")
-
-        # Convert labels to single-quoted labels.
-        quoted_labels = [f"'{label}'" for label in self.labels]
+        if self.task.name == "named-entity-recognition":
+            sep_word = LANG_TO_AND.get(language, "and")
+            # Create a list of the unique mapped labels with single-quotes.
+            quoted_labels = [
+                f"'{label}'" for label in set(self.prompt_label_mapping.values())
+            ]
+        else:
+            sep_word = LANG_TO_OR.get(language, "or")
+            # Convert labels to single-quoted labels.
+            quoted_labels = [f"'{label}'" for label in self.labels]
 
         if not quoted_labels:
             return ""
         elif len(quoted_labels) == 1:
             return quoted_labels[0]
         elif len(quoted_labels) == 2:
-            return f"{quoted_labels[0]} {or_word} {quoted_labels[1]}"
+            return f"{quoted_labels[0]} {sep_word} {quoted_labels[1]}"
         else:
-            return f"{', '.join(quoted_labels[:-1])} {or_word} {quoted_labels[-1]}"
+            return f"{', '.join(quoted_labels[:-1])} {sep_word} {quoted_labels[-1]}"
 
     def __post_init__(self) -> None:
         """Post Initialisation setup of defaults."""
@@ -404,24 +412,27 @@ class DatasetConfig:
 
             if not self.labels:
                 self.labels = template.labels
-
-            labels_str = self._get_labels_str(main_language.code)
-
-            def replace_labels(text: str) -> str:
-                return text.replace("{labels_str}", labels_str)
-
-            if not self.prompt_template:
-                self.prompt_template = replace_labels(template.prompt_template)
-            if not self.prompt_prefix:
-                self.prompt_prefix = replace_labels(template.prompt_prefix)
-            if not self.instruction_prompt:
-                self.instruction_prompt = replace_labels(template.instruction_prompt)
             if not self.prompt_label_mapping:
                 self.prompt_label_mapping = template.prompt_label_mapping
             if not self.max_generated_tokens:
                 self.max_generated_tokens = template.max_generated_tokens
             if not self.num_few_shot_examples:
                 self.num_few_shot_examples = template.num_few_shot_examples
+            if not self.prompt_template:
+                self.prompt_template = template.prompt_template
+            if not self.prompt_prefix:
+                self.prompt_prefix = template.prompt_prefix
+            if not self.instruction_prompt:
+                self.instruction_prompt = template.instruction_prompt
+
+            labels_str = self._get_labels_str(main_language.code)
+
+            def replace_labels(text: str) -> str:
+                return text.replace("{labels_str}", labels_str)
+
+            self.prompt_template = replace_labels(self.prompt_template)
+            self.prompt_prefix = replace_labels(self.prompt_template)
+            self.instruction_prompt = replace_labels(self.prompt_template)
 
 
 @dataclass

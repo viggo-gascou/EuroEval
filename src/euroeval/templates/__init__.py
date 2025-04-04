@@ -2,7 +2,7 @@
 
 from .base import PromptConfig
 from .common_sense import COMMON_SENSE_TEMPLATES
-from .constants import LANG_TO_OR
+from .constants import LANG_TO_AND, LANG_TO_OR
 from .knowledge import KNOW_TEMPLATES
 from .linguistic_acceptability import LA_TEMPLATES
 from .multiple_choice import MCRC_TEMPLATES
@@ -21,3 +21,5 @@ TEMPLATES_DICT = {
     "sentiment-classification": SENT_TEMPLATES,
     "summarization": SUMM_TEMPLATES,
 }
+
+__all__ = ["PromptConfig", "LANG_TO_AND", "LANG_TO_OR", "TEMPLATES_DICT"]

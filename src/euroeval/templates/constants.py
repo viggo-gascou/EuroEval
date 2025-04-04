@@ -159,3 +159,19 @@ LANG_TO_OR = {
     "no": "eller",
     "sv": "eller",
 }
+
+LANG_TO_AND = {
+    "da": "og",
+    "de": "und",
+    "en": "and",
+    "es": "y",
+    "fo": "og",
+    "fr": "et",
+    "is": "og",
+    "it": "e",
+    "nb": "og",
+    "nl": "en",
+    "nn": "og",
+    "no": "og",
+    "sv": "och",
+}
