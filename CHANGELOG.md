@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   "thinking" for Anthropic models, to enable thinking mode (supported for
   Claude-Sonnet-3.7+). These will appear in the leaderboards as
   `<model-id>@<parameter>`.
-- Added metadata for Google Gemini models.
+- Added metadata for Google Gemini and xAI Grok models.
 - Allows all vLLM versions from v0.8.0 again, as the issue with the generation output
   has been resolved. This was due to `LLM.generate` not working properly anymore -
   instead, we now use `LLM.chat` for vLLM models.
@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   which caused an error when evaluating it. This has been fixed now.
 - Now registers the Gemini-2.5-pro model series as reasoning models, as otherwise they
   did not generate any text as they were just generating reasoning tokens.
+- Previously, if there were multiple labels whose first tokens were identical and that
+  the (generative) model did not output the label as the first output token, we would
+  randomly choose one of the labels, resulting in an evaluation error. This is very
+  rare, but *does* happen for very particular (model, dataset) pairs. If we are in this
+  case, we now resort to choosing the label with closest word edit distance instead of
+  relying on logprobs of the first token.
 
 
 ## [v15.4.2] - 2025-03-31
