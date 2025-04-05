@@ -73,13 +73,14 @@ $ euroeval --model <model-id> --dataset hotter-and-colder-sentiment
 
 ### MIM-GOLD-NER
 
-This dataset was published in [this paper]() and is based on the [Tagged Icelandic
-Corpus (MIM)](https://clarin.is/en/resources/mim/), which consists of Icelandic books,
-news articles, periodicals, parliament speeches, legal texts, adjudications and
-government websites. It has been annotated with named entities in a semi-automated
-fashion, where each labels has been manually verified. The entity types in the dataset
-is a superset of the CoNLL-2003 tags, with the following additional labels: `DATE`,
-`TIME`, `MONEY`, `PERCENT`. These labels have been removed.
+This dataset was published in [this
+paper](https://repository.clarin.is/repository/xmlui/handle/20.500.12537/230) and is
+based on the [Tagged Icelandic Corpus (MIM)](https://clarin.is/en/resources/mim/), which
+consists of Icelandic books, news articles, periodicals, parliament speeches, legal
+texts, adjudications and government websites. It has been annotated with named entities
+in a semi-automated fashion, where each labels has been manually verified. The entity
+types in the dataset is a superset of the CoNLL-2003 tags, with the following additional
+labels: `DATE`, `TIME`, `MONEY`, `PERCENT`. These labels have been removed.
 
 The original full dataset consists of 1,000,000 tokens. We use a 1,024 / 256 / 2,048
 split for training, validation and testing, respectively.
