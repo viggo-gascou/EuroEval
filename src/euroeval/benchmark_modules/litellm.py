@@ -671,15 +671,13 @@ class LiteLLMModel(BenchmarkModule):
             Whether the model exists, or an error describing why we cannot check
             whether the model exists.
         """
-        model_id, revision = (
-            model_id.split("@") if "@" in model_id else (model_id, "main")
-        )
+        model_id, _ = model_id.split("@") if "@" in model_id else (model_id, "main")
         if model_id in litellm.model_list:
             return True
 
         # If it is an Ollama model then try to download it
         if model_id.startswith("ollama/") or model_id.startswith("ollama_chat/"):
-            ollama_model_id = model_id.split("/")[-1]
+            ollama_model_id = "/".join(model_id.split("/")[1:])
             downloaded_ollama_models: list[str] = [
                 model_obj.model
                 for model_obj in ollama.list().models

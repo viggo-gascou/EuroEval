@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   relying on logprobs of the first token.
 - Now defaults to BF16 if the model is registered as using FP32, assuming that BF16 is
   supported by the GPU.
+- Improved model existence pipeline for Ollama model IDs with multiple forward slashes
+  in the name, which caused some models to not be detected as existing.
 
 
 ## [v15.4.2] - 2025-03-31
