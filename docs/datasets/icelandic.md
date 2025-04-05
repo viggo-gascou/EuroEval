@@ -9,9 +9,9 @@ information about what these constitute.
 
 ### Hotter and Colder Sentiment
 
-This dataset is being published in an upcoming paper, and consists of texts from
-Icelandic blog post, annotated with sentiment labels (and many others) via a
-crowdsourcing platform.
+This dataset was published in [this paper](https://doi.org/10.48550/arXiv.2502.16987),
+and consists of texts from Icelandic blog post, annotated with sentiment labels (and
+many others) via a crowdsourcing platform.
 
 The original full dataset consists of 2,901 samples, and we use a 1,021 / 255 / 1,607
 split for training, validation and testing, respectively (so all samples are used in
