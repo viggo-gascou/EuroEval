@@ -188,6 +188,10 @@ class LiteLLMModel(BenchmarkModule):
             benchmark_config=benchmark_config,
         )
 
+        self.buffer["first_label_token_mapping"] = get_first_label_token_mapping(
+            dataset_config=self.dataset_config, tokenizer=None
+        )
+
     @property
     def generative_type(self) -> GenerativeType | None:
         """Get the generative type of the model.
@@ -345,6 +349,15 @@ class LiteLLMModel(BenchmarkModule):
             )
 
         assert isinstance(model_response, ModelResponse)
+        if not model_response.choices:
+            # This happens for reasoning models, when they don't finish thinking and run
+            # out of tokens. Happens quite rarely, but we need to handle it.
+            logger.warning(
+                f"The model {self.model_config.model_id!r} did not end up generating "
+                "any text. This is likely because the model ran out of tokens while "
+                "reasoning. Returning an empty string."
+            )
+            return GenerativeModelOutput(sequences=[""])
         model_response_choices = model_response.choices[0]
         assert isinstance(model_response_choices, litellm.Choices)
         generation_output = model_response_choices.message["content"] or ""
@@ -724,12 +737,29 @@ class LiteLLMModel(BenchmarkModule):
                     api_version=benchmark_config.api_version,
                 )
                 return True
+            except (
+                APIConnectionError,
+                Timeout,
+                ServiceUnavailableError,
+                InternalServerError,
+            ) as e:
+                logger.debug(
+                    f"Service temporarily unavailable. The error message was: {e}. "
+                    "Retrying in 10 seconds..."
+                )
+                sleep(5)
+            except RateLimitError:
+                logger.warning(
+                    f"Rate limit exceeded for model {model_id!r}. Retrying in 10 "
+                    "seconds..."
+                )
+                sleep(10)
             except APIError as e:
                 if "'503 Service Unavailable" not in str(e):
                     raise e
                 logger.warning(
-                    f"Failed to check if model {model_id!r} exists. Retrying in "
-                    f"{num_attempts} seconds..."
+                    f"Failed to check if model {model_id!r} exists. Retrying in 10 "
+                    "seconds..."
                 )
                 sleep(10)
             except (BadRequestError, NotFoundError):

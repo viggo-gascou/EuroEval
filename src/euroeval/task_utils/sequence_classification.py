@@ -213,8 +213,7 @@ def get_closest_logprobs_labels(
                     candidate_output_labels = {
                         candidate_label
                         for candidate_label in candidate_labels
-                        if generated_label
-                        in {candidate_label, first_label_token_mapping[candidate_label]}
+                        if generated_label == first_label_token_mapping[candidate_label]
                     }
                 else:
                     candidate_output_labels = {

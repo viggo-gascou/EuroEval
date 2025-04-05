@@ -140,7 +140,12 @@ class VLLMModel(HuggingFaceEncoderModel):
             benchmark_config=benchmark_config,
         )
 
-        self.buffer["instruction_model"] = self._tokenizer.chat_template is not None
+        self.buffer |= dict(
+            instruction_model=self._tokenizer.chat_template is not None,
+            first_label_token_mapping=get_first_label_token_mapping(
+                dataset_config=self.dataset_config, tokenizer=self._tokenizer
+            ),
+        )
         if self.model_config.adapter_base_model_id is not None:
             adapter_path = snapshot_download(
                 repo_id=self.model_config.model_id,
@@ -383,22 +388,12 @@ class VLLMModel(HuggingFaceEncoderModel):
         num_attempts = 3
         for _ in range(num_attempts):
             try:
-                if self.buffer.get("instruction_model", False):
-                    raw_outputs = self._model.chat(
-                        messages=[
-                            [dict(role="user", content=prompt)] for prompt in prompts
-                        ],
-                        sampling_params=sampling_params,
-                        use_tqdm=(not input_is_a_test),
-                        lora_request=self.buffer.get("lora_request"),
-                    )
-                else:
-                    raw_outputs = self._model.generate(
-                        prompts=prompts,
-                        sampling_params=sampling_params,
-                        use_tqdm=(not input_is_a_test),
-                        lora_request=self.buffer.get("lora_request"),
-                    )
+                raw_outputs = self._model.generate(
+                    prompts=prompts,
+                    sampling_params=sampling_params,
+                    use_tqdm=(not input_is_a_test),
+                    lora_request=self.buffer.get("lora_request"),
+                )
                 break
             except TypeError as e:
                 logger.debug(
@@ -1189,18 +1184,11 @@ def get_end_of_reasoning_token_id(
 
     # Generate a completion and remove the BOS token from it, to not confuse it with the
     # potential reasoning token
-    if tokenizer.chat_template is not None:
-        model_output = model.chat(
-            messages=[dict(role="user", content=prompt)],
-            sampling_params=SamplingParams(max_tokens=3, temperature=0.0),
-            use_tqdm=False,
-        )
-    else:
-        model_output = model.generate(
-            prompts=[prompt],
-            sampling_params=SamplingParams(max_tokens=3, temperature=0.0),
-            use_tqdm=False,
-        )
+    model_output = model.generate(
+        prompts=[prompt],
+        sampling_params=SamplingParams(max_tokens=3, temperature=0.0),
+        use_tqdm=False,
+    )
     completion = model_output[0].outputs[0].text
 
     if tokenizer.bos_token is not None:
