@@ -379,7 +379,7 @@ class LiteLLMModel(BenchmarkModule):
         # If it is an Ollama model then we can get the number of parameters from the
         # Ollama Python SDK
         if self.is_ollama:
-            ollama_model_id = self.model_config.model_id.split("/")[-1]
+            ollama_model_id = "/".join(self.model_config.model_id.split("/")[1:])
             model_info = ollama.show(ollama_model_id).modelinfo
             if model_info is not None:
                 num_params = model_info.get("general.parameter_count")
@@ -507,7 +507,7 @@ class LiteLLMModel(BenchmarkModule):
         # If it is an Ollama model then we can get the maximum length from the Ollama
         # Python SDK
         if self.is_ollama:
-            ollama_model_id = self.model_config.model_id.split("/")[-1]
+            ollama_model_id = "/".join(self.model_config.model_id.split("/")[1:])
             model_info = ollama.show(ollama_model_id).modelinfo
             if model_info is not None:
                 context_length_keys = [
