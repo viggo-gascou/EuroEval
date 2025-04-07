@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.5.0] - 2025-04-07
 ### Added
 - Now allows supplying a parameter to API models, which is done by using
   `<model-id>@<parameter>` as the model ID (only a single parameter is supported). The
