@@ -1,6 +1,6 @@
 [project]
 name = "EuroEval"
-version = "15.5.0"
+version = "15.5.0.dev"
 description = "The robust European language model benchmark."
 readme = "README.md"
 authors = [
@@ -83,7 +83,7 @@ dev-dependencies = [
     "readme-coverage-badger>=0.1.2",
     "click>=8.1.7",
     "ruff>=0.7.1",
-    "mypy>=1.13.0",
+    "mypy>=1.15.0",
     "nbstripout>=0.7.1",
     "coverage>=5.5",
     "lxml>=5.1.0",
@@ -106,6 +106,7 @@ dev-dependencies = [
     "types-tabulate>=0.9.0.20241207",
     "types-setuptools>=75.8.0.20250110",
     "types-ujson>=5.10.0.20240515",
+    "types-simplejson>=3.2.0.2025032",
 ]
 
 [tool.ruff]
