@@ -1177,6 +1177,14 @@ def align_model_and_tokenizer(
             except IndexError:
                 continue
 
+            except ValueError as e:
+                # This happens when the model is using Triton, such as with ModernBERT,
+                # which doesn't work with CPU tensors at all
+                if "cpu tensor" in str(e):
+                    break
+                else:
+                    raise e
+
     # Move the model back to the original device
     model.to(model_device)  # type: ignore[arg-type]
 

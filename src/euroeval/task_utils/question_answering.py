@@ -115,14 +115,14 @@ class QuestionAnsweringTrainer(Trainer):
             self.compute_metrics = compute_metrics
 
         predictions = output.predictions
-        assert isinstance(predictions, np.ndarray)
+        assert isinstance(predictions, tuple)
 
         metrics = output.metrics
         assert metrics is not None
 
         if orig_eval_dataset is not None:
             preds_and_labels = postprocess_predictions_and_labels(
-                predictions=predictions.tolist(),
+                predictions=predictions,  # type: ignore[arg-type]
                 dataset=orig_eval_dataset,
                 prepared_dataset=eval_dataset,
                 cls_token_index=self.cls_token_id,
@@ -479,7 +479,7 @@ def prepare_test_examples(
 
 
 def postprocess_predictions_and_labels(
-    predictions: list,
+    predictions: tuple[np.ndarray, np.ndarray],
     dataset: "Dataset",
     prepared_dataset: "Dataset",
     cls_token_index: int,
@@ -499,9 +499,7 @@ def postprocess_predictions_and_labels(
     Returns:
         The postprocessed predictions and labels.
     """
-    # Extract the logits from the predictions
-    all_start_logits = predictions[0]
-    all_end_logits = predictions[1]
+    all_start_logits, all_end_logits = predictions
 
     # Build a map from an example to its corresponding features, being the blocks of
     # text from the context that we're feeding into the model. An example can have
@@ -514,7 +512,7 @@ def postprocess_predictions_and_labels(
         features_per_example[example_index].append(i)
 
     # Loop over all the examples
-    predictions = list()
+    prediction_list: list[dict[str, t.Any]] = list()
     labels = list()
     for example_index, example in enumerate(dataset):
         # Extract the best valid answer associated with the current example
@@ -537,7 +535,7 @@ def postprocess_predictions_and_labels(
         )
 
         # Add the answer to the list of predictions
-        predictions.append(prediction)
+        prediction_list.append(prediction)
 
         # Create the associated reference dictionary, to be added to the list of
         # references
@@ -552,7 +550,7 @@ def postprocess_predictions_and_labels(
         # Add the answer and label to the list of predictions and labels, respectively
         labels.append(label)
 
-    return predictions, labels
+    return prediction_list, labels
 
 
 def find_best_answer(

@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Avoid duplicate error messages when a rate limit occurs.
+- ModernBERT models cannot be used on a CPU, which caused an error in our check for
+  maximal context length. In this case we simply skip this check and use the reported
+  maximal context length as-is.
+- Fixed issue with benchmarking multiple generative models in the same evaluation
+  command. This was caused by vLLM and Ray not being able to release GPU memory
+  properly, but this seems to be released properly now.
 
 
 ## [v15.5.0] - 2025-04-07
