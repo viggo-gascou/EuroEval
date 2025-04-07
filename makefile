@@ -127,8 +127,7 @@ publish:
 		echo "No PyPI API token specified in the '.env' file, so cannot publish."; \
 	else \
 		echo "Publishing to PyPI..."; \
-		$(MAKE) --quiet check \
-			&& $(MAKE) --quiet publish-euroeval \
+		$(MAKE) --quiet publish-euroeval \
 			&& $(MAKE) --quiet publish-scandeval \
 			&& $(MAKE) --quiet publish-docs \
 			&& $(MAKE) --quiet add-dev-version \
@@ -157,8 +156,8 @@ publish-scandeval:
 	fi
 	@mv src/scandeval src/euroeval
 
-publish-major: bump-major publish  ## Publish a major version
+publish-major: install check bump-major publish  ## Publish a major version
 
-publish-minor: bump-minor publish  ## Publish a minor version
+publish-minor: install check bump-minor publish  ## Publish a minor version
 
-publish-patch: bump-patch publish  ## Publish a patch version
+publish-patch: install check bump-patch publish  ## Publish a patch version
