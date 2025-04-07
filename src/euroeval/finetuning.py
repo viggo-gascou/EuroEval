@@ -7,14 +7,13 @@ import typing as t
 import torch
 from datasets import DatasetDict
 from tqdm.auto import tqdm
-from transformers import (
+from transformers.trainer_callback import (
     EarlyStoppingCallback,
-    IntervalStrategy,
     PrinterCallback,
     ProgressCallback,
-    TrainingArguments,
 )
-from transformers.trainer import OptimizerNames
+from transformers.trainer_utils import IntervalStrategy
+from transformers.training_args import OptimizerNames, TrainingArguments
 
 from .benchmark_modules import BenchmarkModule
 from .callbacks import NeverLeaveProgressCallback
@@ -212,7 +211,7 @@ def finetune_single_iteration(
 
     if not benchmark_config.verbose:
 
-        def no_logging(logs: dict[str, float]) -> None:
+        def no_logging(logs: dict[str, float], start_time: float | None = None) -> None:
             return
 
         trainer.log = no_logging
@@ -292,7 +291,7 @@ def get_training_args(
 
     training_args = TrainingArguments(
         output_dir=model_config.model_cache_dir,
-        evaluation_strategy=IntervalStrategy.STEPS,
+        eval_strategy=IntervalStrategy.STEPS,
         logging_strategy=logging_strategy,
         save_strategy=IntervalStrategy.STEPS,
         eval_steps=30,
