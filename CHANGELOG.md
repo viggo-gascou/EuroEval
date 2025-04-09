@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Added
+- We now support specifying custom inference providers when benchmarking via the Hugging
+  Face inference APIs. This can be done by specifying the model as
+  `huggingface/<inference-provider>/<organisation>/<model>`, as described in [these
+  LiteLLM docs](https://docs.litellm.ai/docs/providers/huggingface).
+
 ### Changed
 - Updated `transformers` to `>=4.51.0`, which includes support for Llama-4, Phi-4,
   Deepseek-v3 and Qwen3. This also includes the `image-text-to-text` pipeline tag
