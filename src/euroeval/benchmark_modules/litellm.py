@@ -411,7 +411,7 @@ class LiteLLMModel(BenchmarkModule):
         # get the number of parameters from the Hugging Face model configuration from
         # the Hugging Face Hub
         if self.model_config.model_id.startswith("huggingface/"):
-            model_id = self.model_config.model_id.split(sep="/", maxsplit=1)[-1]
+            model_id = "/".join(self.model_config.model_id.split(sep="/")[-2:])
             if HuggingFaceEncoderModel.model_exists(
                 model_id=model_id, benchmark_config=self.benchmark_config
             ):
@@ -475,7 +475,7 @@ class LiteLLMModel(BenchmarkModule):
         # get the vocabulary size from the Hugging Face model configuration from the
         # Hugging Face Hub
         if self.model_config.model_id.startswith("huggingface/"):
-            model_id = self.model_config.model_id.split(sep="/", maxsplit=1)[-1]
+            model_id = "/".join(self.model_config.model_id.split(sep="/")[-2:])
             if HuggingFaceEncoderModel.model_exists(
                 model_id=model_id, benchmark_config=self.benchmark_config
             ):
@@ -555,7 +555,7 @@ class LiteLLMModel(BenchmarkModule):
         # get the maximum length from the Hugging Face model configuration from the
         # Hugging Face Hub
         if self.model_config.model_id.startswith("huggingface/"):
-            model_id = self.model_config.model_id.split(sep="/", maxsplit=1)[-1]
+            model_id = "/".join(self.model_config.model_id.split(sep="/")[-2:])
             if HuggingFaceEncoderModel.model_exists(
                 model_id=model_id, benchmark_config=self.benchmark_config
             ):
