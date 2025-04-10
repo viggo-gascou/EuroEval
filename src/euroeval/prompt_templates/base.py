@@ -1,6 +1,9 @@
 """Base classes for task-specific prompting across languages."""
 
+import logging
 from dataclasses import dataclass, field
+
+from ..utils import log_once
 
 
 @dataclass
@@ -35,6 +38,11 @@ class BasePromptConfig:
         if isinstance(self.prompt_label_mapping, str):
             if self.prompt_label_mapping == "auto":
                 self.prompt_label_mapping = {label: label for label in self.labels}
+                log_once(
+                    f"Using the prompt label mapping '{self.prompt_label_mapping}' "
+                    "because prompt_label_mapping was set to 'auto'.",
+                    level=logging.DEBUG,
+                )
             else:
                 raise ValueError(
                     f"Invalid value '{self.prompt_label_mapping}' "
@@ -51,10 +59,10 @@ class PromptConfig:
 
     Attributes:
         labels:
-            The labels in the dataset. Defaults to an empty list.
+            The labels in the dataset.
         prompt_label_mapping:
             A mapping from the labels to another phrase which is used as a substitute
-            for the label in few-shot evaluation. Defaults to an empty dictionary.
+            for the label in few-shot evaluation.
         num_few_shot_examples:
             The number of examples to use when benchmarking the dataset using few-shot
             evaluation. For a classification task, these will be drawn evenly from
@@ -72,9 +80,8 @@ class PromptConfig:
             evaluation.
         prompt_label_mapping (optional):
             A mapping from the labels to another phrase which is used as a substitute
-            for the label in few-shot evaluation. Defaults to an empty dictionary. If
-            set to "auto", the mapping will be set to a 1:1 mapping between the labels
-            and themselves.
+            for the label in few-shot evaluation. If set to "auto", the mapping will be
+            set to a 1:1 mapping between the labels and themselves.
     """
 
     labels: list[str]

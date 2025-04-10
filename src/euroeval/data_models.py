@@ -11,7 +11,7 @@ import pydantic
 import torch
 
 from .enums import Device, InferenceBackend, ModelType, TaskGroup
-from .templates import LANG_TO_AND, LANG_TO_OR, TEMPLATES_DICT
+from .prompt_templates import get_prompt_templates
 from .types import ScoreDict
 from .utils import get_package_version
 
@@ -67,10 +67,34 @@ class Language:
 
     code: str
     name: str
+    and_separator: str | None = field(default=None)
+    or_separator: str | None = field(default=None)
 
     def __hash__(self) -> int:
         """Return a hash of the language."""
         return hash(self.code)
+
+    def get_and_separator(self) -> str:
+        """Get the word 'and' in the language.
+
+        if `and_separator` is `None` it raises NotImplementedError.
+        """
+        if not self.and_separator:
+            raise NotImplementedError(
+                f"Separator for the word 'and' has not been defined for {self.name}."
+            )
+        return self.and_separator
+
+    def get_or_separator(self) -> str:
+        """Get the word 'or' in the language.
+
+        if `or_separator` is `None` it raises NotImplementedError.
+        """
+        if not self.or_separator:
+            raise NotImplementedError(
+                f"Separator for the word 'or' has not been defined for {self.name}."
+            )
+        return self.or_separator
 
 
 @dataclass
@@ -365,7 +389,7 @@ class DatasetConfig:
         """Return a hash of the dataset configuration."""
         return hash(self.name)
 
-    def _get_labels_str(self, language: str) -> str:
+    def _get_labels_str(self, language: Language) -> str:
         """Converts a set of labels to a natural string, in the specified language.
 
         If the task is NER, we separate using 'and' and use the mapped labels instead of
@@ -375,23 +399,22 @@ class DatasetConfig:
             language: The language to be used when converting the labels.
 
         Returns:
-            str: The natural string representation of the labels in specified language.
-            If the language is not found, it defaults to English.
+            The natural string representation of the labels in specified language.
+            If the language is not set, it raises a NotImplementedError, see `Language`.
 
         Example:
-            >>> print(get_labels_str(["a", "b", "c"]), "da")
+            >>> get_labels_str(["a", "b", "c"], DA)
             "'a', 'b', 'c' eller 'd'"
         """
-        if self.task.name == "named-entity-recognition":
-            sep_word = LANG_TO_AND.get(language, "and")
-            # Create a list of the unique mapped labels with single-quotes.
-            quoted_labels = [
-                f"'{label}'" for label in set(self.prompt_label_mapping.values())
-            ]
+        if self.task.task_group == TaskGroup.TOKEN_CLASSIFICATION:
+            sep_word = language.get_and_separator()
         else:
-            sep_word = LANG_TO_OR.get(language, "or")
-            # Convert labels to single-quoted labels.
-            quoted_labels = [f"'{label}'" for label in self.labels]
+            sep_word = language.get_or_separator()
+
+        # Convert labels to single-quoted labels - and remove duplicates
+        quoted_labels = [
+            f"'{label}'" for label in set(self.prompt_label_mapping.values())
+        ]
 
         if not quoted_labels:
             return ""
@@ -403,12 +426,12 @@ class DatasetConfig:
             return f"{', '.join(quoted_labels[:-1])} {sep_word} {quoted_labels[-1]}"
 
     def __post_init__(self) -> None:
-        """Post Initialisation setup of defaults."""
-        # Skip setting defaults if the task is "speed" as it doesn't have any
-        if self.task.name != "speed":
+        """Post initialisation setup of defaults."""
+        # Skip setting defaults if the task is "speed" as it doesn't have any defaults
+        if self.task.task_group != TaskGroup.SPEED:
             # TODO: should we just use the first language in the list?
             main_language = self.languages[0]
-            template = TEMPLATES_DICT[self.task.name][main_language.code]
+            template = get_prompt_templates(task=self.task, language=main_language)
 
             if not self.labels:
                 self.labels = template.labels
@@ -425,14 +448,15 @@ class DatasetConfig:
             if not self.instruction_prompt:
                 self.instruction_prompt = template.instruction_prompt
 
-            labels_str = self._get_labels_str(main_language.code)
+            labels_str = self._get_labels_str(language=main_language)
 
             def replace_labels(text: str) -> str:
+                """Replace '{labels_str}' in the text with the actual labels."""
                 return text.replace("{labels_str}", labels_str)
 
-            self.prompt_template = replace_labels(self.prompt_template)
-            self.prompt_prefix = replace_labels(self.prompt_template)
-            self.instruction_prompt = replace_labels(self.prompt_template)
+            self.prompt_template = replace_labels(text=self.prompt_template)
+            self.prompt_prefix = replace_labels(text=self.prompt_prefix)
+            self.instruction_prompt = replace_labels(text=self.instruction_prompt)
 
 
 @dataclass
