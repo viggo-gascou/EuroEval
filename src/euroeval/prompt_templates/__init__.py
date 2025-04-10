@@ -19,6 +19,7 @@ if t.TYPE_CHECKING:
 
 def get_prompt_templates(task: "Task", language: "Language") -> PromptConfig:
     """Get template for a given task and language."""
+    # Using a getter to avoid error with circular imports
     from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
     templates_dict = {

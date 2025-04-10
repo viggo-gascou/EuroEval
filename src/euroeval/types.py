@@ -7,7 +7,7 @@ from transformers.trainer_utils import EvalPrediction
 
 if t.TYPE_CHECKING:
     from .data_models import GenerativeModelOutput, Language
-    from .templates import PromptConfig
+    from .prompt_templates import PromptConfig
 
 
 ScoreDict: t.TypeAlias = dict[str, dict[str, float] | list[dict[str, float]]]
