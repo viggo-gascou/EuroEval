@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   bound for xAI models.
 - When benchmarking Ollama models, if the model is not found, we now also check if the
   model exists if prefixed with 'hf.co/'.
+- Uniformised the prompt templates used for each task, so that they are more
+  consistent across tasks. Evaluation tests across different model types and sizes show
+  no significant performance difference between the new and old templates. This was
+  contributed by [@viggo-gascou](https://github.com/viggo-gascou) ✨
 
 ### Fixed
 - Avoid duplicate error messages when a rate limit occurs.
