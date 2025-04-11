@@ -11,6 +11,7 @@ import pydantic
 import torch
 
 from .enums import Device, InferenceBackend, ModelType, TaskGroup
+from .prompt_templates import get_prompt_templates
 from .types import ScoreDict
 from .utils import get_package_version
 
@@ -54,6 +55,73 @@ class MetricConfig:
 
 
 @dataclass
+class Language:
+    """A benchmarkable language.
+
+    Attributes:
+        code:
+            The ISO 639-1 language code of the language.
+        name:
+            The name of the language.
+        and_separator (optional):
+            The word 'and' in the language.
+        or_separator (optional):
+            The word 'or' in the language.
+    """
+
+    code: str
+    name: str
+    _and_separator: str | None = field(repr=False, default=None)
+    _or_separator: str | None = field(repr=False, default=None)
+
+    def __hash__(self) -> int:
+        """Return a hash of the language."""
+        return hash(self.code)
+
+    @property
+    def and_separator(self) -> str:
+        """Get the word 'and' in the language.
+
+        Returns:
+            The word 'and' in the language.
+
+        Raises:
+            NotImplementedError:
+                If `and_separator` is `None`.
+        """
+        if not self._and_separator:
+            raise NotImplementedError(
+                f"Separator for the word 'and' has not been defined for {self.name}."
+            )
+        return self._and_separator
+
+    @and_separator.setter
+    def and_separator(self, value: str | None) -> None:
+        self._and_separator = value
+
+    @property
+    def or_separator(self) -> str:
+        """Get the word 'or' in the language.
+
+        Returns:
+            The word 'or' in the language.
+
+        Raises:
+            NotImplementedError:
+                If `or_separator` is `None`.
+        """
+        if not self._or_separator:
+            raise NotImplementedError(
+                f"Separator for the word 'or' has not been defined for {self.name}."
+            )
+        return self._or_separator
+
+    @or_separator.setter
+    def or_separator(self, value: str | None) -> None:
+        self._or_separator = value
+
+
+@dataclass
 class Task:
     """A dataset task.
 
@@ -73,25 +141,6 @@ class Task:
     def __hash__(self) -> int:
         """Return a hash of the task."""
         return hash(self.name)
-
-
-@dataclass
-class Language:
-    """A benchmarkable language.
-
-    Attributes:
-        code:
-            The ISO 639-1 language code of the language.
-        name:
-            The name of the language.
-    """
-
-    code: str
-    name: str
-
-    def __hash__(self) -> int:
-        """Return a hash of the language."""
-        return hash(self.code)
 
 
 @dataclass
@@ -303,26 +352,30 @@ class DatasetConfig:
             The mapping from label to ID.
         num_labels:
             The number of labels in the dataset.
-        prompt_template:
+        prompt_template (optional):
             The template for the prompt to use when benchmarking the dataset using
-            few-shot evaluation.
-        max_generated_tokens:
+            few-shot evaluation. Defaults to the template for the task and language.
+        max_generated_tokens (optional):
             The maximum number of tokens to generate when benchmarking the dataset
-            using few-shot evaluation.
-        prompt_prefix:
-            The prefix to use in the few-shot prompt.
-        num_few_shot_examples:
+            using few-shot evaluation. Defaults to the template for the task and
+            language.
+        prompt_prefix (optional):
+            The prefix to use in the few-shot prompt. Defaults to the template for the
+            task and language.
+        num_few_shot_examples (optional):
             The number of examples to use when benchmarking the dataset using few-shot
             evaluation. For a classification task, these will be drawn evenly from
-            each label.
-        instruction_prompt:
+            each label. Defaults to the template for the task and language.
+        instruction_prompt (optional):
             The prompt to use when benchmarking the dataset using instruction-based
-            evaluation.
+            evaluation. Defaults to the template for the task and language.
         labels (optional):
-            The labels in the dataset. Defaults to an empty list.
+            The labels in the dataset. Defaults to the template for the task and
+            language.
         prompt_label_mapping (optional):
             A mapping from the labels to another phrase which is used as a substitute
-            for the label in few-shot evaluation. Defaults to an empty dictionary.
+            for the label in few-shot evaluation. Defaults to the template for the task
+            and language.
         unofficial (optional):
             Whether the dataset is unofficial. Defaults to False.
     """
@@ -332,11 +385,11 @@ class DatasetConfig:
     huggingface_id: str
     task: Task
     languages: list[Language]
-    prompt_template: str
-    max_generated_tokens: int
-    prompt_prefix: str
-    num_few_shot_examples: int
-    instruction_prompt: str
+    prompt_template: str = field(default="")
+    max_generated_tokens: int = field(default=0)
+    prompt_prefix: str = field(default="")
+    num_few_shot_examples: int = field(default=0)
+    instruction_prompt: str = field(default="")
     labels: list[str] = field(default_factory=list)
     prompt_label_mapping: dict[str, str] = field(default_factory=dict)
     unofficial: bool = False
@@ -359,6 +412,78 @@ class DatasetConfig:
     def __hash__(self) -> int:
         """Return a hash of the dataset configuration."""
         return hash(self.name)
+
+    def _get_labels_str(self, language: Language) -> str:
+        """Converts a set of labels to a natural string, in the specified language.
+
+        If the task is NER, we separate using 'and' and use the mapped labels instead of
+        the BIO NER labels.
+
+        Args:
+            language: The language to be used when converting the labels.
+
+        Returns:
+            The natural string representation of the labels in specified language.
+
+        Raises:
+            NotImplementedError:
+                If `and_separator` or `or_separator` are `None`, see `Language`.
+
+        Example:
+            >>> get_labels_str(language=DA)
+            "'a', 'b', 'c' eller 'd'"
+        """
+        if self.task.task_group == TaskGroup.TOKEN_CLASSIFICATION:
+            sep_word = language.and_separator
+        else:
+            sep_word = language.or_separator
+
+        # Convert labels to single-quoted labels - and remove duplicates
+        quoted_labels = [
+            f"'{label}'" for label in set(self.prompt_label_mapping.values())
+        ]
+
+        if not quoted_labels:
+            return ""
+        elif len(quoted_labels) == 1:
+            return quoted_labels[0]
+        elif len(quoted_labels) == 2:
+            return f"{quoted_labels[0]} {sep_word} {quoted_labels[1]}"
+        else:
+            return f"{', '.join(quoted_labels[:-1])} {sep_word} {quoted_labels[-1]}"
+
+    def __post_init__(self) -> None:
+        """Post initialisation setup of defaults."""
+        # Skip setting defaults if the task is "speed" as it doesn't have any defaults
+        if self.task.task_group != TaskGroup.SPEED:
+            # TODO: should we just use the first language in the list?
+            main_language = self.languages[0]
+            template = get_prompt_templates(task=self.task, language=main_language)
+
+            if not self.labels:
+                self.labels = template.labels
+            if not self.prompt_label_mapping:
+                self.prompt_label_mapping = template.prompt_label_mapping
+            if not self.max_generated_tokens:
+                self.max_generated_tokens = template.max_generated_tokens
+            if not self.num_few_shot_examples:
+                self.num_few_shot_examples = template.num_few_shot_examples
+            if not self.prompt_template:
+                self.prompt_template = template.prompt_template
+            if not self.prompt_prefix:
+                self.prompt_prefix = template.prompt_prefix
+            if not self.instruction_prompt:
+                self.instruction_prompt = template.instruction_prompt
+
+            labels_str = self._get_labels_str(language=main_language)
+
+            def replace_labels(text: str) -> str:
+                """Replace '{labels_str}' in the text with the actual labels."""
+                return text.replace("{labels_str}", labels_str)
+
+            self.prompt_template = replace_labels(text=self.prompt_template)
+            self.prompt_prefix = replace_labels(text=self.prompt_prefix)
+            self.instruction_prompt = replace_labels(text=self.instruction_prompt)
 
 
 @dataclass
