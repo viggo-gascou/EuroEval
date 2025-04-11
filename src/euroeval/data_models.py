@@ -63,38 +63,62 @@ class Language:
             The ISO 639-1 language code of the language.
         name:
             The name of the language.
+        and_separator (optional):
+            The word 'and' in the language.
+        or_separator (optional):
+            The word 'or' in the language.
     """
 
     code: str
     name: str
-    and_separator: str | None = field(default=None)
-    or_separator: str | None = field(default=None)
+    _and_separator: str | None = field(repr=False, default=None)
+    _or_separator: str | None = field(repr=False, default=None)
 
     def __hash__(self) -> int:
         """Return a hash of the language."""
         return hash(self.code)
 
-    def get_and_separator(self) -> str:
+    @property
+    def and_separator(self) -> str:
         """Get the word 'and' in the language.
 
-        if `and_separator` is `None` it raises NotImplementedError.
+        Returns:
+            The word 'and' in the language.
+
+        Raises:
+            NotImplementedError:
+                If `and_separator` is `None`.
         """
-        if not self.and_separator:
+        if not self._and_separator:
             raise NotImplementedError(
                 f"Separator for the word 'and' has not been defined for {self.name}."
             )
-        return self.and_separator
+        return self._and_separator
 
-    def get_or_separator(self) -> str:
+    @and_separator.setter
+    def and_separator(self, value: str | None) -> None:
+        self._and_separator = value
+
+    @property
+    def or_separator(self) -> str:
         """Get the word 'or' in the language.
 
-        if `or_separator` is `None` it raises NotImplementedError.
+        Returns:
+            The word 'or' in the language.
+
+        Raises:
+            NotImplementedError:
+                If `or_separator` is `None`.
         """
-        if not self.or_separator:
+        if not self._or_separator:
             raise NotImplementedError(
                 f"Separator for the word 'or' has not been defined for {self.name}."
             )
-        return self.or_separator
+        return self._or_separator
+
+    @or_separator.setter
+    def or_separator(self, value: str | None) -> None:
+        self._or_separator = value
 
 
 @dataclass
@@ -400,16 +424,19 @@ class DatasetConfig:
 
         Returns:
             The natural string representation of the labels in specified language.
-            If the language is not set, it raises a NotImplementedError, see `Language`.
+
+        Raises:
+            NotImplementedError:
+                If `and_separator` or `or_separator` are `None`, see `Language`.
 
         Example:
-            >>> get_labels_str(["a", "b", "c"], DA)
+            >>> get_labels_str(language=DA)
             "'a', 'b', 'c' eller 'd'"
         """
         if self.task.task_group == TaskGroup.TOKEN_CLASSIFICATION:
-            sep_word = language.get_and_separator()
+            sep_word = language.and_separator
         else:
-            sep_word = language.get_or_separator()
+            sep_word = language.or_separator
 
         # Convert labels to single-quoted labels - and remove duplicates
         quoted_labels = [
