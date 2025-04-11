@@ -35,7 +35,7 @@ NN = Language(
 )
 ES = Language(code="es", name="Spanish", _and_separator="y", _or_separator="o")
 SV = Language(code="sv", name="Swedish", _and_separator="och", _or_separator="eller")
-### Currently Supported Languages ###
+
 
 AB = Language(code="ab", name="Abkhazian")
 AA = Language(code="aa", name="Afar")
