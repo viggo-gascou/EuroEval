@@ -7,7 +7,11 @@ from .base import BasePromptConfig, PromptConfig
 
 
 def get_linguistic_acceptability_templates() -> TemplateDict:
-    """Get the templates for the linguistic acceptability task."""
+    """Get the templates for the linguistic acceptability task.
+
+    Returns:
+        The templates for the linguistic acceptability task.
+    """
     # Using a getter to avoid error with circular imports
     from ..data_models import Language
     from ..languages import DA, DE, EN, ES, FO, FR, IS, IT, NB, NL, NN, NO, SV

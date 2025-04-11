@@ -7,7 +7,11 @@ from .base import BasePromptConfig, PromptConfig
 
 
 def get_ner_templates() -> TemplateDict:
-    """Get the templates for the named entity recognition task."""
+    """Get the templates for the named entity recognition task.
+
+    Returns:
+        The templates for the named entity recognition task.
+    """
     # Using a getter to avoid error with circular imports
     from ..data_models import Language
     from ..languages import DA, DE, EN, ES, FO, FR, IS, IT, NB, NL, NN, NO, SV

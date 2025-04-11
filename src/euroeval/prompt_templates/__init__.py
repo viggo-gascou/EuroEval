@@ -14,11 +14,18 @@ from .summarization import get_summarization_templates
 
 if t.TYPE_CHECKING:
     from ..data_models import Language, Task
-    from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
 
 def get_prompt_templates(task: "Task", language: "Language") -> PromptConfig:
-    """Get template for a given task and language."""
+    """Get template for a given task and language.
+
+    Args:
+        task: The task for which to get the template.
+        language: The language for which to get the template.
+
+    Returns:
+        The templates for the given task and language.
+    """
     # Using a getter to avoid error with circular imports
     from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 

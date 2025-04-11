@@ -7,7 +7,11 @@ from .base import BasePromptConfig, PromptConfig
 
 
 def get_common_sense_templates() -> TemplateDict:
-    """Get the templates for common sense reasoning task."""
+    """Get the templates for common sense reasoning task.
+
+    Returns:
+        A `TemplateDict` containing the templates for common sense reasoning task.
+    """
     # Using a getter to avoid error with circular imports
     from ..languages import DA, DE, EN, ES, FO, FR, IS, IT, NB, NL, NN, NO, SV
 

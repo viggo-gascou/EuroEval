@@ -7,7 +7,11 @@ from .base import BasePromptConfig, PromptConfig
 
 
 def get_sentiment_templates() -> TemplateDict:
-    """Get the templates for the sentiment analysis task."""
+    """Get the templates for the sentiment analysis task.
+
+    Returns:
+        The templates for the sentiment analysis task.
+    """
     # Using a getter to avoid error with circular imports
     from ..data_models import Language
     from ..languages import DA, DE, EN, ES, FO, FR, IS, IT, NB, NL, NN, NO, SV

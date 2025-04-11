@@ -7,7 +7,11 @@ from .base import BasePromptConfig, PromptConfig
 
 
 def get_summarization_templates() -> TemplateDict:
-    """Get the templates for the summarization task."""
+    """Get the templates for the summarization task.
+
+    Returns:
+        The templates for the summarization task.
+    """
     # Using a getter to avoid error with circular imports
     from ..languages import DA, DE, EN, ES, FO, FR, IS, IT, NB, NL, NN, NO, SV
 

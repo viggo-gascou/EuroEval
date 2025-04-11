@@ -7,7 +7,11 @@ from .base import BasePromptConfig, PromptConfig
 
 
 def get_multiple_choice_templates() -> TemplateDict:
-    """Get the templates for the multiple choice reasoning task."""
+    """Get the templates for the multiple choice reasoning task.
+
+    Returns:
+        The templates for the multiple choice reasoning task.
+    """
     # Using a getter to avoid error with circular imports
     from ..languages import DA, DE, EN, ES, FO, FR, IS, IT, NB, NL, NN, NO, SV
 

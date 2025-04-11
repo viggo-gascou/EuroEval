@@ -7,7 +7,11 @@ from .base import BasePromptConfig, PromptConfig
 
 
 def get_reading_comprehension_templates() -> TemplateDict:
-    """Get the templates for the reading comprehension task."""
+    """Get the templates for the reading comprehension task.
+
+    Returns:
+        The templates for the reading comprehension task.
+    """
     # Using a getter to avoid error with circular imports
     from ..languages import DA, DE, EN, ES, FO, FR, IS, IT, NB, NL, NN, NO, SV
 
