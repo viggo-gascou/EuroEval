@@ -29,7 +29,6 @@ CONLL_ES_CONFIG = DatasetConfig(
     huggingface_id="EuroEval/conll-es-mini",
     task=NER,
     languages=[ES],
-    unofficial=True,
 )
 
 MLQA_ES_CONFIG = DatasetConfig(
