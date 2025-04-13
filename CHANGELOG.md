@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.6.0] - 2025-04-13
 ### Added
 - We now support specifying custom inference providers when benchmarking via the Hugging
   Face inference APIs. This can be done by specifying the model as
