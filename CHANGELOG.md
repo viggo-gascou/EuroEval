@@ -12,10 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   [@Rijgersberg](https://github.com/Rijgersberg) ✨
 
 ### Fixed
-- Increased the maximal context length from the previous 5,000 back to 10,000, as some
-  of the datasets have longer input lengths.
-- The "E" option for the NorCommonSenseQA dataset was not included in the refactor in
-  v15.6.0, leading to evaluation errors. This has been fixed now.
+- The "E" option for the Norwegian NorCommonSenseQA dataset was not included in the
+  refactor in v15.6.0, leading to evaluation errors. This has been fixed now.
+- The number of few-shot examples for FoSent was not reduced to 5 again during the
+  refactor in v15.6.0, leading to evaluation errors. This has been fixed now.
 
 
 ## [v15.6.0] - 2025-04-13
