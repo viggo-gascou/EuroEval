@@ -161,6 +161,7 @@ A huge thank you to all the contributors who have helped make this project a suc
 <a href="https://github.com/ThomasKluiters"><img src="https://avatars.githubusercontent.com/u/8137941" width=50 alt="Contributor avatar for ThomasKluiters"/></a>
 <a href="https://github.com/BramVanroy"><img src="https://avatars.githubusercontent.com/u/2779410" width=50 alt="Contributor avatar for BramVanroy"/></a>
 <a href="https://github.com/peregilk"><img src="https://avatars.githubusercontent.com/u/9079808" width=50 alt="Contributor avatar for peregilk"/></a>
+<a href="https://github.com/Rijgersberg"><img src="https://avatars.githubusercontent.com/u/8604946" width=50 alt="Contributor avatar for Rijgersberg"/></a>
 
 ### Special Thanks
 - Thanks to [Google](https://google.com/) for sponsoring Gemini credits as part of their
