@@ -106,7 +106,6 @@ NORGLM_MULTI_QA = DatasetConfig(
     huggingface_id="EuroEval/norglm-multi-qa",
     task=RC,
     languages=[NB, NN, NO],
-    _num_few_shot_examples=2,
     unofficial=True,
 )
 
