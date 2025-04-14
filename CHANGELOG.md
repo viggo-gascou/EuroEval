@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.6.1] - 2025-04-14
 ### Changed
 - Added more info about SQuAD-nl in the documentation. This was contributed by
   [@Rijgersberg](https://github.com/Rijgersberg) ✨
