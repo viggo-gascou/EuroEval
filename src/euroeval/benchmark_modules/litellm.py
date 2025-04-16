@@ -104,6 +104,7 @@ MODEL_MAX_LENGTH_MAPPING = {
     r"o1-(mini|preview)(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 128_000,
     r"o1(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 200_000,
     r"o[2-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 200_000,
+    r"gpt-4.1.*": 1_047_576,
     # Anthropic models
     r"(anthropic/)?claude-[1-9](-[1-9])?-(opus|sonnet|haiku)-[0-9]{8}": 200_000,
     # Gemini models
