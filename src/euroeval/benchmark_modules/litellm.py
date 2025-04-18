@@ -136,9 +136,9 @@ ALLOWED_PARAMS = {
     r"gpt-4.*": [],
     r"o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": ["low", "high"],
     # Anthropic models
-    r"(anthropic/)?claude-3-.*": [],
-    r"(anthropic/)?claude-3.5-.*": [],
-    r"(anthropic/)?claude-3.7-sonnet.*": ["thinking"],
+    r"(anthropic/)?claude-3-(haiku|sonnet|opus).*": [],
+    r"(anthropic/)?claude-3-5-.*": [],
+    r"(anthropic/)?claude-3-7-sonnet.*": ["thinking"],
     # Gemini models
     r"(gemini/)?gemini-.*": [],
     # xAI models
@@ -278,7 +278,7 @@ class LiteLLMModel(BenchmarkModule):
 
         if self.model_config.revision == "thinking":
             generation_kwargs["thinking"] = dict(
-                type="enabled", budget_tokens=REASONING_MAX_TOKENS
+                type="enabled", budget_tokens=REASONING_MAX_TOKENS - 1
             )
             log_once(
                 f"Enabling thinking mode for model {self.model_config.model_id!r}",
@@ -310,6 +310,7 @@ class LiteLLMModel(BenchmarkModule):
                 "'temperature' is not supported with this model.",
                 "temperature is not supported with this model",
             ]
+            temperature_must_be_one_messages = ["`temperature` may only be set to 1"]
             try:
                 model_response = litellm.completion(
                     messages=messages, max_retries=3, **generation_kwargs
@@ -329,6 +330,11 @@ class LiteLLMModel(BenchmarkModule):
                     generation_kwargs.pop("top_logprobs")
                 elif any(msg.lower() in str(e).lower() for msg in temperature_messages):
                     generation_kwargs.pop("temperature")
+                elif any(
+                    msg.lower() in str(e).lower()
+                    for msg in temperature_must_be_one_messages
+                ):
+                    generation_kwargs["temperature"] = 1.0
                 elif isinstance(e, RateLimitError):
                     raise InvalidModel(
                         "You have encountered your rate limit for model "
