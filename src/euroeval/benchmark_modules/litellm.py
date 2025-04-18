@@ -191,7 +191,9 @@ class LiteLLMModel(BenchmarkModule):
         )
 
         self.buffer["first_label_token_mapping"] = get_first_label_token_mapping(
-            dataset_config=self.dataset_config, tokenizer=None
+            dataset_config=self.dataset_config,
+            model_config=self.model_config,
+            tokenizer=None,
         )
 
     @property
@@ -251,7 +253,9 @@ class LiteLLMModel(BenchmarkModule):
         # Get the mapping from labels to the first token in the label. We call this each
         # time we generate a new dataset since the dataset config can change
         self.buffer["first_label_token_mapping"] = get_first_label_token_mapping(
-            dataset_config=self.dataset_config, tokenizer=None
+            dataset_config=self.dataset_config,
+            model_config=self.model_config,
+            tokenizer=None,
         )
 
         if self.buffer["first_label_token_mapping"]:

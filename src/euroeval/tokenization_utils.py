@@ -14,7 +14,7 @@ if t.TYPE_CHECKING:
     from transformers.tokenization_utils import PreTrainedTokenizer
     from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
-    from .data_models import DatasetConfig
+    from .data_models import DatasetConfig, ModelConfig
 
 
 logger = logging.getLogger("euroeval")
@@ -254,13 +254,17 @@ def get_end_of_chat_token_ids(tokenizer: "PreTrainedTokenizer") -> list[int] | N
 
 
 def get_first_label_token_mapping(
-    dataset_config: "DatasetConfig", tokenizer: "PreTrainedTokenizer | None"
+    dataset_config: "DatasetConfig",
+    model_config: "ModelConfig",
+    tokenizer: "PreTrainedTokenizer | None",
 ) -> dict[str, str] | bool:
     """Check if the model should output scores.
 
     Args:
         dataset_config:
             The dataset configuration.
+        model_config:
+            The model configuration.
         tokenizer:
             The tokenizer, or None if not available.
 
@@ -275,14 +279,14 @@ def get_first_label_token_mapping(
     if tokenizer is None:
         if output_scores:
             log_once(
-                "The model will output scores, since the dataset supports it and no "
-                "tokenizer is available.",
+                f"The model {model_config.model_id!r} will output scores, since the "
+                "dataset supports it and no tokenizer is available.",
                 level=logging.DEBUG,
             )
         else:
             log_once(
-                "The model will not output scores, since the dataset does not support "
-                "it and no tokenizer is available.",
+                f"The model {model_config.model_id!r} will not output scores, since "
+                "the dataset does not support it and no tokenizer is available.",
                 level=logging.DEBUG,
             )
         return output_scores

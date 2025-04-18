@@ -146,7 +146,9 @@ class VLLMModel(HuggingFaceEncoderModel):
         self.buffer |= dict(
             instruction_model=self._tokenizer.chat_template is not None,
             first_label_token_mapping=get_first_label_token_mapping(
-                dataset_config=self.dataset_config, tokenizer=self._tokenizer
+                dataset_config=self.dataset_config,
+                model_config=self.model_config,
+                tokenizer=self._tokenizer,
             ),
         )
         if self.model_config.adapter_base_model_id is not None:
@@ -355,7 +357,9 @@ class VLLMModel(HuggingFaceEncoderModel):
         # Get the mapping from labels to the first token in the label. We call this each
         # time we generate a new dataset since the dataset config can change
         self.buffer["first_label_token_mapping"] = get_first_label_token_mapping(
-            dataset_config=self.dataset_config, tokenizer=self._tokenizer
+            dataset_config=self.dataset_config,
+            model_config=self.model_config,
+            tokenizer=self._tokenizer,
         )
 
         # Define the parameters used for vLLM generation
