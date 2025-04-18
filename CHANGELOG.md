@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- Added metadata for GPT-4.1 models.
+- Added metadata for GPT-4.1 and Grok-3 models.
 - Marked Gemini-2.5-flash as a reasoning model, giving it more tokens to think.
 
 ### Changed
