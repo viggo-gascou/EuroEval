@@ -142,7 +142,9 @@ ALLOWED_PARAMS = {
     # Gemini models
     r"(gemini/)?gemini-.*": [],
     # xAI models
-    r"(xai/)?grok.*": [],
+    r"(xai/)?grok-2.*": [],
+    r"(xai/)?grok-3(-fast)?(-beta)?": [],
+    r"(xai/)?grok-3-mini(-fast)?(-beta)?": ["low", "high"],
 }
 
 
