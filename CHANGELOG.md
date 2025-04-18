@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Updated `datasets` to `>=3.5.0`, as the previous versions were incompatible with the
   newer versions of `huggingface_hub`.
+- Increase the number of allowed reasoning tokens from 8,192 to 16,384 for
+  reasoning models. This is done as several models did not stop reasoning before running
+  out of tokens, yielding a blank output.
 
 ### Fixed
 - If we fail to extract labels using a generative model's logprobs, we now fall back to
