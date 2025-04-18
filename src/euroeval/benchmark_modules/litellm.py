@@ -202,13 +202,20 @@ class LiteLLMModel(BenchmarkModule):
             The generative type of the model, or None if it has not been set yet.
         """
         if self.model_config.revision == "thinking":
-            return GenerativeType.REASONING
+            type_ = GenerativeType.REASONING
         elif re.fullmatch(
             pattern="|".join(REASONING_MODELS), string=self.model_config.model_id
         ):
-            return GenerativeType.REASONING
+            type_ = GenerativeType.REASONING
         else:
-            return GenerativeType.INSTRUCTION_TUNED
+            type_ = GenerativeType.INSTRUCTION_TUNED
+
+        log_once(
+            f"Detected generative type {type_.name!r} for model "
+            f"{self.model_config.model_id!r}",
+            level=logging.DEBUG,
+        )
+        return type_
 
     def generate(self, inputs: dict) -> GenerativeModelOutput:
         """Generate outputs from the model.
