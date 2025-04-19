@@ -784,7 +784,7 @@ class Benchmarker:
                     ],
                     model=(
                         f"{model_config.model_id}@{model_config.revision}"
-                        if model_config.revision != "main"
+                        if model_config.revision and model_config.revision != "main"
                         else model_config.model_id
                     ),
                     results=results,
