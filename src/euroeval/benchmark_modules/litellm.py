@@ -33,6 +33,7 @@ from litellm.exceptions import (
 )
 from litellm.llms.vertex_ai.common_utils import VertexAIError
 from litellm.types.utils import ChoiceLogprobs, ModelResponse
+from pydantic import conlist, create_model
 from requests.exceptions import RequestException
 from tqdm.auto import tqdm
 from transformers.trainer import Trainer
@@ -197,6 +198,7 @@ class LiteLLMModel(BenchmarkModule):
             dataset_config=self.dataset_config,
             model_config=self.model_config,
             tokenizer=None,
+            generative_type=self.generative_type,
         )
 
     @property
@@ -259,6 +261,7 @@ class LiteLLMModel(BenchmarkModule):
             dataset_config=self.dataset_config,
             model_config=self.model_config,
             tokenizer=None,
+            generative_type=self.generative_type,
         )
 
         if self.buffer["first_label_token_mapping"]:
@@ -269,12 +272,37 @@ class LiteLLMModel(BenchmarkModule):
             assert "json" in messages[0]["content"].lower(), (
                 "Prompt must contain 'json' for JSON tasks."
             )
-            generation_kwargs["response_format"] = dict(type="json_object")
-            log_once(
-                "Enabling JSON response format for model "
-                f"{self.model_config.model_id!r}",
-                level=logging.DEBUG,
-            )
+            if self.generative_type == GenerativeType.REASONING:
+                log_once(
+                    f"The model {self.model_config.model_id!r} is a reasoning model "
+                    "and thus does not support structured generation, so we do not "
+                    "enable it.",
+                    level=logging.DEBUG,
+                )
+            elif litellm.utils.supports_response_schema(
+                model=self.model_config.model_id
+            ):
+                ner_tag_names = list(self.dataset_config.prompt_label_mapping.values())
+                keys_and_their_types: dict[str, t.Any] = {
+                    tag_name: (conlist(str, max_length=5), ...)
+                    for tag_name in ner_tag_names
+                }
+                pydantic_class = create_model("AnswerFormat", **keys_and_their_types)
+                generation_kwargs["response_format"] = pydantic_class
+                log_once(
+                    "Enabling structured generation for model "
+                    f"{self.model_config.model_id!r} with the JSON schema "
+                    f"{pydantic_class.model_json_schema()}",
+                    level=logging.DEBUG,
+                )
+            else:
+                generation_kwargs["response_format"] = dict(type="json_object")
+                log_once(
+                    "Enabling structured JSON generation for model "
+                    f"{self.model_config.model_id!r} with no custom JSON schema, as "
+                    "the model does not support schemas.",
+                    level=logging.DEBUG,
+                )
 
         if self.model_config.revision == "thinking":
             generation_kwargs["thinking"] = dict(
@@ -312,12 +340,17 @@ class LiteLLMModel(BenchmarkModule):
             ]
             temperature_must_be_one_messages = ["`temperature` may only be set to 1"]
             try:
-                model_response = litellm.completion(
-                    messages=messages, max_retries=3, **generation_kwargs
+                model_response = litellm.completion_with_retries(
+                    messages=messages, **generation_kwargs
                 )
                 break
             except (BadRequestError, RateLimitError) as e:
                 if any(msg.lower() in str(e).lower() for msg in stop_messages):
+                    log_once(
+                        f"The model {self.model_config.model_id!r} does not support "
+                        "stop sequences, so disabling them.",
+                        level=logging.DEBUG,
+                    )
                     generation_kwargs["stop"] = None
                 elif (
                     any(msg.lower() in str(e).lower() for msg in logprobs_messages)
@@ -326,14 +359,29 @@ class LiteLLMModel(BenchmarkModule):
                     # we ignore this since the rate limiting makes it unusable anyway.
                     or (isinstance(e, VertexAIError) and "logprobs" in str(e).lower())
                 ):
+                    log_once(
+                        f"The model {self.model_config.model_id!r} does not support "
+                        "logprobs, so disabling it.",
+                        level=logging.DEBUG,
+                    )
                     generation_kwargs.pop("logprobs")
                     generation_kwargs.pop("top_logprobs")
                 elif any(msg.lower() in str(e).lower() for msg in temperature_messages):
+                    log_once(
+                        f"The model {self.model_config.model_id!r} does not support "
+                        "temperature, so disabling it.",
+                        level=logging.DEBUG,
+                    )
                     generation_kwargs.pop("temperature")
                 elif any(
                     msg.lower() in str(e).lower()
                     for msg in temperature_must_be_one_messages
                 ):
+                    log_once(
+                        f"The model {self.model_config.model_id!r} requires "
+                        "temperature to be set to 1, so setting it.",
+                        level=logging.DEBUG,
+                    )
                     generation_kwargs["temperature"] = 1.0
                 elif isinstance(e, RateLimitError):
                     raise InvalidModel(
@@ -380,9 +428,11 @@ class LiteLLMModel(BenchmarkModule):
                 "reasoning. Returning an empty string."
             )
             return GenerativeModelOutput(sequences=[""])
+
         model_response_choices = model_response.choices[0]
         assert isinstance(model_response_choices, litellm.Choices)
-        generation_output = model_response_choices.message["content"] or ""
+        generated_message: litellm.Message = model_response_choices.message
+        generation_output = generated_message.content or ""
         generation_output = generation_output.strip()
 
         # Structure the model output as a GenerativeModelOutput object
