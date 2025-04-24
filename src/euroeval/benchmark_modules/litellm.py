@@ -323,25 +323,24 @@ class LiteLLMModel(BenchmarkModule):
         # This drops generation kwargs that are not supported by the model
         litellm.drop_params = True
 
+        # Error messages that we want to catch and handle
+        stop_messages = ["stop_sequences", "'stop' is not supported with this model"]
+        logprobs_messages = [
+            "you are not allowed to request logprobs",
+            "you've reached the maximum number of requests with logprobs",
+            "logprobs is not supported",
+            "logprobs is not enabled",
+        ]
+        temperature_messages = [
+            "'temperature' is not supported with this model.",
+            "temperature is not supported with this model",
+        ]
+        temperature_must_be_one_messages = ["`temperature` may only be set to 1"]
+
         # Extract the generated sequences from the model response. Some APIs cannot
         # handle using newlines as stop sequences, so we try both.
         num_attempts = 10
         for _ in range(num_attempts):
-            stop_messages = [
-                "stop_sequences",
-                "'stop' is not supported with this model",
-            ]
-            logprobs_messages = [
-                "you are not allowed to request logprobs",
-                "you've reached the maximum number of requests with logprobs",
-                "logprobs is not supported",
-                "logprobs is not enabled",
-            ]
-            temperature_messages = [
-                "'temperature' is not supported with this model.",
-                "temperature is not supported with this model",
-            ]
-            temperature_must_be_one_messages = ["`temperature` may only be set to 1"]
             try:
                 model_response = litellm.completion_with_retries(
                     messages=messages, **generation_kwargs
