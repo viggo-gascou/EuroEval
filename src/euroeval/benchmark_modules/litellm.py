@@ -335,7 +335,11 @@ class LiteLLMModel(BenchmarkModule):
             "'temperature' is not supported with this model.",
             "temperature is not supported with this model",
         ]
-        temperature_must_be_one_messages = ["`temperature` may only be set to 1"]
+        temperature_must_be_one_messages = [
+            "`temperature` may only be set to 1",
+            "'temperature' does not support 0.0 with this model. Only the default "
+            "(1) value is supported",
+        ]
 
         # Extract the generated sequences from the model response. Some APIs cannot
         # handle using newlines as stop sequences, so we try both.
