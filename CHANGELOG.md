@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   making it slightly slower but more memory efficient.
 - Disabled structured outputs and logprobs for reasoning models, to ensure that they
   are allowed to output reasoning tokens before they output their answer.
+- Do not supply stop sequences to API models if they do not support it.
 
 
 ## [v15.6.1] - 2025-04-14

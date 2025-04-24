@@ -327,7 +327,10 @@ class LiteLLMModel(BenchmarkModule):
         # handle using newlines as stop sequences, so we try both.
         num_attempts = 10
         for _ in range(num_attempts):
-            stop_messages = ["stop_sequences"]
+            stop_messages = [
+                "stop_sequences",
+                "'stop' is not supported with this model",
+            ]
             logprobs_messages = [
                 "you are not allowed to request logprobs",
                 "you've reached the maximum number of requests with logprobs",
