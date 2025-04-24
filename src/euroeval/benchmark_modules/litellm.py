@@ -407,6 +407,7 @@ class LiteLLMModel(BenchmarkModule):
                 Timeout,
                 ServiceUnavailableError,
                 InternalServerError,
+                SystemError,
             ) as e:
                 logger.debug(
                     f"Service temporarily unavailable. The error message was: {e}. "

@@ -51,6 +51,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disabled structured outputs and logprobs for reasoning models, to ensure that they
   are allowed to output reasoning tokens before they output their answer.
 - Do not supply stop sequences to API models if they do not support it.
+- If a `SystemError` happens during LiteLLM generation then we now retry the
+  generation.
 
 
 ## [v15.6.1] - 2025-04-14
