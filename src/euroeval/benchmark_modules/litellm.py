@@ -341,6 +341,7 @@ class LiteLLMModel(BenchmarkModule):
             "(1) value is supported",
         ]
         max_items_messages = ["'maxItems' is not permitted."]
+        no_json_schema_messages = ["Property keys should match pattern"]
 
         # Extract the generated sequences from the model response. Some APIs cannot
         # handle using newlines as stop sequences, so we try both.
@@ -391,6 +392,11 @@ class LiteLLMModel(BenchmarkModule):
                     )
                     generation_kwargs["temperature"] = 1.0
                 elif any(msg.lower() in str(e).lower() for msg in max_items_messages):
+                    log_once(
+                        f"The model {self.model_config.model_id!r} does not support "
+                        "maxItems in the JSON schema, so disabling it.",
+                        level=logging.DEBUG,
+                    )
                     ner_tag_names = list(
                         self.dataset_config.prompt_label_mapping.values()
                     )
@@ -401,6 +407,15 @@ class LiteLLMModel(BenchmarkModule):
                         "AnswerFormat", **keys_and_their_types
                     )
                     generation_kwargs["response_format"] = pydantic_class
+                elif any(
+                    msg.lower() in str(e).lower() for msg in no_json_schema_messages
+                ):
+                    log_once(
+                        f"The model {self.model_config.model_id!r} does not support "
+                        "JSON schemas, so using the vanilla JSON format.",
+                        level=logging.DEBUG,
+                    )
+                    generation_kwargs["response_format"] = dict(type="json_object")
                 elif isinstance(e, RateLimitError):
                     raise InvalidModel(
                         "You have encountered your rate limit for model "
