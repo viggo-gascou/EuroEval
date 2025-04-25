@@ -166,11 +166,13 @@ A huge thank you to all the contributors who have helped make this project a suc
 
 ### Contribute to EuroEval
 
-We welcome contributions to EuroEval! Whether you're fixing bugs, adding features, or contributing new datasets, your help makes this project better for everyone.
+We welcome contributions to EuroEval! Whether you're fixing bugs, adding features, or
+contributing new datasets, your help makes this project better for everyone.
 
-- **General contributions**: Check out our [contribution guidelines](CONTRIBUTING.md) for information on how to get started.
-
-- **Adding datasets**: If you're interested in adding a new dataset to EuroEval, we have a [dedicated guide](docs/contribute/dataset.md) with step-by-step instructions.
+- **General contributions**: Check out our [contribution guidelines](CONTRIBUTING.md)
+  for information on how to get started.
+- **Adding datasets**: If you're interested in adding a new dataset to EuroEval, we have
+  a [dedicated guide](NEW_DATASET_GUIDE.md) with step-by-step instructions.
 
 
 ### Special Thanks
