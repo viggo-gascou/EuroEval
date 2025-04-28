@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.7.0] - 2025-04-28
 ### Added
 - Added support for Finnish 🇫🇮! This includes the Finnish part of the reading
   comprehension dataset
