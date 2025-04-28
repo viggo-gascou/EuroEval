@@ -99,7 +99,9 @@ def test_examples_in_official_datasets_are_not_too_long(
         encoded_texts = [
             tokenizer.apply_chat_template(messages) for messages in split["messages"]
         ]
-        max_length = max(len(x) for x in encoded_texts)
+        max_input_length = max(len(x) for x in encoded_texts)
+        max_output_length = dataset_config.max_generated_tokens
+        max_length = max_input_length + max_output_length
         assert max_length <= MAX_CONTEXT_LENGTH, (
             f"Max length of {max_length:,} exceeds the maximum context length "
             f"({MAX_CONTEXT_LENGTH:,}) for dataset {dataset_config.name} in split "
