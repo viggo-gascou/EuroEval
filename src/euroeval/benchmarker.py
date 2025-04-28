@@ -774,6 +774,7 @@ class Benchmarker:
                     metric_configs=dataset_config.task.metrics,
                     scores=scores,
                     model_id=model_config.model_id,
+                    model_revision=model_config.revision,
                 )
 
                 record = BenchmarkResult(
