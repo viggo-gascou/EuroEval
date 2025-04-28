@@ -427,10 +427,56 @@ class VLLMModel(HuggingFaceEncoderModel):
                     f"Encountered error during vLLM generation: {str(e)}. Retrying..."
                 )
                 sleep(1)
+            except ValueError as e:
+                # Truncate the prompts if they are too long for the model
+                truncate_error_messages = [
+                    r"prompt \(length [0-9]+\) is longer than the maximum model length"
+                ]
+                if any(
+                    re.search(pattern, str(e), flags=re.IGNORECASE) is not None
+                    for pattern in truncate_error_messages
+                ):
+                    logger.info(
+                        "Prompts are too long, so truncating them and trying again..."
+                    )
+                    tokenized_prompts = self._tokenizer(
+                        text=prompts,
+                        truncation=True,
+                        max_length=max(
+                            self._tokenizer.model_max_length - max_tokens, 0
+                        ),
+                    )
+                    prompts = self._tokenizer.batch_decode(
+                        sequences=tokenized_prompts.input_ids, skip_special_tokens=True
+                    )
+                else:
+                    raise InvalidBenchmark(
+                        f"An error occurred during vLLM generation: {str(e)}"
+                    )
         else:
             raise InvalidBenchmark(
                 f"Could not generate sequences after {num_attempts} attempts."
             )
+
+        # When we shorten the prompts then some residual model outputs persist, so we
+        # need to filter these out
+        num_extra_outputs = len(raw_outputs) - len(prompts)
+        if num_extra_outputs > 0:
+            raw_outputs = raw_outputs[num_extra_outputs:]
+            if not all(
+                raw_output.prompt == prompt
+                for raw_output, prompt in zip(raw_outputs, prompts)
+            ):
+                raise InvalidBenchmark(
+                    f"The prompts and the model outputs do not match. There were "
+                    f"{num_extra_outputs!r} extra outputs."
+                )
+            else:
+                logger.debug(
+                    f"Filtered out {num_extra_outputs:,} extra outputs from the model, "
+                    "which occured as we interupted the generation when we truncated "
+                    "the prompts."
+                )
 
         # Parse the raw model outputs
         completion_ids: list[list[int]] = [
@@ -450,6 +496,13 @@ class VLLMModel(HuggingFaceEncoderModel):
             skip_special_tokens=True,
         )
         completions = [completion.strip() for completion in completions]
+
+        # Sanity check
+        if len(completions) != len(prompts):
+            breakpoint()
+            raise InvalidBenchmark(
+                f"Expected {len(prompts):,} completions, but got {len(completions):,}."
+            )
 
         # Add logprobs scores to the output
         if self.buffer["first_label_token_mapping"]:
