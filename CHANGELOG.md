@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.7.1] - 2025-04-29
 ### Changed
 - Marked the DBRD Dutch sentiment classification as official, as the quality is
   substantially better than the previous Dutch Social.
