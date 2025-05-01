@@ -6,7 +6,9 @@ import typing as t
 import evaluate
 import numpy as np
 from evaluate import EvaluationModule
+from lingua import IsoCode639_1, LanguageDetectorBuilder
 
+from ..benchmark_config_factory import get_correct_language_codes
 from ..constants import METRIC_ATTRIBUTES_TAKING_UP_MEMORY
 from ..data_models import BenchmarkConfig, DatasetConfig, GenerativeModelOutput
 from ..exceptions import InvalidBenchmark
@@ -69,6 +71,17 @@ def compute_metrics(
     else:
         predictions = model_outputs
 
+    # Set up languages and language detector with lingua
+    target_langs = get_correct_language_codes(
+        [lang.code for lang in dataset_config.languages]
+    )
+    lingua_langs = [IsoCode639_1.from_str(lang_code) for lang_code in target_langs]
+    # We use the detector with all languages, since we do not want to be in
+    # single language mode, for datasets that only have a single language.
+    # This is important for datasets that have 'multiple' languages, such as Norwegian.
+    # See: https://github.com/pemistahl/lingua-py#116-single-language-mode
+    detector = LanguageDetectorBuilder.from_all_languages().build()
+
     results: dict[str, float] = dict()
     for cfg in dataset_config.task.metrics:
         metric = metrics[cfg.name]
@@ -117,8 +130,21 @@ def compute_metrics(
         # process is not the main process
         if score_dict is not None:
             scores = score_dict[cfg.results_key]
+            corrected_score = 0.0
+            conf_vals = detector.compute_language_confidence_values_in_parallel(
+                predictions
+            )
             if isinstance(scores, list):
-                scores = sum(scores) / len(scores)
+                for score, confidence in zip(scores, conf_vals):
+                    # sum the confidence values so we get a single value for datasets
+                    # with 'multiple' languages, mostly relevant for Norwegian datasets
+                    sample_confidence = sum(
+                        conf.value
+                        for conf in confidence
+                        if conf.language.iso_code_639_1 in lingua_langs
+                    )
+                    corrected_score += score * sample_confidence
+                scores = corrected_score / len(scores)
             results[cfg.name] = scores
 
     return results
