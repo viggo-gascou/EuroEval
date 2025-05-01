@@ -132,7 +132,7 @@ def extract_labels_from_generation(
         The predicted labels.
     """
     if model_output.scores is not None:
-        if first_label_token_mapping is not True:
+        if first_label_token_mapping is False:
             raise InvalidBenchmark(
                 "The model outputted logprobs, but the first label token mapping is "
                 "not provided. This means that the model should not output logprobs."
