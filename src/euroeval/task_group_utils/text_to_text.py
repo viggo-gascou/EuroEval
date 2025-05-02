@@ -73,9 +73,10 @@ def compute_metrics(
 
     # Set up languages and language detector with lingua
     target_langs = get_correct_language_codes(
-        [lang.code for lang in dataset_config.languages]
+        language_codes=[lang.code for lang in dataset_config.languages]
     )
     lingua_langs = [IsoCode639_1.from_str(lang_code) for lang_code in target_langs]
+    
     # We use the detector with all languages, since we do not want to be in
     # single language mode, for datasets that only have a single language.
     # This is important for datasets that have 'multiple' languages, such as Norwegian.
