@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   tokenisation of the generated label. When we are evaluating the model using logprobs
   we are thus looking for the wrong label in these cases. We now take this into account,
   and log it to the user if the labels are not found, to avoid confusion.
+- Finnish datasets were not included in the default "all" dataset list, which is the
+  default used when no datasets are specified. This has been fixed now.
 
 
 ## [v15.7.1] - 2025-04-29
