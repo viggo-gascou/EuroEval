@@ -167,7 +167,7 @@ class Benchmarker:
 
         # Bail early if hf_transfer is enabled but not installed.
         if HF_HUB_ENABLE_HF_TRANSFER and get_package_version("hf_transfer") is None:
-            raise ValueError(
+            raise ImportError(
                 "Fast download using 'hf_transfer' is enabled "
                 "(HF_HUB_ENABLE_HF_TRANSFER=1) but the 'hf_transfer' "
                 "package is not available in your environment. "
