@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Added
+- Add HellaSwag-fi back in, as the issue with the labels in the test split has been
+  fixed.
+
 ### Fixed
 - Now uses `eval_accumulation_steps` (set to 32) when evaluating encoder models, to
   avoid running out of memory during evaluation.
