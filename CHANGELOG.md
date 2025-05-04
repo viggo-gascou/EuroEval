@@ -8,7 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- Added the BeleBele datasets for Finnish, Italian and Spanish. They are listed as unofficial for now.
+- Added the BeleBele datasets for Finnish, Italian and Spanish. They are listed as
+  unofficial for now. This was contributed by
+  [@oliverkinch](https://github.com/oliverkinch) ✨
 
 ### Fixed
 - Add HellaSwag-fi back in, as the issue with the labels in the test split has been
