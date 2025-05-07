@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   unofficial for now. This was contributed by
   [@oliverkinch](https://github.com/oliverkinch) ✨
 
+### Changed
+- Now uses asyncronous requests when dealing with API models, speeding up the generation
+  immensely. This was contributed by [@mathiasesn](https://github.com/mathiasesn) ✨
+
 ### Fixed
 - Add HellaSwag-fi back in, as the issue with the labels in the test split has been
   fixed.
