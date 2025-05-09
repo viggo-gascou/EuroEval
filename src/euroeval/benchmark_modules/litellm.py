@@ -401,6 +401,12 @@ class LiteLLMModel(BenchmarkModule):
             model_responses=ordered_responses, model_id=self.model_config.model_id
         )
 
+        if len(messages) != len(model_output.sequences):
+            raise InvalidBenchmark(
+                f"Number of model inputs ({len(messages):,}) does not match the "
+                f"number of model outputs ({len(model_output.sequences):,})."
+            )
+
         return model_output
 
     def _handle_exception(
@@ -616,8 +622,7 @@ class LiteLLMModel(BenchmarkModule):
         scores = []
         for model_response in model_responses:
             if not model_response.choices:
-                # This happens for reasoning models, when they don't finish thinking
-                # and run out of tokens. Happens quite rarely, but we need to handle it.
+                sequences.append("")
                 logger.warning(
                     f"The model {model_id!r} did not end up "
                     "generating any text. This is likely because the model ran "
