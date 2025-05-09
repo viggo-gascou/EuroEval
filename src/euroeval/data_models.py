@@ -529,12 +529,16 @@ class DatasetConfig:
         else:
             sep_word = main_language.or_separator
 
+        local_labels: list[str] = []
+        for label in self.labels:
+            if label not in self.prompt_label_mapping:
+                continue
+            local_label = self.prompt_label_mapping[label]
+            if local_label not in local_labels:
+                local_labels.append(local_label)
+
         # Convert labels to single-quoted labels - and remove duplicates
-        quoted_labels = [
-            f"'{self.prompt_label_mapping[label]}'"
-            for label in set(self.labels)
-            if label in self.prompt_label_mapping
-        ]
+        quoted_labels = [f"'{label}'" for label in local_labels]
 
         if not quoted_labels:
             return ""

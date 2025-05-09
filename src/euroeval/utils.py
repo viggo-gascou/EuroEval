@@ -1,5 +1,6 @@
 """Utility functions to be used in other scripts."""
 
+import asyncio
 import gc
 import importlib
 import importlib.metadata
@@ -327,3 +328,43 @@ def get_package_version(package_name: str) -> str | None:
         return importlib.metadata.version(package_name)
     except importlib.metadata.PackageNotFoundError:
         return None
+
+
+T = t.TypeVar("T", bound=object)
+
+
+def safe_run(coroutine: t.Coroutine[t.Any, t.Any, T]) -> T:
+    """Run a coroutine, ensuring that the event loop is always closed when we're done.
+
+    Args:
+        coroutine:
+            The coroutine to run.
+
+    Returns:
+        The result of the coroutine.
+    """
+    loop = asyncio.new_event_loop()
+    try:
+        asyncio.set_event_loop(loop)
+        return loop.run_until_complete(coroutine)
+    finally:
+        loop.close()
+        asyncio.set_event_loop(None)
+
+
+async def catch_coroutine_exception(
+    coroutine: t.Coroutine[t.Any, t.Any, T],
+) -> T | Exception:
+    """Run a coroutine, catching any exceptions and returning them.
+
+    Args:
+        coroutine:
+            The coroutine to run.
+
+    Returns:
+        The result of the coroutine, or the exception if it was raised.
+    """
+    try:
+        return await coroutine
+    except Exception as exc:
+        return exc

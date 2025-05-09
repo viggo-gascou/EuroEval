@@ -7,7 +7,38 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Fixed
+- Catch error when caching generative model outputs, when the number of model inputs and
+  outputs do not match.
 
+
+## [v15.8.1] - 2025-05-08
+### Fixed
+- NER labels were included twice in the prompt templates (which was due to there being
+  both, e.g., `B-ORG` and `I-ORG`). This caused models not using structured generation,
+  such as reasoning models, to sometimes output the wrong labels. This has been fixed
+  now.
+- If a model outputs a `\boxed{}` answer, we now extract and use that, rather than the
+  full generated answer.
+
+
+## [v15.8.0] - 2025-05-07
+### Added
+- Added the BeleBele datasets for Finnish, Italian and Spanish. They are listed as
+  unofficial for now. This was contributed by
+  [@oliverkinch](https://github.com/oliverkinch) ✨
+
+### Changed
+- Now uses asyncronous requests when dealing with API models, speeding up the generation
+  immensely. This was contributed by [@mathiasesn](https://github.com/mathiasesn) ✨
+
+### Fixed
+- Add HellaSwag-fi back in, as the issue with the labels in the test split has been
+  fixed.
+- Now uses `eval_accumulation_steps` (set to 32) when evaluating encoder models, to
+  avoid running out of memory during evaluation.
+- Now also looks for `<|startoftext|>` as BOS token if the BOS token is not set in the
+  model's config.
 
 
 ## [v15.7.2] - 2025-05-02

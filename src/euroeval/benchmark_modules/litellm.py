@@ -32,6 +32,7 @@ from litellm.llms.vertex_ai.common_utils import VertexAIError
 from litellm.types.utils import ChoiceLogprobs, ModelResponse
 from pydantic import conlist, create_model
 from requests.exceptions import RequestException
+from tqdm.asyncio import tqdm as tqdm_async
 from tqdm.auto import tqdm
 from transformers.trainer import Trainer
 
@@ -66,7 +67,12 @@ from ..task_group_utils import (
 )
 from ..tokenization_utils import get_first_label_token_mapping
 from ..types import ExtractLabelsFunction
-from ..utils import create_model_cache_dir, log_once
+from ..utils import (
+    catch_coroutine_exception,
+    create_model_cache_dir,
+    log_once,
+    safe_run,
+)
 from .base import BenchmarkModule
 from .hf import HuggingFaceEncoderModel, load_hf_model_config, load_tokenizer
 
@@ -159,8 +165,20 @@ class LiteLLMModel(BenchmarkModule):
     """A generative model from LiteLLM."""
 
     fresh_model = False
-    batching_preference = BatchingPreference.SINGLE_SAMPLE
+    batching_preference = BatchingPreference.ALL_AT_ONCE
     high_priority = False
+
+    _handleable_exceptions = (
+        BadRequestError,
+        RateLimitError,
+        APIError,
+        APIConnectionError,
+        Timeout,
+        ServiceUnavailableError,
+        InternalServerError,
+        SystemError,
+        AuthenticationError,
+    )
 
     def __init__(
         self,
@@ -233,10 +251,7 @@ class LiteLLMModel(BenchmarkModule):
             The generated model outputs.
         """
         assert "messages" in inputs, "The input must contain a 'messages' key."
-        assert len(inputs["messages"]) == 1, (
-            "API models only support single-sample batching."
-        )
-        messages = inputs["messages"][0]
+        messages = inputs["messages"]
 
         generation_kwargs: dict[str, t.Any] = dict(
             model=self.model_config.model_id,
@@ -267,9 +282,20 @@ class LiteLLMModel(BenchmarkModule):
             generation_kwargs["top_logprobs"] = MAX_LOGPROBS
 
         if self.dataset_config.task in TASKS_USING_JSON:
-            assert "json" in messages[0]["content"].lower(), (
-                "Prompt must contain 'json' for JSON tasks."
-            )
+            for msg_list in messages:
+                # msg_list is a list of {'role':…, 'content':…} dicts
+                if not msg_list:
+                    raise InvalidBenchmark(
+                        "Encountered an empty message list in 'messages'."
+                    )
+                last = msg_list[-1]
+                assert isinstance(last, dict), (
+                    f"Expected dict message, got {type(last)}"
+                )
+                assert "json" in last["content"].lower(), (
+                    "Prompt must contain 'json' for JSON tasks."
+                )
+
             if self.generative_type == GenerativeType.REASONING:
                 log_once(
                     f"The model {self.model_config.model_id!r} is a reasoning model "
@@ -321,6 +347,76 @@ class LiteLLMModel(BenchmarkModule):
         # This drops generation kwargs that are not supported by the model
         litellm.drop_params = True
 
+        # Extract the generated sequences from the model response. Some APIs cannot
+        # handle using newlines as stop sequences, so we try both.
+        num_attempts = 10
+
+        all_responses = {}
+        all_failures = []
+        to_run = list(enumerate(messages))
+
+        for attempt in range(num_attempts):
+            if not to_run:
+                break
+
+            batch_indices, batch_msgs = zip(*to_run)
+            model_response, failures = safe_run(
+                self._generate_async(
+                    messages=list(batch_msgs),
+                    generation_kwargs=generation_kwargs,
+                    max_retries=3,
+                    max_reruns=15,
+                )
+            )
+
+            for orig_idx, response in zip(batch_indices, model_response):
+                all_responses[orig_idx] = response
+
+            if not failures:
+                to_run = []
+                break
+
+            all_failures.extend(failures)
+            to_run = [(orig_idx, messages[orig_idx]) for orig_idx, _ in failures]
+            logger.debug(
+                f"Attempt {attempt + 1}/{num_attempts}: "
+                f"retrying {len(to_run)} failed message(s)"
+            )
+
+            for _, error in failures:
+                self._handle_exception(error=error, generation_kwargs=generation_kwargs)
+        else:
+            raise InvalidBenchmark(
+                message=f"Failed to generate text, after {num_attempts} attempts."
+            )
+
+        if to_run:
+            raise InvalidBenchmark(
+                f"Failed to generate text after {num_attempts} attempts. "
+                f"Errors: {all_failures}"
+            )
+
+        ordered_responses = [all_responses[i] for i in range(len(messages))]
+        model_output = self._create_model_output(
+            model_responses=ordered_responses, model_id=self.model_config.model_id
+        )
+
+        return model_output
+
+    def _handle_exception(
+        self, error: Exception, generation_kwargs: dict[str, t.Any]
+    ) -> None:
+        """Handle an exception from the model.
+
+        Args:
+            error:
+                The exception to handle.
+            generation_kwargs:
+                The generation kwargs to pass to the model.
+        """
+        error_msg = str(error).lower()
+        model_id = self.model_config.model_id
+
         # Error messages that we want to catch and handle
         stop_messages = ["stop_sequences", "'stop' is not supported with this model"]
         logprobs_messages = [
@@ -341,153 +437,238 @@ class LiteLLMModel(BenchmarkModule):
         max_items_messages = ["'maxItems' is not permitted."]
         no_json_schema_messages = ["Property keys should match pattern"]
 
-        # Extract the generated sequences from the model response. Some APIs cannot
-        # handle using newlines as stop sequences, so we try both.
-        num_attempts = 10
-        for _ in range(num_attempts):
-            try:
-                model_response = litellm.completion_with_retries(
-                    messages=messages, **generation_kwargs
-                )
-                break
-            except (BadRequestError, RateLimitError) as e:
-                if any(msg.lower() in str(e).lower() for msg in stop_messages):
-                    log_once(
-                        f"The model {self.model_config.model_id!r} does not support "
-                        "stop sequences, so disabling them.",
-                        level=logging.DEBUG,
-                    )
-                    generation_kwargs["stop"] = None
-                elif (
-                    any(msg.lower() in str(e).lower() for msg in logprobs_messages)
-                    # Special case for Vertex AI models, since they have strict rate
-                    # limits on using logprobs. They also have a cap of 5 logprobs, but
-                    # we ignore this since the rate limiting makes it unusable anyway.
-                    or (isinstance(e, VertexAIError) and "logprobs" in str(e).lower())
-                ):
-                    log_once(
-                        f"The model {self.model_config.model_id!r} does not support "
-                        "logprobs, so disabling it.",
-                        level=logging.DEBUG,
-                    )
-                    generation_kwargs.pop("logprobs")
-                    generation_kwargs.pop("top_logprobs")
-                elif any(msg.lower() in str(e).lower() for msg in temperature_messages):
-                    log_once(
-                        f"The model {self.model_config.model_id!r} does not support "
-                        "temperature, so disabling it.",
-                        level=logging.DEBUG,
-                    )
-                    generation_kwargs.pop("temperature")
-                elif any(
-                    msg.lower() in str(e).lower()
-                    for msg in temperature_must_be_one_messages
-                ):
-                    log_once(
-                        f"The model {self.model_config.model_id!r} requires "
-                        "temperature to be set to 1, so setting it.",
-                        level=logging.DEBUG,
-                    )
-                    generation_kwargs["temperature"] = 1.0
-                elif any(msg.lower() in str(e).lower() for msg in max_items_messages):
-                    log_once(
-                        f"The model {self.model_config.model_id!r} does not support "
-                        "maxItems in the JSON schema, so disabling it.",
-                        level=logging.DEBUG,
-                    )
-                    ner_tag_names = list(
-                        self.dataset_config.prompt_label_mapping.values()
-                    )
-                    keys_and_their_types = {
-                        tag_name: (list[str], ...) for tag_name in ner_tag_names
-                    }
-                    pydantic_class = create_model(
-                        "AnswerFormat", **keys_and_their_types
-                    )
-                    generation_kwargs["response_format"] = pydantic_class
-                elif any(
-                    msg.lower() in str(e).lower() for msg in no_json_schema_messages
-                ):
-                    log_once(
-                        f"The model {self.model_config.model_id!r} does not support "
-                        "JSON schemas, so using the vanilla JSON format.",
-                        level=logging.DEBUG,
-                    )
-                    generation_kwargs["response_format"] = dict(type="json_object")
-                elif isinstance(e, RateLimitError):
-                    raise InvalidModel(
-                        "You have encountered your rate limit for model "
-                        f"{self.model_config.model_id!r}. Skipping."
-                    )
-                else:
-                    raise InvalidBenchmark(
-                        f"Failed to generate text. The error message was: {e}"
-                    )
-            except APIError as e:
-                raise InvalidBenchmark(
-                    f"Failed to generate text. The error message was: {e}"
-                )
-            except (
+        if any(msg.lower() in error_msg for msg in stop_messages):
+            log_once(
+                f"The model {model_id!r} does not support "
+                "stop sequences, so disabling them.",
+                level=logging.DEBUG,
+            )
+            generation_kwargs["stop"] = None
+            return
+        elif (
+            any(msg.lower() in error_msg for msg in logprobs_messages)
+            # Special case for Vertex AI models, since they have strict rate
+            # limits on using logprobs. They also have a cap of 5 logprobs, but
+            # we ignore this since the rate limiting makes it unusable anyway.
+            or (isinstance(error, VertexAIError) and "logprobs" in error_msg)
+        ):
+            log_once(
+                f"The model {model_id!r} does not support logprobs, so disabling it.",
+                level=logging.DEBUG,
+            )
+            generation_kwargs.pop("logprobs")
+            generation_kwargs.pop("top_logprobs")
+            return
+        elif any(msg.lower() in error_msg for msg in temperature_messages):
+            log_once(
+                f"The model {model_id!r} does not support "
+                "temperature, so disabling it.",
+                level=logging.DEBUG,
+            )
+            generation_kwargs.pop("temperature")
+            return
+        elif any(msg.lower() in error_msg for msg in temperature_must_be_one_messages):
+            log_once(
+                f"The model {model_id!r} requires "
+                "temperature to be set to 1, so setting it.",
+                level=logging.DEBUG,
+            )
+            generation_kwargs["temperature"] = 1.0
+            return
+        elif any(msg.lower() in error_msg for msg in max_items_messages):
+            log_once(
+                f"The model {model_id!r} does not support "
+                "maxItems in the JSON schema, so disabling it.",
+                level=logging.DEBUG,
+            )
+            ner_tag_names = list(self.dataset_config.prompt_label_mapping.values())
+            keys_and_their_types = {
+                tag_name: (list[str], ...) for tag_name in ner_tag_names
+            }
+            pydantic_class = create_model("AnswerFormat", **keys_and_their_types)
+            generation_kwargs["response_format"] = pydantic_class
+            return
+        elif any(msg.lower() in error_msg for msg in no_json_schema_messages):
+            log_once(
+                f"The model {self.model_config.model_id!r} does not support "
+                "JSON schemas, so using the vanilla JSON format.",
+                level=logging.DEBUG,
+            )
+            generation_kwargs["response_format"] = dict(type="json_object")
+            return
+        elif isinstance(
+            error,
+            (
                 APIConnectionError,
                 Timeout,
                 ServiceUnavailableError,
                 InternalServerError,
                 SystemError,
-            ) as e:
-                logger.debug(
-                    f"Service temporarily unavailable. The error message was: {e}. "
-                    f"Retrying in 5 seconds..."
-                )
-                sleep(5)
-            except AuthenticationError:
-                raise NeedsAdditionalArgument(
-                    cli_argument="--api-key",
-                    script_argument="api_key=<your-api-key>",
-                    run_with_cli=self.benchmark_config.run_with_cli,
-                )
-        else:
-            raise InvalidBenchmark(
-                message=f"Failed to generate text, after {num_attempts} attempts."
+            ),
+        ):
+            logger.debug(
+                f"Service temporarily unavailable. The error message was: {error}. "
+                f"Retrying in 5 seconds..."
+            )
+            sleep(5)
+            return
+
+        if isinstance(error, RateLimitError):
+            raise InvalidModel(
+                f"You have encountered your rate limit for model {model_id!r}. "
+                "Skipping."
             )
 
-        assert isinstance(model_response, ModelResponse)
-        if not model_response.choices:
-            # This happens for reasoning models, when they don't finish thinking and run
-            # out of tokens. Happens quite rarely, but we need to handle it.
-            logger.warning(
-                f"The model {self.model_config.model_id!r} did not end up generating "
-                "any text. This is likely because the model ran out of tokens while "
-                "reasoning. Returning an empty string."
+        if isinstance(error, AuthenticationError):
+            raise NeedsAdditionalArgument(
+                cli_argument="--api-key",
+                script_argument="api_key=<your-api-key>",
+                run_with_cli=self.benchmark_config.run_with_cli,
             )
-            return GenerativeModelOutput(sequences=[""])
 
-        model_response_choices = model_response.choices[0]
-        assert isinstance(model_response_choices, litellm.Choices)
-        generated_message: litellm.Message = model_response_choices.message
-        generation_output = generated_message.content or ""
-        generation_output = generation_output.strip()
+        raise InvalidBenchmark(
+            f"Failed to generate text. The error message was: {error}"
+        )
 
-        # Structure the model output as a GenerativeModelOutput object
-        model_output = GenerativeModelOutput(sequences=[generation_output])
-        if hasattr(model_response_choices, "logprobs"):
-            logprobs_obj = model_response_choices.logprobs
-            if isinstance(logprobs_obj, ChoiceLogprobs):
-                logprobs_list: list[list[tuple[str, float]]] = [
-                    [
-                        (top_logprob.token, top_logprob.logprob)
-                        for top_logprob in content.top_logprobs
+    async def _generate_async(
+        self,
+        messages: list[dict[str, t.Any]],
+        generation_kwargs: dict[str, t.Any],
+        max_retries: int,
+        max_reruns: int,
+    ) -> tuple[list[ModelResponse], list[tuple[int, Exception]]]:
+        """Generate outputs from the model asynchronously.
+
+        Args:
+            messages:
+                The messages to pass to the model.
+            generation_kwargs:
+                The generation kwargs to pass to the model.
+            max_retries:
+                The maximum number of retries to make.
+            max_reruns:
+                The maximum number of reruns to make.
+
+        Returns:
+            A tuple containing the successful responses and the failed responses.
+        """
+        success = []
+        all_failures = {}
+        to_run = list(enumerate(messages))
+        prev_fail_count = len(to_run)
+        rerun_count = 0
+
+        while to_run and rerun_count < max_reruns and prev_fail_count > 0:
+            requests = [
+                litellm.acompletion(
+                    messages=msg, max_retries=max_retries, **generation_kwargs
+                )
+                for _, msg in to_run
+            ]
+            wrapped_requests = [
+                catch_coroutine_exception(request) for request in requests
+            ]
+            responses = await tqdm_async.gather(*wrapped_requests, leave=False)
+
+            next_to_run = []
+            current_fail_count = 0
+
+            for (orig_idx, _), response in zip(to_run, responses):
+                if isinstance(response, Exception):
+                    current_fail_count += 1
+                    all_failures[orig_idx] = response
+                    next_to_run.append((orig_idx, messages[orig_idx]))
+                else:
+                    success.append(response)
+
+            if current_fail_count >= prev_fail_count:
+                logger.warning(
+                    "Retry loop aborting due to no progress: "
+                    f"current_fail_count={current_fail_count}, "
+                    f"prev_fail_count={prev_fail_count}"
+                )
+                break
+
+            prev_fail_count = current_fail_count
+            to_run = next_to_run
+            rerun_count += 1
+
+        failures = [(orig_idx, all_failures[orig_idx]) for orig_idx, _ in to_run]
+        return success, failures
+
+    @staticmethod
+    def _create_model_output(
+        model_responses: list[ModelResponse], model_id: str
+    ) -> GenerativeModelOutput:
+        """Create a GenerativeModelOutput object from a list of ModelResponse objects.
+
+        Args:
+            model_responses:
+                The list of ModelResponse objects to create the GenerativeModelOutput
+                object from.
+            model_id:
+                The ID of the model.
+
+        Returns:
+            A GenerativeModelOutput object.
+        """
+        sequences = []
+        scores = []
+        for model_response in model_responses:
+            if not model_response.choices:
+                # This happens for reasoning models, when they don't finish thinking
+                # and run out of tokens. Happens quite rarely, but we need to handle it.
+                logger.warning(
+                    f"The model {model_id!r} did not end up "
+                    "generating any text. This is likely because the model ran "
+                    "out of tokens while reasoning. Returning an empty string."
+                )
+                continue
+
+            model_response_choices = model_response.choices[0]
+            assert isinstance(model_response_choices, litellm.Choices)
+            generated_message: litellm.Message = model_response_choices.message
+            generation_output = generated_message.content or ""
+            generation_output = generation_output.strip()
+
+            # Structure the model output as a GenerativeModelOutput object
+            sequences.append(generation_output)
+            if hasattr(model_response_choices, "logprobs"):
+                logprobs_obj = model_response_choices.logprobs
+                if isinstance(logprobs_obj, ChoiceLogprobs):
+                    logprobs_list: list[list[tuple[str, float]]] = [
+                        [
+                            (top_logprob.token, top_logprob.logprob)
+                            for top_logprob in content.top_logprobs
+                        ]
+                        for content in model_response_choices.logprobs.content or list()
                     ]
-                    for content in model_response_choices.logprobs.content or list()
-                ]
-                model_output.scores = [logprobs_list]
-            else:
-                log_once(
-                    "The logprobs object is malformed, so we won't use logprobs to "
-                    "determine the labels.",
-                    level=logging.WARNING,
-                )
+                    scores.append(logprobs_list)
+                else:
+                    log_once(
+                        "The logprobs object is malformed, so we won't use logprobs to "
+                        "determine the labels.",
+                        level=logging.WARNING,
+                    )
 
-        return model_output
+        if not sequences:
+            logger.warning(
+                "No sequences were generated by the model "
+                f"{model_id!r}. This may be due to the "
+                "model running out of tokens or an issue with the input data. "
+                "Returning an empty GenerativeModelOutput."
+            )
+            return GenerativeModelOutput(sequences=[], scores=None)
+
+        if scores and len(sequences) != len(scores):
+            raise InvalidBenchmark(
+                "Sequences and scores must have the same length. "
+                f"Got {len(sequences)} sequences and {len(scores)} scores."
+            )
+
+        return GenerativeModelOutput(
+            sequences=sequences, scores=scores if scores else None
+        )
 
     @cached_property
     def num_params(self) -> int:

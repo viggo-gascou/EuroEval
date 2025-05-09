@@ -168,6 +168,15 @@ class ModelCache:
         input_column = "messages" if "messages" in model_inputs else "text"
         model_inputs = model_inputs[input_column]
 
+        # Double check that the number of inputs and outputs match
+        if not len(model_inputs) == len(model_output.sequences):
+            logger.warning(
+                f"Number of model inputs ({len(model_inputs)}) does not match the "
+                f"number of model outputs ({len(model_output.sequences)}). We will not "
+                f"cache the model outputs."
+            )
+            return
+
         # Store the generated sequences in the cache, one by one
         with tqdm(
             iterable=model_inputs,
