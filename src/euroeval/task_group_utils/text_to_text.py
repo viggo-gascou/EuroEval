@@ -76,12 +76,16 @@ def compute_metrics(
         language_codes=[lang.code for lang in dataset_config.languages]
     )
     lingua_langs = [IsoCode639_1.from_str(lang_code) for lang_code in target_langs]
-    
-    # We use the detector with all languages, since we do not want to be in
-    # single language mode, for datasets that only have a single language.
+
+    # We use the detector with all latin languages, since we do not want to be in
+    # single language mode for datasets that only have a single language.
     # This is important for datasets that have 'multiple' languages, such as Norwegian.
     # See: https://github.com/pemistahl/lingua-py#116-single-language-mode
-    detector = LanguageDetectorBuilder.from_all_languages().build()
+    detector = (
+        LanguageDetectorBuilder.from_all_languages_with_latin_script()
+        .with_preloaded_language_models()
+        .build()
+    )
 
     results: dict[str, float] = dict()
     for cfg in dataset_config.task.metrics:
