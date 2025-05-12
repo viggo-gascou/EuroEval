@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.8.2] - 2025-05-12
 ### Fixed
 - Catch error when caching generative model outputs, when the number of model inputs and
   outputs do not match.
