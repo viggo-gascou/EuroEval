@@ -451,7 +451,9 @@ class VLLMModel(HuggingFaceEncoderModel):
                         text=prompts,
                         truncation=True,
                         max_length=max(
-                            self._tokenizer.model_max_length - max_tokens, 0
+                            min(self._tokenizer.model_max_length, MAX_CONTEXT_LENGTH)
+                            - max_tokens,
+                            0,
                         ),
                     )
                     prompts = self._tokenizer.batch_decode(
