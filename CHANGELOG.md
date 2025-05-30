@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Changed
+- Updated `vllm` to `>=0.9.0`, as the bug in `v0.8.5` has been fixed.
+- Removed the `--use-flash-attention` flag as well as the corresponding warning, as
+  flash attention is now built-in to vLLM and is used by default.
+
 ### Fixed
 - When truncating prompts with vLLM models, we now correctly truncate them down below
   the `MAX_CONTEXT_LENGTH` (set to 5,000 tokens). We have already ensured that all
