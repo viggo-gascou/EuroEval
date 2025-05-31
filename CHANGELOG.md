@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.9.0] - 2025-05-31
 ### Changed
 - Updated `vllm` to `>=0.9.0`, as the bug in `v0.8.5` has been fixed.
 - Removed the `--use-flash-attention` flag as well as the corresponding warning, as
