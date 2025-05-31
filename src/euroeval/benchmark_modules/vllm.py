@@ -498,8 +498,19 @@ class VLLMModel(HuggingFaceEncoderModel):
             output.outputs[0].token_ids for output in raw_outputs
         ]
         if self.end_of_reasoning_token_id in completion_ids[0]:
+            # Find the latest index of the end of reasoning token and slice
+            # the token IDs to only include the tokens after it
             completion_ids = [
-                token_ids[token_ids.index(self.end_of_reasoning_token_id) + 1 :]
+                token_ids[
+                    max(
+                        [
+                            i
+                            for i, x in enumerate(token_ids)
+                            if x == self.end_of_reasoning_token_id
+                        ]
+                    )
+                    + 1 :
+                ]
                 if self.end_of_reasoning_token_id in token_ids
                 else token_ids
                 for token_ids in completion_ids
