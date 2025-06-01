@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.9.1] - 2025-06-01
 ### Fixed
 - Now shows an informative message to remove `flash_attn` if it is installed, as it is
   now built into other dependencies and conflicts with the other implementations.
