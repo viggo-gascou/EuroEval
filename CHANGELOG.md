@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Fixed
+- Allow a model to not have any BOS and EOS tokens.
 - Improved detection of beginning-of-reasoning tokens for models.
 
 
