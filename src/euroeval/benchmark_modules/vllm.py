@@ -1033,57 +1033,6 @@ def get_end_of_reasoning_token_id(
     Returns:
         The end of reasoning token ID, or None if it could not be found.
     """
-    reasoning_tokens_in_vocab = [
-        (bor_token, eor_token)
-        for bor_token, eor_token in REASONING_TOKENS
-        if bor_token in tokenizer.get_vocab() and eor_token in tokenizer.get_vocab()
-    ]
-
-    if not reasoning_tokens_in_vocab:
-        reasoning_tokens_str = ", ".join(
-            [
-                f"{bor_token} and {eor_token}"
-                for bor_token, eor_token in REASONING_TOKENS
-            ]
-        )
-        log_once(
-            f"Model {model_id!r} does not have any of the reasoning tokens "
-            f"{reasoning_tokens_str} in its vocabulary, so assuming it is not a "
-            "reasoning model.",
-            level=logging.INFO,
-        )
-        return None
-
-    # Require that the reasoning token is a special token
-    special_tokens = (
-        [
-            decoder_token.content
-            for decoder_token in tokenizer.added_tokens_decoder.values()
-        ]
-        + [encoder_token for encoder_token in tokenizer.added_tokens_encoder.keys()]
-        + tokenizer.all_special_tokens
-    )
-    special_reasoning_tokens = [
-        (bor_token, eor_token)
-        for (bor_token, eor_token) in reasoning_tokens_in_vocab
-        if bor_token in special_tokens and eor_token in special_tokens
-    ]
-
-    if not special_reasoning_tokens:
-        reasoning_tokens_str = ", ".join(
-            [
-                f"{bor_token} and {eor_token}"
-                for bor_token, eor_token in reasoning_tokens_in_vocab
-            ]
-        )
-        log_once(
-            f"Model {model_id!r} does not have any of the reasoning tokens "
-            f"{reasoning_tokens_str} as special tokens, so assuming it is not a "
-            "reasoning model.",
-            level=logging.INFO,
-        )
-        return None
-
     # Create a prompt to check if the model uses the reasoning tokens
     if tokenizer.chat_template is None:
         prompt = "What is your name?"
@@ -1108,7 +1057,7 @@ def get_end_of_reasoning_token_id(
     )
     bor_reasoning_matches = [
         (bor_token, eor_token)
-        for bor_token, eor_token in special_reasoning_tokens
+        for bor_token, eor_token in REASONING_TOKENS
         if bor_token in prompt or bor_token in completion
     ]
     if not bor_reasoning_matches:
@@ -1116,7 +1065,7 @@ def get_end_of_reasoning_token_id(
             f"The model {model_id!r} did not generate any beginning-of-reasoning "
             "tokens in the prompt or the completion, out of the potential "
             "beginning-of-reasoning tokens "
-            f"{[bor_token for bor_token, _ in special_reasoning_tokens]}. Assuming "
+            f"{[bor_token for bor_token, _ in REASONING_TOKENS]}. Assuming "
             "the model is not a reasoning model.",
             level=logging.INFO,
         )
