@@ -185,6 +185,11 @@ def get_bos_token(
         )
         return None, None
 
+    log_once(
+        f"Beginning-of-sequence token was not set, but detected it as {bos_token!r} "
+        f"with ID {bos_token_id}.",
+        level=logging.DEBUG,
+    )
     return bos_token, bos_token_id
 
 
@@ -221,7 +226,95 @@ def get_eos_token(
         )
         return None, None
 
+    log_once(
+        f"End-of-sequence token was not set, but detected it as {eos_token!r} with "
+        f"ID {eos_token_id}.",
+        level=logging.DEBUG,
+    )
     return eos_token, eos_token_id
+
+
+def get_pad_token(
+    tokenizer: "PreTrainedTokenizer",
+) -> tuple[str, int] | tuple[None, None]:
+    """Get the padding token from a tokenizer.
+
+    Args:
+        tokenizer:
+            The tokenizer.
+
+    Returns:
+        A pair (token, token_id) representing the padding token and its token ID, or
+        (None, None) if no padding token is found.
+    """
+    # If the tokenizer already has a padding token, return it
+    if tokenizer.pad_token is not None and tokenizer.pad_token_id is not None:
+        assert isinstance(tokenizer.pad_token, str), (
+            "Expected tokenizer.pad_token to be a string, but got "
+            f"{type(tokenizer.pad_token)}."
+        )
+        assert isinstance(tokenizer.pad_token_id, int), (
+            "Expected tokenizer.pad_token_id to be an integer, but got "
+            f"{type(tokenizer.pad_token_id)}."
+        )
+        return (tokenizer.pad_token, tokenizer.pad_token_id)
+
+    # If the tokenizer has a BOS token, use it as the padding token
+    if tokenizer.bos_token is not None and tokenizer.bos_token_id is not None:
+        assert isinstance(tokenizer.bos_token, str), (
+            "Expected tokenizer.bos_token to be a string, but got "
+            f"{type(tokenizer.bos_token)}."
+        )
+        assert isinstance(tokenizer.bos_token_id, int), (
+            "Expected tokenizer.bos_token_id to be an integer, but got "
+            f"{type(tokenizer.bos_token_id)}."
+        )
+        pad_token = tokenizer.bos_token
+        pad_token_id = tokenizer.bos_token_id
+
+    # If the tokenizer has an EOS token, use it as the padding token
+    elif tokenizer.eos_token is not None and tokenizer.eos_token_id is not None:
+        assert isinstance(tokenizer.eos_token, str), (
+            "Expected tokenizer.eos_token to be a string, but got "
+            f"{type(tokenizer.eos_token)}."
+        )
+        assert isinstance(tokenizer.eos_token_id, int), (
+            "Expected tokenizer.eos_token_id to be an integer, but got "
+            f"{type(tokenizer.eos_token_id)}."
+        )
+        pad_token = tokenizer.eos_token
+        pad_token_id = tokenizer.eos_token_id
+
+    # Otherwise, try to find a candidate padding token in the vocabulary
+    else:
+        pad_token_candidates = [
+            "<pad>",
+            "[pad]",
+            "<|endoftext|>",
+            "<｜end▁of▁sentence｜>",
+            "<|im_end|>",
+        ]
+        pad_token_candidates.extend([c.upper() for c in pad_token_candidates])
+        for candidate in pad_token_candidates:
+            if candidate in tokenizer.get_vocab():
+                pad_token = candidate
+                pad_token_id = tokenizer.get_vocab()[candidate]
+                break
+        else:
+            log_once(
+                "Could not identify a padding token for the model. Please ensure that "
+                "this has been set in the tokenizer's configuration. Using no padding "
+                "token. This may lead to unexpected behavior in the model.",
+                level=logging.INFO,
+            )
+            return None, None
+
+    log_once(
+        f"Padding token was not set, but detected it as {pad_token!r} with ID "
+        f"{pad_token_id}.",
+        level=logging.DEBUG,
+    )
+    return pad_token, pad_token_id
 
 
 def get_end_of_chat_token_ids(tokenizer: "PreTrainedTokenizer") -> list[int] | None:
@@ -300,14 +393,14 @@ def get_first_label_token_mapping(
     if tokenizer is None:
         if output_scores:
             log_once(
-                f"The model {model_config.model_id!r} will output scores, since the "
-                "dataset supports it and no tokenizer is available.",
+                f"We will use logprobs with the model {model_config.model_id!r} "
+                "since the dataset supports it and no tokenizer is available.",
                 level=logging.DEBUG,
             )
         else:
             log_once(
-                f"The model {model_config.model_id!r} will not output scores, since "
-                "the dataset does not support it and no tokenizer is available.",
+                f"We will not use logprobs with the model {model_config.model_id!r} "
+                "since the dataset does not support it and no tokenizer is available.",
                 level=logging.DEBUG,
             )
         return output_scores
@@ -368,7 +461,7 @@ def get_first_label_token_mapping(
             if not matching_tokens:
                 log_once(
                     f"No matching token found in token_list for label '{label}', so "
-                    "we will not output scores.",
+                    "we will not use logprobs with the model.",
                     level=logging.DEBUG,
                 )
                 return False
@@ -378,8 +471,8 @@ def get_first_label_token_mapping(
         # tokens are distinct
         if len(first_tokens) == len(set(first_tokens)):
             log_once(
-                "The model will output scores, since the first tokens of the labels "
-                "are distinct.",
+                "We will use logprobs with the model since the first tokens of the "
+                "labels are distinct.",
                 level=logging.DEBUG,
             )
             return {
@@ -388,7 +481,7 @@ def get_first_label_token_mapping(
             }
         else:
             log_once(
-                "The model will not output scores, since the first tokens of the "
+                "We will not use logprobs with the model since the first tokens of the "
                 "labels are not distinct. The first tokens for the labels "
                 f"{local_labels} are {first_tokens}"
             )
@@ -398,7 +491,8 @@ def get_first_label_token_mapping(
     # evaluation errors. This will force the label extraction to rely on word edit
     # distance instead of logprobs.
     log_once(
-        "The model will not output scores, since the dataset does not have labels.",
+        "We will not use logprobs with the model, since the dataset does not have "
+        "labels.",
         level=logging.DEBUG,
     )
     return False
