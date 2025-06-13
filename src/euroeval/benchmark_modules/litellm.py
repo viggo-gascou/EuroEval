@@ -201,6 +201,11 @@ class LiteLLMModel(BenchmarkModule):
         self.is_ollama = model_config.model_id.startswith(
             "ollama/"
         ) or model_config.model_id.startswith("ollama_chat/")
+        self._ollama_show: ollama.ShowResponse = (
+            ollama.show("/".join(model_config.model_id.split("/")[1:]))
+            if self.is_ollama
+            else ollama.ShowResponse(model_info=None)
+        )
 
         raise_if_wrong_params(model_config=model_config, allowed_params=ALLOWED_PARAMS)
 
@@ -224,7 +229,14 @@ class LiteLLMModel(BenchmarkModule):
         Returns:
             The generative type of the model, or None if it has not been set yet.
         """
-        if self.model_config.revision == "thinking":
+        if self.is_ollama:
+            reasoning_model = "thinking" in (self._ollama_show.capabilities or [])
+            type_ = (
+                GenerativeType.REASONING
+                if reasoning_model
+                else GenerativeType.INSTRUCTION_TUNED
+            )
+        elif self.model_config.revision in {"thinking"}:
             type_ = GenerativeType.REASONING
         elif re.fullmatch(
             pattern="|".join(REASONING_MODELS), string=self.model_config.model_id
@@ -328,6 +340,16 @@ class LiteLLMModel(BenchmarkModule):
                     level=logging.DEBUG,
                 )
 
+        # If the model is an Ollama reasoning model, we ensure that thinking is enabled
+        if self.is_ollama and self.generative_type == GenerativeType.REASONING:
+            generation_kwargs["think"] = True
+            log_once(
+                "Enabling thinking mode for Ollama model "
+                f"{self.model_config.model_id!r}",
+                level=logging.DEBUG,
+            )
+
+        # Handle manually set parameters
         if self.model_config.revision == "thinking":
             generation_kwargs["thinking"] = dict(
                 type="enabled", budget_tokens=REASONING_MAX_TOKENS - 1
@@ -690,8 +712,7 @@ class LiteLLMModel(BenchmarkModule):
         # If it is an Ollama model then we can get the number of parameters from the
         # Ollama Python SDK
         if self.is_ollama:
-            ollama_model_id = "/".join(self.model_config.model_id.split("/")[1:])
-            model_info = ollama.show(ollama_model_id).modelinfo
+            model_info = self._ollama_show.modelinfo
             if model_info is not None:
                 num_params = model_info.get("general.parameter_count")
                 if num_params is not None:
@@ -819,7 +840,7 @@ class LiteLLMModel(BenchmarkModule):
         # Python SDK
         if self.is_ollama:
             ollama_model_id = "/".join(self.model_config.model_id.split("/")[1:])
-            model_info = ollama.show(ollama_model_id).modelinfo
+            model_info = self._ollama_show.modelinfo
             if model_info is not None:
                 context_length_keys = [
                     key for key in model_info.keys() if "context_length" in key.lower()
