@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Updated `litellm` to `>=1.72.2`.
 - Updated `ollama` to `>=0.5.1`.
+- Better detecmtion of instruction-tuned models.
 
 ### Fixed
 - Fixed an issue where the EOS token would be included in the vLLM generation output,

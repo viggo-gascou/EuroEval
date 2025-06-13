@@ -197,7 +197,10 @@ class VLLMModel(HuggingFaceEncoderModel):
             return None
         elif self.end_of_reasoning_token is not None:
             return GenerativeType.REASONING
-        elif self._tokenizer.chat_template is not None:
+        elif (
+            self._tokenizer.chat_template is not None
+            or "instruct" in self.model_config.model_id.lower()
+        ):
             return GenerativeType.INSTRUCTION_TUNED
         else:
             return GenerativeType.BASE
