@@ -484,8 +484,8 @@ class LiteLLMModel(BenchmarkModule):
                 f"The model {model_id!r} does not support logprobs, so disabling it.",
                 level=logging.DEBUG,
             )
-            generation_kwargs.pop("logprobs")
-            generation_kwargs.pop("top_logprobs")
+            generation_kwargs.pop("logprobs", None)
+            generation_kwargs.pop("top_logprobs", None)
             return
         elif any(msg.lower() in error_msg for msg in temperature_messages):
             log_once(
@@ -493,7 +493,7 @@ class LiteLLMModel(BenchmarkModule):
                 "temperature, so disabling it.",
                 level=logging.DEBUG,
             )
-            generation_kwargs.pop("temperature")
+            generation_kwargs.pop("temperature", None)
             return
         elif any(msg.lower() in error_msg for msg in temperature_must_be_one_messages):
             log_once(
