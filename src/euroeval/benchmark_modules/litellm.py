@@ -620,6 +620,7 @@ class LiteLLMModel(BenchmarkModule):
             prev_fail_count = current_fail_count
             to_run = next_to_run
             rerun_count += 1
+            sleep(1)
 
         failures = [(orig_idx, all_failures[orig_idx]) for orig_idx, _ in to_run]
         return success, failures
