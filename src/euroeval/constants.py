@@ -69,3 +69,16 @@ VLLM_BF16_MIN_CUDA_COMPUTE_CAPABILITY = 8.0
 # When a sample's language confidence score is greater than or equal to this value,
 # its evaluation score is kept as is. Otherwise, the score is set to 0.
 MIN_CONFIDENCE_SCORE = 0.75
+
+# Used to detect whether a model is a reasoning model
+REASONING_TOKENS = [
+    ("<think>", "</think>"),
+    ("<reason>", "</reason>"),
+    ("<reasoning>", "</reasoning>"),
+]
+
+# These tokens are sometimes used by models to indicate the end of a generated
+# response, but they do not use them as a proper EOS token, so we have to deal with them
+# manually. We only use them as stop tokens if they actually appear in the model's
+# output
+CUSTOM_STOP_TOKENS = ["<sep>"]

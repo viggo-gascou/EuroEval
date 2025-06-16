@@ -26,11 +26,13 @@ from transformers.trainer import Trainer
 from urllib3.exceptions import RequestError
 
 from ..constants import (
+    CUSTOM_STOP_TOKENS,
     GENERATIVE_PIPELINE_TAGS,
     MAX_CONTEXT_LENGTH,
     MAX_LOGPROBS,
     MERGE_TAGS,
     REASONING_MAX_TOKENS,
+    REASONING_TOKENS,
     TASKS_USING_JSON,
     VLLM_BF16_MIN_CUDA_COMPUTE_CAPABILITY,
 )
@@ -67,6 +69,7 @@ from ..tokenization_utils import (
     get_end_of_chat_token_ids,
     get_eos_token,
     get_first_label_token_mapping,
+    get_pad_token,
     should_prompts_be_stripped,
 )
 from ..types import ExtractLabelsFunction
@@ -84,7 +87,12 @@ if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
         destroy_distributed_environment,
         destroy_model_parallel,
     )
+    from vllm.inputs import PromptType
     from vllm.lora.request import LoRARequest
+    from vllm.model_executor.guided_decoding.guided_fields import GuidedDecodingRequest
+    from vllm.pooling_params import PoolingParams
+    from vllm.prompt_adapter.request import PromptAdapterRequest
+    from vllm.sampling_params import RequestOutputKind
 
 if t.TYPE_CHECKING or importlib.util.find_spec("outlines") is not None:
     from outlines.models.vllm import adapt_tokenizer
@@ -130,8 +138,17 @@ class VLLMModel(HuggingFaceEncoderModel):
         )
         self._model: LLM = model
         self._tokenizer: PreTrainedTokenizer = tokenizer
-        self.end_of_reasoning_token_id = get_end_of_reasoning_token_id(
+        self.end_of_reasoning_token = get_end_of_reasoning_token(
             model=self._model, tokenizer=self._tokenizer, model_id=model_config.model_id
+        )
+        self.end_of_chat_token_ids = get_end_of_chat_token_ids(
+            tokenizer=self._tokenizer
+        )
+        self.custom_stop_tokens = get_custom_stop_tokens(
+            model=self._model,
+            tokenizer=self._tokenizer,
+            model_id=model_config.model_id,
+            is_reasoning_model=self.end_of_reasoning_token is not None,
         )
 
         # We specify `HuggingFaceEncoderModel` here instead of `VLLMModel`, as we want
@@ -178,9 +195,12 @@ class VLLMModel(HuggingFaceEncoderModel):
         """
         if not hasattr(self, "_tokenizer"):
             return None
-        elif self.end_of_reasoning_token_id is not None:
+        elif self.end_of_reasoning_token is not None:
             return GenerativeType.REASONING
-        elif self._tokenizer.chat_template is not None:
+        elif (
+            self._tokenizer.chat_template is not None
+            or "instruct" in self.model_config.model_id.lower()
+        ):
             return GenerativeType.INSTRUCTION_TUNED
         else:
             return GenerativeType.BASE
@@ -290,55 +310,29 @@ class VLLMModel(HuggingFaceEncoderModel):
         Returns:
             The generated model outputs.
         """
-        # Define which tokens to use as stopping criteria. We want to use the padding
-        # token, end-of-sentence token, and a double newline if the model isn't
-        # instruction tuned (since these separate the few-shot examples in the input in
-        # this case)
-        stop_tokens: list[str] = list()
+        # Get stopping tokens
+        stop_tokens: list[str] = self.custom_stop_tokens.copy()
         if self.buffer["instruction_model"] is False:
             stop_tokens.append("\n\n")
         if self._tokenizer.pad_token_id is not None:
+            assert isinstance(self._tokenizer.pad_token, str), (
+                f"The pad token for the model {self.model_config.model_id!r} "
+                f"is not a string, which is unexpected: {self._tokenizer.pad_token!r}."
+            )
             stop_tokens.append(self._tokenizer.pad_token)
         if self._tokenizer.eos_token_id is not None:
+            assert isinstance(self._tokenizer.eos_token, str), (
+                f"The EOS token for the model {self.model_config.model_id!r} "
+                f"is not a string, which is unexpected: {self._tokenizer.eos_token!r}."
+            )
             stop_tokens.append(self._tokenizer.eos_token)
             if self._tokenizer.pad_token_id is None:
                 self._tokenizer.pad_token_id = self._tokenizer.eos_token_id
                 self._tokenizer.pad_token = self._tokenizer.eos_token
-        if (
-            self._tokenizer.bos_token_id is not None
-            and self._tokenizer.pad_token_id is None
-        ):
-            self._tokenizer.pad_token_id = self._tokenizer.bos_token_id
-            self._tokenizer.pad_token = self._tokenizer.bos_token
-        elif (
-            self._tokenizer.eos_token_id is not None
-            and self._tokenizer.pad_token_id is None
-        ):
-            self._tokenizer.pad_token_id = self._tokenizer.eos_token_id
-            self._tokenizer.pad_token = self._tokenizer.eos_token
-        elif self._tokenizer.pad_token_id is None:
-            pad_token_candidates = ["<pad>", "[pad]", "<|endoftext|>", "<|im_end|>"]
-            pad_token_candidates.extend([c.upper() for c in pad_token_candidates])
-            for candidate in pad_token_candidates:
-                if candidate in self._tokenizer.get_vocab():
-                    pad_token_id = self._tokenizer.get_vocab()[candidate]
-                    self._tokenizer.pad_token = candidate
-                    self._tokenizer.pad_token_id = pad_token_id
-                    break
-            else:
-                raise InvalidModel(
-                    "Could not find a suitable token to use as a padding token, since "
-                    "the model does not have a BOS, EOS, or padding token, and does "
-                    f"not have any of the following tokens in its vocabulary: "
-                    f"{pad_token_candidates}."
-                )
-
-        assert self._tokenizer.pad_token_id is not None
-
-        # Add end of chat token as a stopping token, if it exists
-        end_of_chat_token_ids = get_end_of_chat_token_ids(tokenizer=self._tokenizer)
-        if end_of_chat_token_ids is not None:
-            end_of_chat_token = self._tokenizer.decode(end_of_chat_token_ids).strip()
+        if self.end_of_chat_token_ids is not None:
+            end_of_chat_token = self._tokenizer.decode(
+                self.end_of_chat_token_ids
+            ).strip()
             if end_of_chat_token:
                 stop_tokens.append(end_of_chat_token)
 
@@ -451,7 +445,9 @@ class VLLMModel(HuggingFaceEncoderModel):
                         text=prompts,
                         truncation=True,
                         max_length=max(
-                            self._tokenizer.model_max_length - max_tokens, 0
+                            min(self._tokenizer.model_max_length, MAX_CONTEXT_LENGTH)
+                            - max_tokens,
+                            0,
                         ),
                     )
                     prompts = self._tokenizer.batch_decode(
@@ -490,19 +486,23 @@ class VLLMModel(HuggingFaceEncoderModel):
         completion_ids: list[list[int]] = [
             output.outputs[0].token_ids for output in raw_outputs
         ]
-        if self.end_of_reasoning_token_id in completion_ids[0]:
-            completion_ids = [
-                token_ids[token_ids.index(self.end_of_reasoning_token_id) + 1 :]
-                if self.end_of_reasoning_token_id in token_ids
-                else token_ids
-                for token_ids in completion_ids
-            ]
         completions = self._tokenizer.batch_decode(
             sequences=[
                 torch.LongTensor(completion_id) for completion_id in completion_ids
-            ],
-            skip_special_tokens=True,
+            ]
         )
+        if self.end_of_reasoning_token is not None:
+            completions = [
+                completion.split(self.end_of_reasoning_token)[-1]
+                for completion in completions
+            ]
+        stop_token_pattern = re.compile(
+            "|".join(re.escape(stop_token) for stop_token in stop_tokens)
+        )
+        completions = [
+            re.split(pattern=stop_token_pattern, string=completion)[0]
+            for completion in completions
+        ]
         completions = [completion.strip() for completion in completions]
 
         # Sanity check
@@ -522,17 +522,6 @@ class VLLMModel(HuggingFaceEncoderModel):
                     for token_logprobs_dict in raw_output.outputs[0].logprobs
                 ]
                 for raw_output in raw_outputs
-            ]
-            scores = [
-                score_list[
-                    raw_output.outputs[0].token_ids.index(
-                        self.end_of_reasoning_token_id
-                    )
-                    + 2 :
-                ]
-                if self.end_of_reasoning_token_id in raw_output.outputs[0].token_ids
-                else score_list
-                for raw_output, score_list in zip(raw_outputs, scores)
             ]
             output = GenerativeModelOutput(sequences=completions, scores=scores)
         else:
@@ -814,6 +803,9 @@ def load_model_and_tokenizer(
         )
 
     model._run_engine = MethodType(_run_engine_with_fixed_progress_bars, model)
+    model._validate_and_add_requests = MethodType(
+        _validate_and_add_requests_with_fixed_progress_bars, model
+    )
     model.config = hf_model_config
 
     return model, tokenizer
@@ -897,8 +889,7 @@ def load_tokenizer(
     # Ensure that BOS, EOS and PAD tokens are set
     tokenizer.bos_token, tokenizer.bos_token_id = get_bos_token(tokenizer=tokenizer)
     tokenizer.eos_token, tokenizer.eos_token_id = get_eos_token(tokenizer=tokenizer)
-    if tokenizer.pad_token_id is None:
-        tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.pad_token, tokenizer.pad_token_id = get_pad_token(tokenizer=tokenizer)
 
     return tokenizer
 
@@ -934,6 +925,53 @@ def _run_engine_with_fixed_progress_bars(
     return outputs
 
 
+def _validate_and_add_requests_with_fixed_progress_bars(
+    self: "LLM",
+    prompts: "PromptType | c.Sequence[PromptType]",
+    params: "SamplingParams | c.Sequence[SamplingParams] | PoolingParams | c.Sequence[PoolingParams]",  # noqa: E501
+    *,
+    use_tqdm: bool,
+    lora_request: "c.Sequence[LoRARequest] | LoRARequest | None",
+    prompt_adapter_request: "PromptAdapterRequest | None",
+    tokenization_kwargs: dict[str, t.Any] | None = None,
+    guided_options: "GuidedDecodingRequest | None" = None,
+    priority: list[int] | None = None,
+) -> None:
+    if isinstance(prompts, (str, dict)):
+        # Convert a single prompt to a list.
+        prompts = [prompts]
+
+    num_requests = len(prompts)
+    if isinstance(params, list) and len(params) != num_requests:
+        raise ValueError("The lengths of prompts and params must be the same.")
+    if isinstance(lora_request, list) and len(lora_request) != num_requests:
+        raise ValueError("The lengths of prompts and lora_request must be the same.")
+
+    for sp in params if isinstance(params, list) else (params,):
+        if isinstance(sp, SamplingParams):
+            self._add_guided_params(sp, guided_options)
+
+            # We only care about the final output
+            sp.output_kind = RequestOutputKind.FINAL_ONLY
+
+    # Add requests to the engine.
+    it = prompts
+    if use_tqdm:
+        it = tqdm(it, desc="Adding requests", leave=False)
+
+    for i, prompt in enumerate(it):
+        self._add_request(
+            prompt,
+            params[i] if isinstance(params, c.Sequence) else params,
+            tokenization_kwargs=tokenization_kwargs,
+            lora_request=lora_request[i]
+            if isinstance(lora_request, c.Sequence)
+            else lora_request,
+            prompt_adapter_request=prompt_adapter_request,
+            priority=priority[i] if priority else 0,
+        )
+
+
 def clear_vllm() -> None:
     """Clear the GPU memory used by the vLLM model, enabling re-initialisation."""
     with contextlib.suppress(ValueError):
@@ -948,14 +986,10 @@ def clear_vllm() -> None:
     clear_memory()
 
 
-def get_end_of_reasoning_token_id(
+def get_end_of_reasoning_token(
     model: "LLM", tokenizer: "PreTrainedTokenizer", model_id: str
-) -> int | None:
-    """Get the end of reasoning token ID for a generative model.
-
-    This assumes that the reasoning token is of the form <X> and that the end of
-    reasoning token is </X> (for X being any string without spaces). We disallow the
-    reasoning token to be the same as the beginning-of-sentence token.
+) -> str | None:
+    """Get the end-of-reasoning token for a generative model.
 
     Args:
         model:
@@ -966,86 +1000,146 @@ def get_end_of_reasoning_token_id(
             The model ID.
 
     Returns:
-        The end of reasoning token ID, or None if it could not be found.
+        The end of reasoning token, or None if it could not be found.
     """
-    if tokenizer.chat_template is None:
-        prompt = "What is your name?"
-    else:
+    # Create a prompt to check if the model uses the reasoning tokens
+    prompt = "What is your name?"
+    if tokenizer.chat_template is not None:
         templated_prompt = tokenizer.apply_chat_template(
-            conversation=[dict(role="user", content="What is your name?")],
+            conversation=[dict(role="user", content=prompt)],
             add_generation_prompt=True,
             tokenize=False,
         )
         assert isinstance(templated_prompt, str)
         prompt = templated_prompt
 
-    # Generate a completion and remove the BOS token from it, to not confuse it with the
-    # potential reasoning token
-    model_output = model.generate(
-        prompts=[prompt],
-        sampling_params=SamplingParams(max_tokens=3, temperature=0.0),
-        use_tqdm=False,
+    # Check that the beginning-of-reasoning token is actually used by the model
+    completion = (
+        model.generate(
+            prompts=[prompt],
+            sampling_params=SamplingParams(max_tokens=10),
+            use_tqdm=False,
+        )[0]
+        .outputs[0]
+        .text
     )
-    completion = model_output[0].outputs[0].text
-
-    if tokenizer.bos_token is not None:
-        if isinstance(tokenizer.bos_token, str):
-            prompt = prompt.replace(tokenizer.bos_token, "").strip()
-            completion = completion.replace(tokenizer.bos_token, "").strip()
-        elif isinstance(tokenizer.bos_token, list):
-            for bos_token in tokenizer.bos_token:
-                prompt = prompt.replace(bos_token, "").strip()
-                completion = completion.replace(bos_token, "").strip()
-
-    # If it doesn't contain a reasoning token, we can't find the end of reasoning token
-    prompt_match = re.search(pattern=r"<\w+>", string=prompt)
-    completion_match = re.search(pattern=r"<\w+>", string=completion)
-    if completion_match is None and prompt_match is None:
-        log_once(
-            f"Could not find a reasoning token for model {model_id!r}, so assuming "
-            "the model is not a reasoning model.",
-            level=logging.DEBUG,
-        )
-        return None
-
-    # Check that the found reasoning token and its associated end-of-reasoning tokens
-    # are both special tokens
-    elif completion_match is not None:
-        reasoning_token = completion_match.group()
-    else:
-        assert prompt_match is not None
-        reasoning_token = prompt_match.group()
-    end_of_reasoning_token = f"</{reasoning_token[1:-1]}>"
-    special_tokens = [
-        decoder_token.content
-        for decoder_token in tokenizer.added_tokens_decoder.values()
+    bor_reasoning_matches = [
+        (bor_token, eor_token)
+        for bor_token, eor_token in REASONING_TOKENS
+        if bor_token in prompt or bor_token in completion
     ]
-    special_tokens.extend(
-        [encoder_token for encoder_token in tokenizer.added_tokens_encoder.keys()]
-    )
-    special_tokens.extend(tokenizer.all_special_tokens)
-    if (
-        reasoning_token not in special_tokens
-        or end_of_reasoning_token not in special_tokens
-    ):
+    if not bor_reasoning_matches:
         log_once(
-            f"Detected reasoning token {reasoning_token!r} and end-of-reasoning "
-            f"token {end_of_reasoning_token!r} for model {model_id!r}, but one of "
-            "them is not registered as a special token, so assuming it is not a "
-            "real reasoning token.",
-            level=logging.DEBUG,
+            f"The model {model_id!r} did not generate any beginning-of-reasoning "
+            "tokens in the prompt or the completion. Assuming the model is not "
+            "a reasoning model.",
+            level=logging.INFO,
         )
         return None
 
+    # Check that the beginning-of-reasoning token is actually used by the model
+    completion = (
+        model.generate(
+            prompts=[prompt],
+            sampling_params=SamplingParams(max_tokens=REASONING_MAX_TOKENS),
+            use_tqdm=False,
+        )[0]
+        .outputs[0]
+        .text
+    )
+    eor_reasoning_matches = [
+        (bor_token, eor_token)
+        for bor_token, eor_token in bor_reasoning_matches
+        if eor_token in completion
+    ]
+    if not eor_reasoning_matches:
+        log_once(
+            f"The model {model_id!r} did not generate any end-of-reasoning "
+            "tokens in the prompt or the completion, even though it generated "
+            "the beginning-of-reasoning tokens "
+            f"{[bor_token for bor_token, _ in bor_reasoning_matches]!r}. "
+            "This is probably not correct, so please report this issue.",
+            level=logging.INFO,
+        )
+        return None
+
+    if len(eor_reasoning_matches) > 1:
+        log_once(
+            f"Found multiple reasoning tokens {eor_reasoning_matches} for "
+            f"model {model_id!r}. Using {eor_reasoning_matches[0]!r} as "
+            "the reasoning token. If this is not the correct reasoning token, "
+            "please report this issue.",
+            level=logging.INFO,
+        )
+
+    bor_token, eor_token = eor_reasoning_matches[0]
     log_once(
-        f"Detected reasoning token {reasoning_token!r} and end-of-reasoning "
-        f"token {end_of_reasoning_token!r} for model {model_id!r}.",
-        level=logging.DEBUG,
+        f"Detected beginning-of-reasoning token {bor_token!r} and end-of-reasoning "
+        f"token {eor_token!r} for model {model_id!r}.",
+        level=logging.INFO,
     )
 
-    # Encode the end of reasoning token and return its ID
-    end_of_reasoning_token_id = tokenizer.encode(
-        text=end_of_reasoning_token, add_special_tokens=False
-    )[0]
+    return eor_token
 
-    return end_of_reasoning_token_id
+
+def get_custom_stop_tokens(
+    model: "LLM",
+    tokenizer: "PreTrainedTokenizer",
+    model_id: str,
+    is_reasoning_model: bool,
+) -> list[str]:
+    """Get the stop tokens for a generative model.
+
+    Args:
+        model:
+            The vLLM model.
+        tokenizer:
+            The tokenizer.
+        model_id:
+            The model ID.
+        is_reasoning_model:
+            Whether the model is a reasoning model. This is used to determine the number
+            of generated tokens to allow before stopping the generation.
+
+    Returns:
+        A list of stop tokens.
+    """
+    candidate_stop_tokens = CUSTOM_STOP_TOKENS
+
+    # Create a prompt to check if the model uses the reasoning tokens
+    prompt = "Hello"
+    if tokenizer.chat_template is not None:
+        templated_prompt = tokenizer.apply_chat_template(
+            conversation=[dict(role="user", content=prompt)],
+            add_generation_prompt=True,
+            tokenize=False,
+        )
+        assert isinstance(templated_prompt, str)
+        prompt = templated_prompt
+
+    # Check that the beginning-of-reasoning token is actually used by the model
+    max_tokens = REASONING_MAX_TOKENS if is_reasoning_model else 10
+    completion = (
+        model.generate(
+            prompts=[prompt],
+            sampling_params=SamplingParams(max_tokens=max_tokens, temperature=0.0),
+            use_tqdm=False,
+        )[0]
+        .outputs[0]
+        .text
+    )
+
+    stop_tokens = [
+        stop_token
+        for stop_token in candidate_stop_tokens
+        if stop_token in prompt or stop_token in completion
+    ]
+    if stop_tokens:
+        logger.debug(
+            f"Found the following custom stop tokens for model {model_id!r}: "
+            f"{stop_tokens}."
+        )
+    else:
+        logger.debug(f"Found no custom stop tokens for model {model_id!r}.")
+
+    return stop_tokens

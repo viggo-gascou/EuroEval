@@ -44,18 +44,15 @@ install-rust:
 install-uv:
 	@if [ "$(shell which uv)" = "" ]; then \
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
-        echo "Installed uv."; \
-    else \
-		echo "Updating uv..."; \
-		uv self update; \
+			echo "Installed uv."; \
+		else \
+			echo "Updating uv..."; \
+			uv self update; \
 	fi
 
 install-dependencies:
 	@uv python install 3.11
 	@uv sync --all-extras --python 3.11
-	@if [ "${NO_FLASH_ATTN}" != "1" ] && [ $$(uname) != "Darwin" ]; then \
-		uv pip install --no-build-isolation flash-attn>=2.7.0.post2; \
-	fi
 
 setup-environment-variables:
 	@uv run python src/scripts/fix_dot_env_file.py

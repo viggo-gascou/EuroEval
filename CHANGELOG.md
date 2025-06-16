@@ -7,9 +7,56 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Changed
+- Updated `litellm` to `>=1.72.2`.
+- Updated `ollama` to `>=0.5.1`.
+- Better detecmtion of instruction-tuned models.
+
+### Fixed
+- Fixed an issue where the EOS token would be included in the vLLM generation output,
+  leading to incorrect evaluation results. We now manually remove all stop tokens from
+  the generation output, which fixes this issue.
+- Now correctly detects reasoning models for Ollama models and enables their new "think"
+  parameter whenever a reasoning model is detected.
+
+
+## [v15.9.2] - 2025-06-04
+### Fixed
+- Allow a model to not have any BOS and EOS tokens.
+- Improved detection of beginning-of-reasoning tokens for models.
+- Improves detection of reasoning tokens, by having a more strict list of possible
+  such tokens.
+
+
+## [v15.9.1] - 2025-06-01
+### Fixed
+- Now shows an informative message to remove `flash_attn` if it is installed, as it is
+  now built into other dependencies and conflicts with the other implementations.
+
+
+## [v15.9.0] - 2025-05-31
+### Changed
+- Updated `vllm` to `>=0.9.0`, as the bug in `v0.8.5` has been fixed.
+- Removed the `--use-flash-attention` flag as well as the corresponding warning, as
+  flash attention is now built-in to vLLM and is used by default.
+
+### Fixed
+- When truncating prompts with vLLM models, we now correctly truncate them down below
+  the `MAX_CONTEXT_LENGTH` (set to 5,000 tokens). We have already ensured that all
+  prompts have less than 5,000 Gemma-3 tokens, but sometimes tokenizers add a few more
+  tokens.
+- Fixed an issue regarding model existence check when benchmarking models on custom
+  inference API servers.
+- Fixed an issue with Phi-4 models, as they output multiple end-of-reasoning tokens, and
+  it was previously cutting off at the first one, yielding faulty final answers. We now
+  cut off at the last end-of-reasoning token, which is the correct one.
+
+
+## [v15.8.2] - 2025-05-12
 ### Fixed
 - Catch error when caching generative model outputs, when the number of model inputs and
   outputs do not match.
+- Disallow vLLM >=0.8.5, as it breaks generation output for several models.
 
 
 ## [v15.8.1] - 2025-05-08
