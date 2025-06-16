@@ -159,7 +159,7 @@ def compute_metrics(
             if isinstance(scores, list):
                 scores_np = np.array(scores)
                 confidence_mask_np = np.array(confidence_mask)
-                corrected_scores = np.multiply(scores_np, confidence_mask_np)
+                corrected_scores = scores_np * confidence_mask_np
 
                 final_score = np.mean(corrected_scores).item()
             else:
