@@ -121,6 +121,8 @@ def block_terminal_output() -> None:
     logging.getLogger("matplotlib.font_manager").setLevel(logging.CRITICAL)
     logging.getLogger("accelerate").setLevel(logging.CRITICAL)
     logging.getLogger("LiteLLM").setLevel(logging.CRITICAL)
+    logging.getLogger("LiteLLM Router").setLevel(logging.CRITICAL)
+    logging.getLogger("LiteLLM Proxy").setLevel(logging.CRITICAL)
     logging.getLogger("huggingface_hub").setLevel(logging.CRITICAL)
 
     # This suppresses vLLM logging
@@ -352,19 +354,22 @@ def safe_run(coroutine: t.Coroutine[t.Any, t.Any, T]) -> T:
         asyncio.set_event_loop(None)
 
 
-async def catch_coroutine_exception(
-    coroutine: t.Coroutine[t.Any, t.Any, T],
+async def add_semaphore_and_catch_exception(
+    coroutine: t.Coroutine[t.Any, t.Any, T], semaphore: asyncio.Semaphore
 ) -> T | Exception:
-    """Run a coroutine, catching any exceptions and returning them.
+    """Run a coroutine with a semaphore.
 
     Args:
         coroutine:
             The coroutine to run.
+        semaphore:
+            The semaphore to use.
 
     Returns:
-        The result of the coroutine, or the exception if it was raised.
+        The result of the coroutine.
     """
-    try:
-        return await coroutine
-    except Exception as exc:
-        return exc
+    async with semaphore:
+        try:
+            return await coroutine
+        except Exception as exc:
+            return exc

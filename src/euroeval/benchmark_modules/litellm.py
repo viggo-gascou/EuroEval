@@ -1,5 +1,6 @@
 """Generative models from an inference API, using the LiteLLM framework."""
 
+import asyncio
 import collections.abc as c
 import logging
 import os
@@ -29,6 +30,7 @@ from litellm.exceptions import (
     Timeout,
 )
 from litellm.llms.vertex_ai.common_utils import VertexAIError
+from litellm.router import Router
 from litellm.types.utils import ChoiceLogprobs, ModelResponse
 from pydantic import conlist, create_model
 from requests.exceptions import RequestException
@@ -68,7 +70,7 @@ from ..task_group_utils import (
 from ..tokenization_utils import get_first_label_token_mapping
 from ..types import ExtractLabelsFunction
 from ..utils import (
-    catch_coroutine_exception,
+    add_semaphore_and_catch_exception,
     create_model_cache_dir,
     log_once,
     safe_run,
@@ -263,8 +265,18 @@ class LiteLLMModel(BenchmarkModule):
             The generated model outputs.
         """
         assert "messages" in inputs, "The input must contain a 'messages' key."
-        messages = inputs["messages"]
+        conversations: list[list[litellm.AllMessageValues]] = inputs["messages"]
 
+        # Get the mapping from labels to the first token in the label. We call this each
+        # time we generate a new dataset since the dataset config can change
+        self.buffer["first_label_token_mapping"] = get_first_label_token_mapping(
+            dataset_config=self.dataset_config,
+            model_config=self.model_config,
+            tokenizer=None,
+            generative_type=self.generative_type,
+        )
+
+        # Set the core generation arguments
         generation_kwargs: dict[str, t.Any] = dict(
             model=self.model_config.model_id,
             max_completion_tokens=(
@@ -278,33 +290,30 @@ class LiteLLMModel(BenchmarkModule):
             api_key=self.benchmark_config.api_key,
             api_base=self.benchmark_config.api_base,
             api_version=self.benchmark_config.api_version,
+            max_retries=3,
         )
 
-        # Get the mapping from labels to the first token in the label. We call this each
-        # time we generate a new dataset since the dataset config can change
-        self.buffer["first_label_token_mapping"] = get_first_label_token_mapping(
-            dataset_config=self.dataset_config,
-            model_config=self.model_config,
-            tokenizer=None,
-            generative_type=self.generative_type,
-        )
-
-        if self.buffer["first_label_token_mapping"]:
-            generation_kwargs["logprobs"] = True
-            generation_kwargs["top_logprobs"] = MAX_LOGPROBS
-
+        # Set up the `response_format` generation argument if we are dealing with a task
+        # using structured generation
         if self.dataset_config.task in TASKS_USING_JSON:
-            for msg_list in messages:
-                # msg_list is a list of {'role':…, 'content':…} dicts
-                if not msg_list:
+            # Sanity check that "JSON" is included in the prompt, as some models require
+            # this
+            for conversation in conversations:
+                if not conversation:
                     raise InvalidBenchmark(
-                        "Encountered an empty message list in 'messages'."
+                        "Encountered an empty conversation in 'messages'."
                     )
-                last = msg_list[-1]
-                assert isinstance(last, dict), (
-                    f"Expected dict message, got {type(last)}"
+                last_message = conversation[-1]
+                assert isinstance(last_message, dict), (
+                    f"Expected dict message, got {type(last_message)}"
                 )
-                assert "json" in last["content"].lower(), (
+                assert "content" in last_message, (
+                    "Expected 'content' key in the last message of the conversation."
+                )
+                assert isinstance(last_message["content"], str), (
+                    "Expected 'content' to be a string."
+                )
+                assert "json" in last_message["content"].lower(), (
                     "Prompt must contain 'json' for JSON tasks."
                 )
 
@@ -350,6 +359,9 @@ class LiteLLMModel(BenchmarkModule):
             )
 
         # Handle manually set parameters
+        if self.buffer["first_label_token_mapping"]:
+            generation_kwargs["logprobs"] = True
+            generation_kwargs["top_logprobs"] = MAX_LOGPROBS
         if self.model_config.revision == "thinking":
             generation_kwargs["thinking"] = dict(
                 type="enabled", budget_tokens=REASONING_MAX_TOKENS - 1
@@ -366,66 +378,67 @@ class LiteLLMModel(BenchmarkModule):
                 level=logging.DEBUG,
             )
 
-        # This drops generation kwargs that are not supported by the model
+        # Drop generation kwargs that are not supported by the model
         litellm.drop_params = True
 
-        # Extract the generated sequences from the model response. Some APIs cannot
-        # handle using newlines as stop sequences, so we try both.
-        num_attempts = 10
-
-        all_responses = {}
-        all_failures = []
-        to_run = list(enumerate(messages))
-
-        for attempt in range(num_attempts):
-            if not to_run:
+        all_responses: dict[int, ModelResponse] = {}
+        conversations_to_run: list[tuple[int, list[litellm.AllMessageValues]]] = list(
+            enumerate(conversations)
+        )
+        for attempt in range(num_attempts := 10):
+            if not conversations_to_run:
                 break
 
-            batch_indices, batch_msgs = zip(*to_run)
-            model_response, failures = safe_run(
+            batch_indices, batch_conversations = zip(*conversations_to_run)
+            successes, failures = safe_run(
                 self._generate_async(
-                    messages=list(batch_msgs),
-                    generation_kwargs=generation_kwargs,
-                    max_retries=3,
-                    max_reruns=15,
+                    model_id=self.model_config.model_id,
+                    conversations=list(batch_conversations),
+                    **generation_kwargs,
                 )
             )
 
-            for orig_idx, response in zip(batch_indices, model_response):
+            # Store the successful model outputs
+            for idx, response in successes:
+                orig_idx = batch_indices[idx]
                 all_responses[orig_idx] = response
 
+            # If all requests were successful, break
             if not failures:
-                to_run = []
+                conversations_to_run = []
                 break
 
-            all_failures.extend(failures)
-            to_run = [(orig_idx, messages[orig_idx]) for orig_idx, _ in failures]
+            # Put the failed requests back in the queue to try again
+            conversations_to_run = [
+                (batch_indices[idx], conversations[batch_indices[idx]])
+                for idx, _ in failures
+            ]
             logger.debug(
-                f"Attempt {attempt + 1}/{num_attempts}: "
-                f"retrying {len(to_run)} failed message(s)"
+                f"Attempt {attempt + 1:,}/{num_attempts:,}: retrying "
+                f"{len(conversations_to_run):,} failed message(s)"
             )
 
+            # Attempt to handle the exceptions, to improve the chance of getting
+            # successful generations next time around
             for _, error in failures:
                 self._handle_exception(error=error, generation_kwargs=generation_kwargs)
+
+            # Sleep for a second to avoid pinging the API server too quickly
+            sleep(1)
         else:
             raise InvalidBenchmark(
-                message=f"Failed to generate text, after {num_attempts} attempts."
+                message=f"Failed to generate text, after {num_attempts:,} attempts."
             )
 
-        if to_run:
-            raise InvalidBenchmark(
-                f"Failed to generate text after {num_attempts} attempts. "
-                f"Errors: {all_failures}"
-            )
-
-        ordered_responses = [all_responses[i] for i in range(len(messages))]
+        # Extract the generations from the model output
+        ordered_responses = [all_responses[i] for i in range(len(conversations))]
         model_output = self._create_model_output(
             model_responses=ordered_responses, model_id=self.model_config.model_id
         )
 
-        if len(messages) != len(model_output.sequences):
+        if len(conversations) != len(model_output.sequences):
             raise InvalidBenchmark(
-                f"Number of model inputs ({len(messages):,}) does not match the "
+                f"Number of model inputs ({len(conversations):,}) does not match the "
                 f"number of model outputs ({len(model_output.sequences):,})."
             )
 
@@ -525,14 +538,7 @@ class LiteLLMModel(BenchmarkModule):
             generation_kwargs["response_format"] = dict(type="json_object")
             return
         elif isinstance(
-            error,
-            (
-                APIConnectionError,
-                Timeout,
-                ServiceUnavailableError,
-                InternalServerError,
-                SystemError,
-            ),
+            error, (Timeout, ServiceUnavailableError, InternalServerError, SystemError)
         ):
             logger.debug(
                 f"Service temporarily unavailable. The error message was: {error}. "
@@ -540,6 +546,18 @@ class LiteLLMModel(BenchmarkModule):
             )
             sleep(5)
             return
+        elif isinstance(error, (APIConnectionError, OSError)):
+            # If there are too many I/O connections, we increase the number of allowed
+            # file descriptors
+            if "too many open files" in error_msg:
+                raise InvalidBenchmark(
+                    "There are too many file descriptors running. See the current "
+                    "value by running `ulimit -n`. Try increasing it by running "
+                    "`ulimit -n <new-value>` and try again."
+                )
+            raise InvalidBenchmark(
+                f"Encountered {type(error)} during generation: {error}."
+            )
 
         if isinstance(error, RateLimitError):
             raise InvalidModel(
@@ -560,70 +578,66 @@ class LiteLLMModel(BenchmarkModule):
 
     async def _generate_async(
         self,
-        messages: list[dict[str, t.Any]],
-        generation_kwargs: dict[str, t.Any],
-        max_retries: int,
-        max_reruns: int,
-    ) -> tuple[list[ModelResponse], list[tuple[int, Exception]]]:
+        model_id: str,
+        conversations: list[list[litellm.AllMessageValues]],
+        **generation_kwargs,
+    ) -> tuple[list[tuple[int, ModelResponse]], list[tuple[int, Exception]]]:
         """Generate outputs from the model asynchronously.
 
         Args:
-            messages:
-                The messages to pass to the model.
-            generation_kwargs:
-                The generation kwargs to pass to the model.
-            max_retries:
-                The maximum number of retries to make.
-            max_reruns:
-                The maximum number of reruns to make.
+            model_id:
+                The ID of the model to use for generation.
+            conversations:
+                The conversations to pass to the model.
+            **generation_kwargs:
+                Additional generation arguments to pass to the model.
 
         Returns:
-            A tuple containing the successful responses and the failed responses.
+            A tuple (successes, failures), each being a list of tuples (idx, content),
+            where the `idx` corresponds to the index of `conversations`, and `content`
+            is either the model response or an Exception.
         """
-        success = []
-        all_failures = {}
-        to_run = list(enumerate(messages))
-        prev_fail_count = len(to_run)
-        rerun_count = 0
-
-        while to_run and rerun_count < max_reruns and prev_fail_count > 0:
-            requests = [
-                litellm.acompletion(
-                    messages=msg, max_retries=max_retries, **generation_kwargs
+        # Create a LiteLLM router, which will ensure that we only use a single client
+        # for all the requests, preventing "too many open files" errors
+        router = Router(
+            model_list=[
+                dict(
+                    model_name=self.model_config.model_id,
+                    litellm_params=generation_kwargs,
                 )
-                for _, msg in to_run
             ]
-            wrapped_requests = [
-                catch_coroutine_exception(request) for request in requests
-            ]
-            responses = await tqdm_async.gather(*wrapped_requests, leave=False)
+        )
 
-            next_to_run = []
-            current_fail_count = 0
+        # Get the LLM generations asynchronously
+        max_concurrent_calls = 20
+        semaphore = asyncio.Semaphore(max_concurrent_calls)
+        requests = [
+            add_semaphore_and_catch_exception(
+                router.acompletion(model=model_id, messages=conversation),
+                semaphore=semaphore,
+            )
+            for conversation in conversations
+        ]
+        responses = await tqdm_async.gather(*requests, leave=False)
 
-            for (orig_idx, _), response in zip(to_run, responses):
-                if isinstance(response, Exception):
-                    current_fail_count += 1
-                    all_failures[orig_idx] = response
-                    next_to_run.append((orig_idx, messages[orig_idx]))
-                else:
-                    success.append(response)
+        # Separate the successful responses from the failed ones
+        successes = [
+            (idx, response)
+            for idx, response in enumerate(responses)
+            if not isinstance(response, Exception)
+        ]
+        failures = [
+            (idx, response)
+            for idx, response in enumerate(responses)
+            if isinstance(response, Exception)
+        ]
 
-            if current_fail_count >= prev_fail_count:
-                logger.warning(
-                    "Retry loop aborting due to no progress: "
-                    f"current_fail_count={current_fail_count}, "
-                    f"prev_fail_count={prev_fail_count}"
-                )
-                break
+        # Close connections
+        for request in requests:
+            if hasattr(request, "close"):
+                request.close()
 
-            prev_fail_count = current_fail_count
-            to_run = next_to_run
-            rerun_count += 1
-            sleep(1)
-
-        failures = [(orig_idx, all_failures[orig_idx]) for orig_idx, _ in to_run]
-        return success, failures
+        return successes, failures
 
     @staticmethod
     def _create_model_output(
