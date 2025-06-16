@@ -12,6 +12,8 @@ from transformers.tokenization_utils import PreTrainedTokenizer
 from transformers.tokenization_utils_base import BatchEncoding
 from transformers.trainer import Trainer
 
+from ..exceptions import InvalidBenchmark
+
 if t.TYPE_CHECKING:
     from ..types import Labels, Predictions
 
@@ -19,7 +21,7 @@ logger = logging.getLogger("euroeval")
 
 
 class MultipleChoiceClassificationTrainer(Trainer):
-    """Trainer subclass for question answering tasks."""
+    """Trainer subclass for multiple-choice classification tasks."""
 
     def evaluate(  # type: ignore[override]
         self,
@@ -57,6 +59,8 @@ class MultipleChoiceClassificationTrainer(Trainer):
         )
 
         predictions = output.predictions
+        if isinstance(predictions, tuple):
+            predictions = predictions[0]
         assert isinstance(predictions, np.ndarray)
 
         metrics = output.metrics
@@ -150,6 +154,12 @@ def postprocess_predictions_and_labels(
     Returns:
         The postprocessed predictions and labels.
     """
+    if predictions.ndim != 2 or predictions.shape[1] != 2:
+        raise InvalidBenchmark(
+            "Predictions must be a 2D array with shape (num_examples, 2). Found "
+            f"shape {predictions.shape}."
+        )
+
     mapping = {0: "a", 1: "b", 2: "c", 3: "d", 4: "e"}
 
     all_predictions: list[str] = list()

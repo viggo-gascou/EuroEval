@@ -13,6 +13,7 @@ from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 from transformers.trainer import Trainer
 
 from ..data_models import BenchmarkConfig, DatasetConfig, GenerativeModelOutput
+from ..exceptions import InvalidBenchmark
 from ..tokenization_utils import get_special_token_metadata
 from ..utils import raise_if_model_output_contains_nan_values
 
@@ -475,7 +476,7 @@ def prepare_test_examples(
 
 
 def postprocess_predictions_and_labels(
-    predictions: tuple[np.ndarray, np.ndarray],
+    predictions: tuple[np.ndarray, ...],
     dataset: "Dataset",
     prepared_dataset: "Dataset",
     cls_token_index: int,
@@ -484,7 +485,7 @@ def postprocess_predictions_and_labels(
 
     Args:
         predictions:
-            A pair of (start_logits, end_logits) predictions.
+            A tuple whose first two elements are (start_logits, end_logits).
         dataset:
             The dataset containing the examples.
         prepared_dataset:
@@ -495,7 +496,14 @@ def postprocess_predictions_and_labels(
     Returns:
         The postprocessed predictions and labels.
     """
-    all_start_logits, all_end_logits = predictions
+    if len(predictions) < 2:
+        raise InvalidBenchmark(
+            "The predictions should be a tuple with the first two elements being "
+            "(start_logits, end_logits), but got {len(predictions)} elements instead: "
+            f"{predictions}."
+        )
+
+    all_start_logits, all_end_logits = predictions[:2]
 
     # Build a map from an example to its corresponding features, being the blocks of
     # text from the context that we're feeding into the model. An example can have
