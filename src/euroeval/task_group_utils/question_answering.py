@@ -8,7 +8,6 @@ from collections import defaultdict
 import evaluate
 import numpy as np
 from evaluate import EvaluationModule
-from transformers.tokenization_utils import PreTrainedTokenizer
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 from transformers.trainer import Trainer
 
@@ -21,6 +20,7 @@ if t.TYPE_CHECKING:
     import torch.nn as nn
     from datasets.arrow_dataset import Dataset
     from transformers.modeling_utils import PreTrainedModel
+    from transformers.tokenization_utils import PreTrainedTokenizer
     from transformers.tokenization_utils_base import BatchEncoding
     from transformers.trainer_callback import TrainerCallback
     from transformers.trainer_utils import EvalPrediction
@@ -237,6 +237,7 @@ def extract_labels_from_generation(
     return predictions
 
 
+# TODO: Remove batching from this function, as we are not using it anymore
 def prepare_train_examples(
     examples: "BatchEncoding", tokenizer: "PreTrainedTokenizer"
 ) -> "BatchEncoding":
@@ -389,6 +390,7 @@ def prepare_train_examples(
     return tokenized_examples
 
 
+# TODO: Remove batching from this function, as we are not using it anymore
 def prepare_test_examples(
     examples: "BatchEncoding", tokenizer: "PreTrainedTokenizer"
 ) -> "BatchEncoding":

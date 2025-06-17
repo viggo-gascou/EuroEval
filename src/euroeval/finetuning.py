@@ -321,7 +321,7 @@ def get_training_args(
 
 def remove_extra_tensors_from_logits(
     logits: torch.Tensor | tuple[torch.Tensor, ...], labels: torch.Tensor
-) -> torch.Tensor:
+) -> torch.Tensor | tuple[torch.Tensor, ...]:
     """If the logits are a tuple, return only the first element.
 
     Args:
@@ -334,5 +334,7 @@ def remove_extra_tensors_from_logits(
         The processed logits.
     """
     if isinstance(logits, tuple):
-        logits = logits[0]
+        logits = logits[:-1]
+        if len(logits) == 1:
+            logits = logits[0]
     return logits
