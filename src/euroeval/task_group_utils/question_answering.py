@@ -237,7 +237,6 @@ def extract_labels_from_generation(
     return predictions
 
 
-# TODO: Remove batching from this function, as we are not using it anymore
 def prepare_train_examples(
     examples: "BatchEncoding", tokenizer: "PreTrainedTokenizer"
 ) -> "BatchEncoding":
@@ -390,7 +389,6 @@ def prepare_train_examples(
     return tokenized_examples
 
 
-# TODO: Remove batching from this function, as we are not using it anymore
 def prepare_test_examples(
     examples: "BatchEncoding", tokenizer: "PreTrainedTokenizer"
 ) -> "BatchEncoding":
