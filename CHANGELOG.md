@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.10.0] - 2025-06-17
 ### Changed
 - Updated `vllm` to `>=0.9.1`.
 - Updated `litellm` to `>=1.72.2`.
