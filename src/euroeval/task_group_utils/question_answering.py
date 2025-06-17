@@ -44,6 +44,7 @@ class QuestionAnsweringTrainer(Trainer):
         compute_metrics: "c.Callable[[EvalPrediction], dict[str, float]]",
         callbacks: "list[TrainerCallback]",
         data_collator: "c.Callable",
+        **kwargs,
     ) -> None:
         """Initialise the trainer."""
         super().__init__(
@@ -55,6 +56,7 @@ class QuestionAnsweringTrainer(Trainer):
             compute_metrics=compute_metrics,
             callbacks=callbacks,
             data_collator=data_collator,
+            **kwargs,
         )
 
         # Get the CLS token id for the tokenizer
