@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-
+### Fixed
+- Fixed an issue when benchmarking encoder models on reading comprehension tasks, where
+  we sometimes would truncate the model outputs when they should not have been.
 
 
 ## [v15.10.0] - 2025-06-17
