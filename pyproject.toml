@@ -1,6 +1,6 @@
 [project]
 name = "EuroEval"
-version = "15.9.2.dev"
+version = "15.10.1.dev"
 description = "The robust European language model benchmark."
 readme = "README.md"
 authors = [
@@ -8,7 +8,6 @@ authors = [
 ]
 maintainers = [
     {name = "Dan Saattrup Nielsen", email = "dan.nielsen@alexandra.dk"},
-    {name = "Kenneth Enevoldsen", email = "kenneth.enevoldsen@cas.au.dk"},
 ]
 requires-python = ">=3.10,<4.0"
 dependencies = [
@@ -27,7 +26,6 @@ dependencies = [
     "huggingface-hub>=0.30.1",
     "pyinfer>=0.0.3",
     "sentencepiece>=0.1.96",
-    "protobuf~=3.20.0",
     "sacremoses>=0.1.1",
     "more-itertools>=10.5.0",
     "tenacity>=9.0.0",
@@ -41,13 +39,14 @@ dependencies = [
     "ollama>=0.5.1",
     "peft>=0.15.0",
     "lingua-language-detector>=2.1.0",
+    "protobuf>=2.0.0",
 ]
 
 [project.optional-dependencies]
 generative = [
     "outlines>=0.1.11",
     "bitsandbytes>=0.43.1; platform_system == 'Linux'",
-    "vllm>=0.9.0; platform_system == 'Linux'",
+    "vllm>=0.9.1; platform_system == 'Linux'",
     "fbgemm-gpu>=1.0.0; platform_system == 'Linux'",
 ]
 human_evaluation = [
@@ -56,7 +55,7 @@ human_evaluation = [
 all = [
     "outlines>=0.1.11",
     "bitsandbytes>=0.43.1; platform_system == 'Linux'",
-    "vllm>=0.9.0; platform_system == 'Linux'",
+    "vllm>=0.9.1; platform_system == 'Linux'",
     "fbgemm-gpu>=1.0.0; platform_system == 'Linux'",
     "gradio>=4.26.0",
 ]
@@ -151,6 +150,8 @@ ignore = [
     "ANN101",
     # Type annotations for "cls" arguments
     "ANN102",
+    # Type annotations for *args
+    "ANN002",
     # Type annotations for **kwargs
     "ANN003",
     # Docstrings for **kwargs
