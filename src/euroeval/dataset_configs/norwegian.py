@@ -176,3 +176,12 @@ BELEBELE_NO_CONFIG = DatasetConfig(
     languages=[NB, NN, NO],
     unofficial=True,
 )
+
+IDIOMS_NO_CONFIG = DatasetConfig(
+    name="idioms-no",
+    pretty_name="the Norwegian knowledge dataset Idioms-no",
+    huggingface_id="EuroEval/idioms-no",
+    task=KNOW,
+    languages=[NB, NN, NO],
+    unofficial=True,
+)
