@@ -10,9 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added the English knowledge dataset Life in the UK. This was contributed by
   [@oliverkinch](https://github.com/oliverkinch) ✨
-- Added the Norwegian idioms dataset, which is a multiple-choice question dataset,
-  where the alternative answers have been generated using GPT-4o.
-  This was contributed by [@oliverkinch](https://github.com/oliverkinch) ✨
+- Added the Idioms-no dataset, which is a multiple-choice question dataset, where the
+  alternative answers have been generated using GPT-4o. This was contributed by
+  [@oliverkinch](https://github.com/oliverkinch) ✨
 
 ### Fixed
 - Evaluating freshly initialised encoder models on multiple-choice classification tasks
