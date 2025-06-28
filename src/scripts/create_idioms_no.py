@@ -12,7 +12,7 @@
 # ]
 # ///
 
-"""Create Sprakbanken/Norwegian_idioms as a knowledge task dataset."""
+"""Create the Norwegian knowledge dataset Idioms-no."""
 
 import json
 import logging
@@ -31,7 +31,7 @@ from requests import HTTPError
 from tqdm.auto import tqdm
 
 logging.basicConfig(format="%(asctime)s ⋅ %(message)s", level=logging.INFO)
-logger = logging.getLogger("create_norwegian_idioms")
+logger = logging.getLogger("create_idioms_no")
 
 
 load_dotenv()
@@ -49,7 +49,7 @@ LABELS = ["a", "b", "c", "d"]
 
 
 def main() -> None:
-    """Create the Norwegian idioms knowledge dataset."""
+    """Create the Idioms-no knowledge dataset."""
     # Define the base download URL
     repo_id = "Sprakbanken/Norwegian_idioms"
 
