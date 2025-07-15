@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.11.0] - 2025-07-15
 ### Added
 - Added the English knowledge dataset Life in the UK, which has been added as an
   official dataset, replacing the existing English knowledge dataset MMLU, which in turn
