@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Added
+- Added `--gpu-memory-utilization` argument (`gpu_memory_utilization` in the
+  `Benchmarker` API), which can be lowered in case the user is experiencing OOM errors
+  when evaluating models. The default is 0.9 (same as previously), which means that vLLM
+  will reserve 90% of the GPU memory for itself, and leave 10% free for other processes.
+
 ### Fixed
 - There was a breaking change in `datasets`, where feature indexing of datasets resulted
   in a `Column` instance, rather than a `list` as previously. We now detect this and
