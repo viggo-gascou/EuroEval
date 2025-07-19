@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - There was a breaking change in `datasets`, where feature indexing of datasets resulted
   in a `Column` instance, rather than a `list` as previously. We now detect this and
   convert the `Column` instance to a `list` before using it.
+- Revert `enable_thinking` argument to `apply_chat_template` back to the default value,
+  as this depends on the individual model implementation. In v15.11.0, this was
+  explicitly set to `True`, which caused some inconsistencies when comparing models.
 
 
 ## [v15.11.0] - 2025-07-15
