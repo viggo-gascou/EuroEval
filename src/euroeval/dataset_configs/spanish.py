@@ -8,7 +8,8 @@ from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
 SENTIMENT_HEADLINES_CONFIG = DatasetConfig(
     name="sentiment-headlines-es",
-    pretty_name="the truncated version of the Spanish sentiment headlines dataset",
+    pretty_name="the truncated version of the Spanish sentiment classification dataset "
+    "SentimentHeadlines",
     huggingface_id="EuroEval/sentiment-headlines-es",
     task=SENT,
     languages=[ES],
@@ -33,7 +34,7 @@ CONLL_ES_CONFIG = DatasetConfig(
 
 MLQA_ES_CONFIG = DatasetConfig(
     name="mlqa-es",
-    pretty_name="the Spanish version of the MLQA reading comprehension dataset",
+    pretty_name="the Spanish version of the reading comprehension dataset MLQA",
     huggingface_id="EuroEval/mlqa-es",
     task=RC,
     languages=[ES],
@@ -70,7 +71,7 @@ HELLASWAG_ES_CONFIG = DatasetConfig(
 
 XQUAD_ES_CONFIG = DatasetConfig(
     name="xquad-es",
-    pretty_name="the Spanish version of the XQuAD reading comprehension dataset",
+    pretty_name="the Spanish version of the reading comprehension dataset XQuAD",
     huggingface_id="EuroEval/xquad-es",
     task=RC,
     languages=[ES],

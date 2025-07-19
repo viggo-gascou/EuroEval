@@ -8,7 +8,8 @@ from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, SENT, SUMM
 
 SST2_PT_CONFIG = DatasetConfig(
     name="sst2-pt",
-    pretty_name="the truncated version of the Portuguese sentiment classification dataset SST2-pt, translated from the English SST2 dataset",
+    pretty_name="the truncated version of the Portuguese sentiment classification "
+    "dataset SST2-pt, translated from the English SST2 dataset",
     huggingface_id="EuroEval/sst2-pt-mini",
     task=SENT,
     languages=[PT],
@@ -18,7 +19,8 @@ SST2_PT_CONFIG = DatasetConfig(
 
 MMLU_PT_CONFIG = DatasetConfig(
     name="mmlu-pt",
-    pretty_name="the truncated version of the Portuguese knowledge dataset MMLU-pt, translated from the English MMLU dataset",
+    pretty_name="the truncated version of the Portuguese knowledge dataset MMLU-pt, "
+    "translated from the English MMLU dataset",
     huggingface_id="EuroEval/mmlu-pt-mini",
     task=KNOW,
     languages=[PT],
@@ -27,7 +29,8 @@ MMLU_PT_CONFIG = DatasetConfig(
 
 GOLDENSWAG_PT_CONFIG = DatasetConfig(
     name="goldenswag-pt",
-    pretty_name="the truncated version of the Portuguese common-sense reasoning dataset GoldenSwag-pt, translated from the English GoldenSwag dataset",
+    pretty_name="the truncated version of the Portuguese common-sense reasoning "
+    "dataset GoldenSwag-pt, translated from the English GoldenSwag dataset",
     huggingface_id="EuroEval/goldenswag-pt-mini",
     task=COMMON_SENSE,
     languages=[PT],
@@ -53,7 +56,7 @@ HAREM_CONFIG = DatasetConfig(
 PUBLICO_CONFIG = DatasetConfig(
     name="publico",
     pretty_name="the truncated version of the Portuguese summarisation dataset Público",
-    huggingface_id=f"EuroEval/publico-mini",
+    huggingface_id="EuroEval/publico-mini",
     task=SUMM,
     languages=[PT],
 )
@@ -63,7 +66,8 @@ PUBLICO_CONFIG = DatasetConfig(
 
 BOOLQ_PT_CONFIG = DatasetConfig(
     name="boolq-pt",
-    pretty_name="the Portuguese multiple choice reading comprehension dataset BoolQ-pt, translated from the English BoolQ dataset",
+    pretty_name="the Portuguese multiple choice reading comprehension dataset "
+    "BoolQ-pt, translated from the English BoolQ dataset",
     huggingface_id="EuroEval/boolq-pt",
     task=MCRC,
     languages=[PT],
