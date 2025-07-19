@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.12.0] - 2025-07-19
 ### Added
 - Added support for European Portuguese 🇵🇹 It includes 3 gold standard datasets and 4
   machine translated ones. The gold standard datasets include the named entity
