@@ -184,3 +184,23 @@ BELEBELE_NO_CONFIG = DatasetConfig(
     languages=[NB, NN, NO],
     unofficial=True,
 )
+
+MULTI_WIKI_QA_NB_CONFIG = DatasetConfig(
+    name="multi-wiki-qa-nb",
+    pretty_name="the truncated version of the Norwegian Bokmål part of the reading "
+    "comprehension dataset MultiWikiQA",
+    huggingface_id="EuroEval/multi-wiki-qa-no-mini",
+    task=RC,
+    languages=[NB, NO],
+    unofficial=True,
+)
+
+MULTI_WIKI_QA_NN_CONFIG = DatasetConfig(
+    name="multi-wiki-qa-nn",
+    pretty_name="the truncated version of the Norwegian Nynorsk part of the reading "
+    "comprehension dataset MultiWikiQA",
+    huggingface_id="EuroEval/multi-wiki-qa-nn-mini",
+    task=RC,
+    languages=[NN],
+    unofficial=True,
+)
