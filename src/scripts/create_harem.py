@@ -30,7 +30,10 @@ TEST_SIZE = 1024
 RANDOM_STATE = 4242
 
 # URL for HAREM dataset
-URL = "https://raw.githubusercontent.com/davidsbatista/NER-datasets/master/Portuguese/HAREM/ColeccaoDouradaHAREM.txt"
+URL = (
+    "https://raw.githubusercontent.com/davidsbatista/NER-datasets/master/Portuguese/"
+    "HAREM/ColeccaoDouradaHAREM.txt"
+)
 
 # Regular expressions for parsing
 TAG_RE = re.compile(r"<(/?)(\w+)(?:\s[^>]*)?>")
