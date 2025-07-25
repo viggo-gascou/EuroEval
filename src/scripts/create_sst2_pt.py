@@ -11,7 +11,7 @@
 
 """Create the SST2-pt-mini dataset and upload to HF Hub."""
 
-import pandas as pandas
+import pandas as pd
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
 from requests import HTTPError
@@ -49,7 +49,7 @@ def main() -> None:
     dataset.push_to_hub(FINAL_REPO_ID, private=True)
 
 
-def cleanup(df: pandas.DataFrame, n: int | None = None) -> pandas.DataFrame:
+def cleanup(df: pd.DataFrame, n: int | None = None) -> pd.DataFrame:
     """Clean up the dataset.
 
     Args:
@@ -67,9 +67,7 @@ def cleanup(df: pandas.DataFrame, n: int | None = None) -> pandas.DataFrame:
     return df.reset_index(drop=True)
 
 
-def stratified_sample(
-    df: pandas.DataFrame, n: int
-) -> tuple[pandas.DataFrame, pandas.DataFrame]:
+def stratified_sample(df: pd.DataFrame, n: int) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Return (sampled_subset, remainder) with perfectly balanced labels.
 
     Args:
@@ -82,7 +80,7 @@ def stratified_sample(
     per_class = n // 2
     pos = df[df["label"] == "positive"].sample(n=per_class, random_state=RANDOM_STATE)  # noqa: E501
     neg = df[df["label"] == "negative"].sample(n=per_class, random_state=RANDOM_STATE)  # noqa: E501
-    sample = pandas.concat([pos, neg])
+    sample = pd.concat([pos, neg])
     rest = df.drop(sample.index)
     return sample.reset_index(drop=True), rest.reset_index(drop=True)
 

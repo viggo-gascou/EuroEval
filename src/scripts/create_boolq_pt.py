@@ -10,7 +10,7 @@
 
 """Create the BoolQ-pt dataset and upload to HF Hub."""
 
-import pandas as pandas
+import pandas as pd
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
 from requests import HTTPError
@@ -31,7 +31,7 @@ def main() -> None:
         df = ds_raw[split].to_pandas()
         all_data.append(df)
 
-    combined_df = pandas.concat(all_data, ignore_index=True)
+    combined_df = pd.concat(all_data, ignore_index=True)
 
     # Remove duplicates based on passage + question combination
     combined_df = combined_df.drop_duplicates(
@@ -79,7 +79,7 @@ def main() -> None:
     dataset.push_to_hub(FINAL_REPO_ID, private=True)
 
 
-def transform_dataset(df: pandas.DataFrame) -> pandas.DataFrame:
+def transform_dataset(df: pd.DataFrame) -> pd.DataFrame:
     """Transform dataset to multiple choice format.
 
     Args:
@@ -106,7 +106,7 @@ def transform_dataset(df: pandas.DataFrame) -> pandas.DataFrame:
         texts.append(text)
         labels.append(correct_label)
 
-    return pandas.DataFrame({"text": texts, "label": labels})
+    return pd.DataFrame({"text": texts, "label": labels})
 
 
 if __name__ == "__main__":
