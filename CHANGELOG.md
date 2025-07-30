@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.14.0] - 2025-07-30
 ### Changed
 - Now runs a "test run" for API inference models with a single conversation to check for
   generation arguments that need changing, for instance if the model does not support
