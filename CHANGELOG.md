@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Changed
+- Now runs a "test run" for API inference models with a single conversation to check for
+  generation arguments that need changing, for instance if the model does not support
+  logprobs or requires a specific temperature. This was done previously in the first
+  batch, resulting in slower evaluation and many erroneous API calls. It is now
+  significantly faster and faces fewer rate limits.
 - Now also uses LiteLLM's `supports_reasoning` function to check if a model supports
   reasoning. This check is done on top of all the previous checks, for robustness.
 

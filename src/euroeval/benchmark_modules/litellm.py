@@ -378,6 +378,19 @@ class LiteLLMModel(BenchmarkModule):
         # Drop generation kwargs that are not supported by the model
         litellm.drop_params = True
 
+        # First attempt is a test run with a single conversation to handle errors
+        # quickly
+        test_conversation = conversations[0]
+        _, failures = safe_run(
+            self._generate_async(
+                model_id=self.model_config.model_id,
+                conversations=[test_conversation],
+                **generation_kwargs,
+            )
+        )
+        for _, error in failures:
+            self._handle_exception(error=error, generation_kwargs=generation_kwargs)
+
         all_responses: dict[int, "ModelResponse"] = {}
         conversations_to_run: list[tuple[int, list[litellm.AllMessageValues]]] = list(
             enumerate(conversations)
@@ -478,6 +491,7 @@ class LiteLLMModel(BenchmarkModule):
             r"the thinking budget [0-9]+ is invalid. please choose a value between "
             r"[0-9]+ and ([0-9]+)\."
         )
+        requires_thinking_disabled_messages = ["thinking.type: Field required"]
 
         if any(msg.lower() in error_msg for msg in stop_messages):
             log_once(
@@ -557,6 +571,18 @@ class LiteLLMModel(BenchmarkModule):
             generation_kwargs["thinking"] = dict(
                 type="enabled", budget_tokens=thinking_budget - 1
             )
+            return
+        elif (
+            any(msg.lower() in error_msg for msg in requires_thinking_disabled_messages)
+            and self.generative_type != GenerativeType.REASONING
+        ):
+            log_once(
+                f"The model {model_id!r} requires the `thinking.type` field to be "
+                f"set to `disabled` rather than just setting `budget_tokens` to 0. "
+                "Setting `thinking.type` to `disabled`.",
+                level=logging.DEBUG,
+            )
+            generation_kwargs["thinking"] = dict(type="disabled")
             return
         elif isinstance(
             error, (Timeout, ServiceUnavailableError, InternalServerError, SystemError)
