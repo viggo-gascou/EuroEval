@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Changed
+- Now also uses LiteLLM's `supports_reasoning` function to check if a model supports
+  reasoning. This check is done on top of all the previous checks, for robustness.
+
 ### Fixed
 - Disabling thinking (with the `@no-thinking` suffix) did not work properly for
   Anthropic models, as they don't support the `budget_tokens` parameter when thinking

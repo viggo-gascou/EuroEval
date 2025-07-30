@@ -31,6 +31,7 @@ from litellm.exceptions import (
 from litellm.llms.vertex_ai.common_utils import VertexAIError
 from litellm.router import Router
 from litellm.types.utils import ChoiceLogprobs
+from litellm.utils import supports_reasoning, supports_response_schema
 from pydantic import conlist, create_model
 from requests.exceptions import RequestException
 from tqdm.asyncio import tqdm as tqdm_async
@@ -234,6 +235,8 @@ class LiteLLMModel(BenchmarkModule):
             pattern="|".join(REASONING_MODELS), string=self.model_config.model_id
         ):
             type_ = GenerativeType.REASONING
+        elif supports_reasoning(model=self.model_config.model_id):
+            type_ = GenerativeType.REASONING
         else:
             type_ = GenerativeType.INSTRUCTION_TUNED
 
@@ -314,9 +317,7 @@ class LiteLLMModel(BenchmarkModule):
                     "enable it.",
                     level=logging.DEBUG,
                 )
-            elif litellm.utils.supports_response_schema(
-                model=self.model_config.model_id
-            ):
+            elif supports_response_schema(model=self.model_config.model_id):
                 ner_tag_names = list(self.dataset_config.prompt_label_mapping.values())
                 keys_and_their_types: dict[str, t.Any] = {
                     tag_name: (conlist(str, max_length=5), ...)
@@ -361,7 +362,7 @@ class LiteLLMModel(BenchmarkModule):
                 level=logging.DEBUG,
             )
         elif self.model_config.revision == "no-thinking":
-            generation_kwargs["thinking"] = dict(type="disabled")
+            generation_kwargs["thinking"] = dict(budget_tokens=0)
             log_once(
                 f"Disabling thinking mode for model {self.model_config.model_id!r}",
                 level=logging.DEBUG,
