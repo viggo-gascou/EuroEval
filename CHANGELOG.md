@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Now allows metadata to be included in metrics, allowing more flexibility when
   implementing custom metrics. This is not used in any task yet.
 
+### Changed
+- Changed structured decoding backend from Outlines to XGrammar, as the latter was more
+  robust and now supports all the JSON features we need.
+- Updated vLLM to `>=0.10.0`, which includes the updated XGrammar version.
+- Now uses the V1 engine of vLLM, as we only used the V0 engine because XGrammar did not
+  support all the JSON features we needed.
+
 
 ## [v15.14.0] - 2025-07-30
 ### Changed
