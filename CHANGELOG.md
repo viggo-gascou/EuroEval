@@ -12,17 +12,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   languages: Danish, German, Spanish, Finnish, French, Italian, Dutch, Swedish.
   The datasets are unofficial for now. This was contributed by
   [@oliverkinch](https://github.com/oliverkinch) ✨
-  
+
 ### Changed
 - Now allows metadata to be included in metrics, allowing more flexibility when
   implementing custom metrics. This is not used in any task yet.
-
-### Changed
 - Changed structured decoding backend from Outlines to XGrammar, as the latter was more
   robust and now supports all the JSON features we need.
 - Updated vLLM to `>=0.10.0`, which includes the updated XGrammar version.
 - Now uses the V1 engine of vLLM, as we only used the V0 engine because XGrammar did not
   support all the JSON features we needed.
+
+### Fixed
+- Now sets `VLLM_ALLOW_LONG_MAX_MODEL_LEN=1` to ignore the vLLM error that happens when
+  vLLM cannot determine the maximum context length of a model correctly, so that it
+  thinks that the model's maximum context length is smaller than the amount that we
+  allow it to generate. This is basically since we're doing a more thorough check
+  through the config than vLLM does, so we can safely ignore this error.
 
 
 ## [v15.14.0] - 2025-07-30
