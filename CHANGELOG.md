@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Changed
+- Updated `transformers` dependency to `>=4.55.0`.
+
 ### Fixed
+- If the model uses 'mxfp4' quantisation then we allow the dtype to be bfloat16, rather
+  than forcing float16. This caused issues with the new GPT-OSS models.
 - Since LiteLLM does not support the Ollama `think` parameter yet ([LiteLLM
   issue](https://github.com/BerriAI/litellm/issues/11680)), we now disable reasoning for
   the Ollama models that support reasoning, and inform the user appropriately.
