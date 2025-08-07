@@ -76,6 +76,14 @@ NRK_QUIZ_QA_CONFIG = DatasetConfig(
     languages=[NB, NN, NO],
 )
 
+IDIOMS_NO_CONFIG = DatasetConfig(
+    name="idioms-no",
+    pretty_name="the Norwegian knowledge dataset Idioms-no",
+    huggingface_id="EuroEval/idioms-no",
+    task=KNOW,
+    languages=[NB, NN, NO],
+)
+
 NOR_COMMON_SENSE_QA_CONFIG = DatasetConfig(
     name="nor-common-sense-qa",
     pretty_name="the truncated version of the Norwegian common-sense reasoning dataset "
@@ -174,5 +182,25 @@ BELEBELE_NO_CONFIG = DatasetConfig(
     huggingface_id="EuroEval/belebele-no-mini",
     task=MCRC,
     languages=[NB, NN, NO],
+    unofficial=True,
+)
+
+MULTI_WIKI_QA_NB_CONFIG = DatasetConfig(
+    name="multi-wiki-qa-nb",
+    pretty_name="the truncated version of the Norwegian Bokmål part of the reading "
+    "comprehension dataset MultiWikiQA",
+    huggingface_id="EuroEval/multi-wiki-qa-no-mini",
+    task=RC,
+    languages=[NB, NO],
+    unofficial=True,
+)
+
+MULTI_WIKI_QA_NN_CONFIG = DatasetConfig(
+    name="multi-wiki-qa-nn",
+    pretty_name="the truncated version of the Norwegian Nynorsk part of the reading "
+    "comprehension dataset MultiWikiQA",
+    huggingface_id="EuroEval/multi-wiki-qa-nn-mini",
+    task=RC,
+    languages=[NN],
     unofficial=True,
 )

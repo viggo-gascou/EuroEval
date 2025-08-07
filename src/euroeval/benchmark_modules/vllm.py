@@ -13,14 +13,11 @@ from pathlib import Path
 from time import sleep
 
 import torch
-from datasets import DatasetDict
 from huggingface_hub import snapshot_download
 from pydantic import conlist, create_model
 from tqdm.auto import tqdm
 from transformers.models.auto.configuration_auto import AutoConfig
 from transformers.models.auto.tokenization_auto import AutoTokenizer
-from transformers.tokenization_utils import PreTrainedTokenizer
-from transformers.trainer import Trainer
 from urllib3.exceptions import RequestError
 
 from ..constants import (
@@ -34,13 +31,7 @@ from ..constants import (
     TASKS_USING_JSON,
     VLLM_BF16_MIN_CUDA_COMPUTE_CAPABILITY,
 )
-from ..data_models import (
-    BenchmarkConfig,
-    DatasetConfig,
-    GenerativeModelOutput,
-    ModelConfig,
-    Task,
-)
+from ..data_models import GenerativeModelOutput, ModelConfig
 from ..enums import (
     BatchingPreference,
     GenerativeType,
@@ -86,13 +77,17 @@ if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
         destroy_model_parallel,
     )
     from vllm.lora.request import LoRARequest
-
-if t.TYPE_CHECKING or importlib.util.find_spec("outlines") is not None:
-    from outlines.models.vllm import adapt_tokenizer
-    from outlines.processors.structured import JSONLogitsProcessor
+    from vllm.sampling_params import GuidedDecodingParams
 
 if t.TYPE_CHECKING or importlib.util.find_spec("ray") is not None:
     import ray
+
+if t.TYPE_CHECKING:
+    from datasets import DatasetDict
+    from transformers.tokenization_utils import PreTrainedTokenizer
+    from transformers.trainer import Trainer
+
+    from ..data_models import BenchmarkConfig, DatasetConfig, Task
 
 logger = logging.getLogger("euroeval")
 
@@ -106,9 +101,9 @@ class VLLMModel(HuggingFaceEncoderModel):
 
     def __init__(
         self,
-        model_config: ModelConfig,
-        dataset_config: DatasetConfig,
-        benchmark_config: BenchmarkConfig,
+        model_config: "ModelConfig",
+        dataset_config: "DatasetConfig",
+        benchmark_config: "BenchmarkConfig",
     ) -> None:
         """Initialise the vLLM model.
 
@@ -129,8 +124,8 @@ class VLLMModel(HuggingFaceEncoderModel):
         model, tokenizer = load_model_and_tokenizer(
             model_config=model_config, benchmark_config=benchmark_config
         )
-        self._model: LLM = model
-        self._tokenizer: PreTrainedTokenizer = tokenizer
+        self._model: "LLM" = model
+        self._tokenizer: "PreTrainedTokenizer" = tokenizer
         self.end_of_reasoning_token = get_end_of_reasoning_token(
             model=self._model, tokenizer=self._tokenizer, model_id=model_config.model_id
         )
@@ -173,7 +168,8 @@ class VLLMModel(HuggingFaceEncoderModel):
 
     def __del__(self) -> None:
         """Clean up the model and tokenizer."""
-        clear_vllm()
+        if importlib.util.find_spec("vllm") is not None:
+            clear_vllm()
         if hasattr(self, "_model"):
             del self._model
         if hasattr(self, "_tokenizer"):
@@ -230,8 +226,8 @@ class VLLMModel(HuggingFaceEncoderModel):
                 )
 
     def prepare_dataset(
-        self, dataset: DatasetDict, task: Task, itr_idx: int
-    ) -> DatasetDict:
+        self, dataset: "DatasetDict", task: "Task", itr_idx: int
+    ) -> "DatasetDict":
         """Prepare the dataset for the model.
 
         This includes things like tokenisation.
@@ -293,7 +289,7 @@ class VLLMModel(HuggingFaceEncoderModel):
 
         return dataset
 
-    def generate(self, inputs: dict) -> GenerativeModelOutput:
+    def generate(self, inputs: dict) -> "GenerativeModelOutput":
         """Generate outputs from the model.
 
         Args:
@@ -329,7 +325,7 @@ class VLLMModel(HuggingFaceEncoderModel):
             if end_of_chat_token:
                 stop_tokens.append(end_of_chat_token)
 
-        logits_processor = None
+        structured_generation_schema = None
         if self.dataset_config.task in TASKS_USING_JSON:
             if self.generative_type == GenerativeType.REASONING:
                 log_once(
@@ -344,15 +340,13 @@ class VLLMModel(HuggingFaceEncoderModel):
                     tag_name: (conlist(str, max_length=5), ...)
                     for tag_name in ner_tag_names
                 }
-                pydantic_class = create_model("AnswerFormat", **keys_and_their_types)
-                logits_processor = JSONLogitsProcessor(
-                    schema=pydantic_class,
-                    tokenizer=adapt_tokenizer(tokenizer=self._tokenizer),  # type: ignore
-                    whitespace_pattern=r" ?",
+                answer_format_class = create_model(
+                    "AnswerFormat", **keys_and_their_types
                 )
+                structured_generation_schema = answer_format_class.model_json_schema()
                 log_once(
                     "Using structured generation with the JSON schema "
-                    f"{pydantic_class.model_json_schema()}",
+                    f"{structured_generation_schema}",
                     level=logging.DEBUG,
                 )
 
@@ -376,7 +370,11 @@ class VLLMModel(HuggingFaceEncoderModel):
             logprobs=MAX_LOGPROBS if self.buffer["first_label_token_mapping"] else None,
             temperature=0.0,
             stop=[stop_token for stop_token in stop_tokens if stop_token],
-            logits_processors=[logits_processor] if logits_processor else None,
+            guided_decoding=(
+                GuidedDecodingParams(json=structured_generation_schema)
+                if structured_generation_schema
+                else None
+            ),
         )
 
         # If any of the prompts are empty then we need to replace them with a BOS token
@@ -524,7 +522,7 @@ class VLLMModel(HuggingFaceEncoderModel):
 
     @classmethod
     def model_exists(
-        cls, model_id: str, benchmark_config: BenchmarkConfig
+        cls, model_id: str, benchmark_config: "BenchmarkConfig"
     ) -> bool | NeedsExtraInstalled | NeedsEnvironmentVariable:
         """Check if a model exists.
 
@@ -558,8 +556,8 @@ class VLLMModel(HuggingFaceEncoderModel):
 
     @classmethod
     def get_model_config(
-        cls, model_id: str, benchmark_config: BenchmarkConfig
-    ) -> ModelConfig:
+        cls, model_id: str, benchmark_config: "BenchmarkConfig"
+    ) -> "ModelConfig":
         """Fetch the model configuration.
 
         Args:
@@ -628,8 +626,8 @@ class VLLMModel(HuggingFaceEncoderModel):
 
 
 def load_model_and_tokenizer(
-    model_config: ModelConfig, benchmark_config: BenchmarkConfig
-) -> "tuple[LLM, PreTrainedTokenizer]":
+    model_config: "ModelConfig", benchmark_config: "BenchmarkConfig"
+) -> tuple["LLM", "PreTrainedTokenizer"]:
     """Load the model and tokenizer.
 
     Args:
@@ -693,8 +691,14 @@ def load_model_and_tokenizer(
             )
             dtype = torch.float16
 
-    # If the model is a quantized model, we need to set the dtype to float16
-    if quantization is not None and hf_model_config.torch_dtype != torch.float16:
+    # If the model is a quantized model, we might need to change the dtype
+    if quantization == "mxfp4" and hf_model_config.torch_dtype is None:
+        dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+        logger.debug(
+            "You are loading a quantized model where `torch_dtype` has not been set. "
+            f"Setting dtype to {dtype!r}."
+        )
+    elif quantization is not None and hf_model_config.torch_dtype != torch.float16:
         logger.info(
             "You are loading a quantized model with dtype "
             f"{hf_model_config.torch_dtype}, which vLLM does not support. Setting "
@@ -759,7 +763,7 @@ def load_model_and_tokenizer(
         model = LLM(
             model=model_id,
             tokenizer=model_id,
-            gpu_memory_utilization=0.9,
+            gpu_memory_utilization=benchmark_config.gpu_memory_utilization,
             max_model_len=min(true_max_model_len, MAX_CONTEXT_LENGTH),
             download_dir=download_dir,
             trust_remote_code=benchmark_config.trust_remote_code,
@@ -1017,7 +1021,6 @@ def get_custom_stop_tokens(
     """
     candidate_stop_tokens = CUSTOM_STOP_TOKENS
 
-    # Create a prompt to check if the model uses the reasoning tokens
     prompt = "Hello"
     if tokenizer.chat_template is not None:
         templated_prompt = tokenizer.apply_chat_template(
@@ -1028,7 +1031,6 @@ def get_custom_stop_tokens(
         assert isinstance(templated_prompt, str)
         prompt = templated_prompt
 
-    # Check that the beginning-of-reasoning token is actually used by the model
     max_tokens = REASONING_MAX_TOKENS if is_reasoning_model else 10
     completion = (
         model.generate(

@@ -6,10 +6,8 @@ import typing as t
 from pathlib import Path
 
 import more_itertools as mit
-from datasets import Dataset, DatasetDict
 from tqdm.auto import tqdm
 
-from .benchmark_modules import BenchmarkModule
 from .enums import BatchingPreference, TaskGroup
 from .exceptions import InvalidBenchmark
 from .model_cache import (
@@ -20,6 +18,9 @@ from .model_cache import (
 from .utils import clear_memory
 
 if t.TYPE_CHECKING:
+    from datasets import Dataset, DatasetDict
+
+    from .benchmark_modules import BenchmarkModule
     from .data_models import (
         BenchmarkConfig,
         DatasetConfig,
@@ -32,7 +33,7 @@ logger = logging.getLogger("euroeval")
 
 def generate(
     model: "BenchmarkModule",
-    datasets: list[DatasetDict],
+    datasets: list["DatasetDict"],
     model_config: "ModelConfig",
     dataset_config: "DatasetConfig",
     benchmark_config: "BenchmarkConfig",
@@ -100,7 +101,7 @@ def generate(
 
 
 def generate_single_iteration(
-    dataset: Dataset,
+    dataset: "Dataset",
     model: "BenchmarkModule",
     dataset_config: "DatasetConfig",
     benchmark_config: "BenchmarkConfig",
@@ -199,24 +200,42 @@ def generate_single_iteration(
         all_preds.extend(extracted_labels)
 
     if "label" in non_cached_dataset.column_names:
+        non_cached_labels = non_cached_dataset["label"]
+        if not isinstance(non_cached_labels, list):
+            non_cached_labels = list(non_cached_labels)
+        cached_labels = cached_dataset["label"]
+        if not isinstance(cached_labels, list):
+            cached_labels = list(cached_labels)
         ground_truth = [
             label.lower() if isinstance(label, str) else label
-            for label in non_cached_dataset["label"] + cached_dataset["label"]
+            for label in non_cached_labels + cached_labels
         ]
     elif "labels" in non_cached_dataset.column_names:
+        non_cached_labels = non_cached_dataset["labels"]
+        if not isinstance(non_cached_labels, list):
+            non_cached_labels = list(non_cached_labels)
+        cached_labels = cached_dataset["labels"]
+        if not isinstance(cached_labels, list):
+            cached_labels = list(cached_labels)
         ground_truth = [
             [label.lower() if isinstance(label, str) else label for label in label_list]
-            for label_list in non_cached_dataset["labels"] + cached_dataset["labels"]
+            for label_list in non_cached_labels + cached_labels
         ]
     elif "target_text" in non_cached_dataset.column_names:
-        ground_truth = non_cached_dataset["target_text"] + cached_dataset["target_text"]
+        non_cached_labels = non_cached_dataset["target_text"]
+        if not isinstance(non_cached_labels, list):
+            non_cached_labels = list(non_cached_labels)
+        cached_labels = cached_dataset["target_text"]
+        if not isinstance(cached_labels, list):
+            cached_labels = list(cached_labels)
+        ground_truth = non_cached_labels + cached_labels
     else:
         raise ValueError(
             "The dataset must have either a 'label', 'labels', or 'target_text' column"
         )
 
     itr_scores: dict[str, float] = model.compute_metrics(
-        model_outputs_and_labels=(all_preds, ground_truth)
+        model_outputs_and_labels=(all_preds, ground_truth), dataset=dataset
     )
 
     return itr_scores
@@ -305,7 +324,7 @@ def debug_log(
     ):
         logger.info(
             f"Input: '{input_text}'\n"
-            f"Raw outout: '{raw_output}'\n"
+            f"Raw output: '{raw_output}'\n"
             f"Prediction: '{prediction}'\n"
             f"Label: '{label}'"
         )

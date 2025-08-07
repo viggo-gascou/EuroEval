@@ -155,9 +155,9 @@ from a sentence, or by swapping two neighbouring words in a sentence. To ensure 
 this does indeed break the grammaticality of the sentence, a set of rules were used on
 the part-of-speech tags of the words in the sentence.
 
-The original dataset consists of 3,535 samples, from which we use 1,024 / 256 / 2,048 samples for training,
-validation and testing, respectively (so 3,328 samples used in total). These splits are
-used as-is in the framework.
+The original dataset consists of 3,535 samples, from which we use 1,024 / 256 / 2,048
+samples for training, validation and testing, respectively (so 3,328 samples used in
+total). These splits are used as-is in the framework.
 
 Here are a few examples from the training split:
 
@@ -352,31 +352,31 @@ Here are a few examples from the training split:
 
 ```json
 {
-  'context': 'Gróðurhúsalofttegund er lofttegund , í lofthjúpi sem drekkur í sig og gefur frá sér innrauða geislun . Það ferli er aðal ástæða gróðurhúsaáhrifa . Helstu gróðurhúsalofttegundirnar í lofthjúpi jarðar eru vatnsgufa , koldíoxíð , metan , tvíköfnunarefnisoxíð og óson . Án gróðurhúsalofttegunda væri meðalhiti yfirborðs jarðar − 18 ° C , núverandi meðaltals 15 ° C . Í sólkerfinu , eru Venus , Mars og Títan einnig með lofthjúp sem veldur gróðurhúsaáhrifum .',
-  'question': 'Hverjar eru gróðurhúsalofttegundirnar ?',
-  'answers': {
-    'answer_start': array([202], dtype=int32),
-    'text': array([' vatnsgufa , koldíoxíð , metan , tvíköfnunarefnisoxíð og óson'], dtype=object)
+  "context": 'Gróðurhúsalofttegund er lofttegund , í lofthjúpi sem drekkur í sig og gefur frá sér innrauða geislun . Það ferli er aðal ástæða gróðurhúsaáhrifa . Helstu gróðurhúsalofttegundirnar í lofthjúpi jarðar eru vatnsgufa , koldíoxíð , metan , tvíköfnunarefnisoxíð og óson . Án gróðurhúsalofttegunda væri meðalhiti yfirborðs jarðar − 18 ° C , núverandi meðaltals 15 ° C . Í sólkerfinu , eru Venus , Mars og Títan einnig með lofthjúp sem veldur gróðurhúsaáhrifum .',
+  "question": 'Hverjar eru gróðurhúsalofttegundirnar ?',
+  "answers": {
+    "answer_start": array([202], dtype=int32),
+    "text": array([' vatnsgufa , koldíoxíð , metan , tvíköfnunarefnisoxíð og óson'], dtype=object)
   }
 }
 ```
 ```json
 {
-  'context': 'Hvannadalshnúkur eða Hvannadalshnjúkur er hæsti tindur eldkeilunnar undir Öræfajökli og jafnframt hæsti tindur Íslands . Samkvæmt nýjustu mælingu er hæð hans 2.109,6 metrar yfir sjávarmáli . Tindurinn er staðsettur innan Vatnajökulsþjóðgarðs og er vinsæll hjá fjallgöngufólki , reyndu sem og óreyndu . Tindurinn er ekki flókinn uppgöngu og þarfnast ekki mikillar reynslu eða tækni í fjallgöngum , gangan krefst samt mikils úthalds þar sem oftast er gengið á tindinn og niður aftur á sama deginum . Hækkunin er rúmir 2000 metrar , gangan tekur oftast 12 - 14 klst í heild .',
-  'question': 'Hvert er hæsta fjall á Íslandi ?',
-  'answers': {
-    'answer_start': array([20,  0, 20], dtype=int32),
-    'text': array([' Hvannadalshnjúkur', 'Hvannadalshnúkur', ' Hvannadalshnjúkur er hæsti tindur eldkeilunnar undir Öræfajökli og jafnframt hæsti tindur Íslands'], dtype=object)
+  "context": 'Hvannadalshnúkur eða Hvannadalshnjúkur er hæsti tindur eldkeilunnar undir Öræfajökli og jafnframt hæsti tindur Íslands . Samkvæmt nýjustu mælingu er hæð hans 2.109,6 metrar yfir sjávarmáli . Tindurinn er staðsettur innan Vatnajökulsþjóðgarðs og er vinsæll hjá fjallgöngufólki , reyndu sem og óreyndu . Tindurinn er ekki flókinn uppgöngu og þarfnast ekki mikillar reynslu eða tækni í fjallgöngum , gangan krefst samt mikils úthalds þar sem oftast er gengið á tindinn og niður aftur á sama deginum . Hækkunin er rúmir 2000 metrar , gangan tekur oftast 12 - 14 klst í heild .',
+  "question": 'Hvert er hæsta fjall á Íslandi ?',
+  "answers": {
+    "answer_start": array([20,  0, 20], dtype=int32),
+    "text": array([' Hvannadalshnjúkur', 'Hvannadalshnúkur', ' Hvannadalshnjúkur er hæsti tindur eldkeilunnar undir Öræfajökli og jafnframt hæsti tindur Íslands'], dtype=object)
   }
 }
 ```
 ```json
 {
-  'context': 'Falklandseyjar er lítill eyjaklasi út af Suður-Ameríku , um 500 km til suðausturs frá Argentínu . Þær eru undir stjórn Bretlands en Argentína hefur einnig gert tilkall til þeirra og olli það Falklandseyjastríðinu milli þjóðanna 1982 .',
-  'question': 'Hvar eru Falklandseyjar ?',
-  'answers': {
-    'answer_start': array([34, 34], dtype=int32),
-    'text': array([' út af Suður-Ameríku', ' út af Suður-Ameríku , um 500 km til suðausturs frá Argentínu'], dtype=object)
+  "context": 'Falklandseyjar er lítill eyjaklasi út af Suður-Ameríku , um 500 km til suðausturs frá Argentínu . Þær eru undir stjórn Bretlands en Argentína hefur einnig gert tilkall til þeirra og olli það Falklandseyjastríðinu milli þjóðanna 1982 .',
+  "question": 'Hvar eru Falklandseyjar ?',
+  "answers": {
+    "answer_start": array([34, 34], dtype=int32),
+    "text": array([' út af Suður-Ameríku', ' út af Suður-Ameríku , um 500 km til suðausturs frá Argentínu'], dtype=object)
   }
 }
 ```
@@ -430,31 +430,31 @@ Here are a few examples from the training split:
 
 ```json
 {
-  'context': 'Ómar Ragnarsson - Syngur fyrir börnin  er 33 snúninga LP hljómplata gefin út af SG - hljómplötum árið 1981. Á henni syngur Ómar Ragnarsson þrettán barnalög. Platan er safnplata af áður útgefnum "hit" lögum af 45 snúninga plötum.\n\nLagalisti \n Ég er að baka - Lag - texti: E. Shuman/B. Bower - Ómar Ragnarsson\n Bróðir minn - Lag - texti: W. Holt -Ómar Ragnarsson\n Eitthvað út í loftið - Lag - texti: P. McCartney - Ómar Ragnarsson \n Lok, lok og læs - Lag - texti: Brezkt þjóðlag - Ómar Ragnarsson\n Aha, sei-sei, já-já - Lag - texti: Ómar Ragnarsson\n Ligga, ligga lá - Lag - texti: Ómar Ragnarsson \n Hláturinn lengir lífið - Lag - texti: Ortega - Ómar Ragnarsson\n Sumar og sól - Lag - texti: Ómar Ragnarsson\n Jói útherji - Lag - texti: Ástralskt þjóðlag - Ómar Ragnarsson\n Óli drjóli - Lag - texti: Ómar Ragnarsson)\n Minkurinn í hænsnakofanum - Lag - texti: Norskt þjóðlag - Ómar Ragnarsson \n Kennið mér krakkar - Lag - texti: A. Johansen - Ómar Ragnarsson\n Hí á þig - Lag - texti: Amerískt þjóðlag - Ómar Ragnarsson\n\nSG-hljómplötur\nHljómplötur gefnar út árið 1981\nÓmar Ragnarsson',
-  'question': 'Hvaða ár var LP-hljómplatan „Ómar Ragnarsson - Syngur fyrir börnin“ gefin út?',
-  'answers': {
-    'answer_start': 102,
-    'text': array(['1981'], dtype=object)
+  "context": 'Ómar Ragnarsson - Syngur fyrir börnin  er 33 snúninga LP hljómplata gefin út af SG - hljómplötum árið 1981. Á henni syngur Ómar Ragnarsson þrettán barnalög. Platan er safnplata af áður útgefnum "hit" lögum af 45 snúninga plötum.\n\nLagalisti \n Ég er að baka - Lag - texti: E. Shuman/B. Bower - Ómar Ragnarsson\n Bróðir minn - Lag - texti: W. Holt -Ómar Ragnarsson\n Eitthvað út í loftið - Lag - texti: P. McCartney - Ómar Ragnarsson \n Lok, lok og læs - Lag - texti: Brezkt þjóðlag - Ómar Ragnarsson\n Aha, sei-sei, já-já - Lag - texti: Ómar Ragnarsson\n Ligga, ligga lá - Lag - texti: Ómar Ragnarsson \n Hláturinn lengir lífið - Lag - texti: Ortega - Ómar Ragnarsson\n Sumar og sól - Lag - texti: Ómar Ragnarsson\n Jói útherji - Lag - texti: Ástralskt þjóðlag - Ómar Ragnarsson\n Óli drjóli - Lag - texti: Ómar Ragnarsson)\n Minkurinn í hænsnakofanum - Lag - texti: Norskt þjóðlag - Ómar Ragnarsson \n Kennið mér krakkar - Lag - texti: A. Johansen - Ómar Ragnarsson\n Hí á þig - Lag - texti: Amerískt þjóðlag - Ómar Ragnarsson\n\nSG-hljómplötur\nHljómplötur gefnar út árið 1981\nÓmar Ragnarsson',
+  "question": 'Hvaða ár var LP-hljómplatan „Ómar Ragnarsson - Syngur fyrir börnin“ gefin út?',
+  "answers": {
+    "answer_start": 102,
+    "text": array(['1981'], dtype=object)
   }
 }
 ```
 ```json
 {
-  'context': 'Tjörn er kirkjustaður í Dalvíkurbyggð í Svarfaðardal. Bærinn stendur að vestanverðu í dalnum um 5 km innan við Dalvík. Þórarinn Kr. Eldjárn lét reisa núverandi íbúðarhús 1931. Tjarnartjörn er lítið og grunnt stöðuvatn á flatlendinu neðan við bæinn. Tjörnin er innan Friðlands Svarfdæla sem teygir sig allt til strandar. Þar er mikið fuglalíf. Tjörn er með stærri jörðum í Svarfaðardal og að líkindum landnámsjörð þótt bæjarins sé ekki getið í Landnámu. Þar hafa verið stundaðar úrkomumælingar á vegum Veðurstofunnar frá árinu 1970. Í hlíðinni ofan við Tjörn eru volgrur og í framhaldi af þeim er jarðhitinn í Laugahlíð þar sem Sundskáli Svarfdæla fær vatn sitt.\nKristján Eldjárn forseti fæddist á Tjörn 1916 og ólst þar upp.\nSönghópurinn Tjarnarkvartettinn var kenndur við Tjörn í Svarfaðardal.\n\nTjarnarbændur á 20. öld:\n Sr. Kristján Eldjárn Þórarinsson og Petrína Soffía Hjörleifsdóttir\n Þórarinn Kr. Eldjárn og Sigrún Sigurhjartardóttir\n Hjörtur Eldjárn Þórarinsson og Sigríður Hafstað\n Kristján Eldjárn Hjartarson og Kristjana Arngrímsdóttir\n\nTjarnarkirkja \n\nKirkja hefur líklega verið reist á Tjörn fljótlega eftir að kristni var lögleidd í landinu. Hennar er þó ekki getið með beinum hætti í heimildum fyrr en í Auðunarmáldaga frá 1318. Þar segir að kirkjan sé helguð Maríu guðsmóður, Mikjáli erkiengli, Jóhannesi skírara og Andrési postula. Kirkjan átti þá hálft heimalandið, Ingvarastaðaland og hólminn Örgumleiða. Á 16. öld er Tjörn orðin beneficium, þ.e. öll komin í eigu kirkjunnar og þannig hélst þar til sr. Kristján Eldjárn Þórarinsson (1843-1917) keypti jörðina árið 1915. Sr. Kristján var síðasti prestur á Tjörn. Í Svarfaðardal voru lengi fjórar sóknir en þrír prestar því Urðakirkja var annexía frá Tjörn. Upsasókn var síðan lögð undir Tjarnarprest 1859 en 1917 var Tjarnarprestakall með sínum þremur sóknum sameinað Vallaprestakalli. Eftir að prestssetrið var flutt frá Völlum 1969 hefur Tjarnarkirkju verið þjónað af frá Dalvík. Tjarnarsókn nær frá Steindyrum að Ytraholti.\n\nNúverandi kirkja var reist 1892. Hún er úr timbri á hlöðnum grunni og tekur 60-70 manns í sæti. Í henni eru steindir gluggar teiknaðir af Valgerði Hafstað listmálara. Kirkjugarður er umhverfis kirkjuna. Kirkjan skemmdist nokkuð í Kirkjurokinu svokallaða, miklu óveðri sem gekk yfir landið þann 20. september árið 1900. Þá eyðilögðust kirkjurnar á Urðum og Upsum og Vallakirkja varð fyrir skemmdum. Tjarnarkirkja snaraðist á grunni sínum og hallaðist mjög til norðurs en járnkrókar miklir, sem héldu timburverkinu við hlaðinn grunninn, vörnuðu því að verr færi. Nokkru eftir fárviðrið gerði hvassviðri af norðri sem færði hana til á grunninum og rétti hana að mestu við á ný. Mörgum þóttu þetta stórmerki. Gert var við kirkjuna eftir þetta og m.a. voru útbúin á hana járnstög sem lengi settu skemmtilegan svip á bygginguna og minntu á hið mikla fárviðri sem hún hafði staðið af sér. Kirkjan stóð einnig af sér Dalvíkurskjálftann 1934 en þó urðu skemmdir á grunni hennar.\n\nHeimildir \n \n \n Kirkjur Íslands 9. bindi. Tjarnarkirkja bls. 271-307. Reykjavík 2007\n\nTenglar\nTjarnarkirkja á kirkjukort.net \n\nÍslenskir sveitabæir\nKirkjustaðir í Eyjafjarðarsýslu\nKirkjur á Íslandi\nSvarfaðardalur',
-  'question': 'Á hvaða bæ í Svarfaðardal hafa verið stundaðar úrkomumælingar á vegum Veðurstofunnar frá árinu 1970?',
-  'answers': {
-    'answer_start': 0,
-    'text': array(['Tjörn'], dtype=object)
+  "context": 'Tjörn er kirkjustaður í Dalvíkurbyggð í Svarfaðardal. Bærinn stendur að vestanverðu í dalnum um 5 km innan við Dalvík. Þórarinn Kr. Eldjárn lét reisa núverandi íbúðarhús 1931. Tjarnartjörn er lítið og grunnt stöðuvatn á flatlendinu neðan við bæinn. Tjörnin er innan Friðlands Svarfdæla sem teygir sig allt til strandar. Þar er mikið fuglalíf. Tjörn er með stærri jörðum í Svarfaðardal og að líkindum landnámsjörð þótt bæjarins sé ekki getið í Landnámu. Þar hafa verið stundaðar úrkomumælingar á vegum Veðurstofunnar frá árinu 1970. Í hlíðinni ofan við Tjörn eru volgrur og í framhaldi af þeim er jarðhitinn í Laugahlíð þar sem Sundskáli Svarfdæla fær vatn sitt.\nKristján Eldjárn forseti fæddist á Tjörn 1916 og ólst þar upp.\nSönghópurinn Tjarnarkvartettinn var kenndur við Tjörn í Svarfaðardal.\n\nTjarnarbændur á 20. öld:\n Sr. Kristján Eldjárn Þórarinsson og Petrína Soffía Hjörleifsdóttir\n Þórarinn Kr. Eldjárn og Sigrún Sigurhjartardóttir\n Hjörtur Eldjárn Þórarinsson og Sigríður Hafstað\n Kristján Eldjárn Hjartarson og Kristjana Arngrímsdóttir\n\nTjarnarkirkja \n\nKirkja hefur líklega verið reist á Tjörn fljótlega eftir að kristni var lögleidd í landinu. Hennar er þó ekki getið með beinum hætti í heimildum fyrr en í Auðunarmáldaga frá 1318. Þar segir að kirkjan sé helguð Maríu guðsmóður, Mikjáli erkiengli, Jóhannesi skírara og Andrési postula. Kirkjan átti þá hálft heimalandið, Ingvarastaðaland og hólminn Örgumleiða. Á 16. öld er Tjörn orðin beneficium, þ.e. öll komin í eigu kirkjunnar og þannig hélst þar til sr. Kristján Eldjárn Þórarinsson (1843-1917) keypti jörðina árið 1915. Sr. Kristján var síðasti prestur á Tjörn. Í Svarfaðardal voru lengi fjórar sóknir en þrír prestar því Urðakirkja var annexía frá Tjörn. Upsasókn var síðan lögð undir Tjarnarprest 1859 en 1917 var Tjarnarprestakall með sínum þremur sóknum sameinað Vallaprestakalli. Eftir að prestssetrið var flutt frá Völlum 1969 hefur Tjarnarkirkju verið þjónað af frá Dalvík. Tjarnarsókn nær frá Steindyrum að Ytraholti.\n\nNúverandi kirkja var reist 1892. Hún er úr timbri á hlöðnum grunni og tekur 60-70 manns í sæti. Í henni eru steindir gluggar teiknaðir af Valgerði Hafstað listmálara. Kirkjugarður er umhverfis kirkjuna. Kirkjan skemmdist nokkuð í Kirkjurokinu svokallaða, miklu óveðri sem gekk yfir landið þann 20. september árið 1900. Þá eyðilögðust kirkjurnar á Urðum og Upsum og Vallakirkja varð fyrir skemmdum. Tjarnarkirkja snaraðist á grunni sínum og hallaðist mjög til norðurs en járnkrókar miklir, sem héldu timburverkinu við hlaðinn grunninn, vörnuðu því að verr færi. Nokkru eftir fárviðrið gerði hvassviðri af norðri sem færði hana til á grunninum og rétti hana að mestu við á ný. Mörgum þóttu þetta stórmerki. Gert var við kirkjuna eftir þetta og m.a. voru útbúin á hana járnstög sem lengi settu skemmtilegan svip á bygginguna og minntu á hið mikla fárviðri sem hún hafði staðið af sér. Kirkjan stóð einnig af sér Dalvíkurskjálftann 1934 en þó urðu skemmdir á grunni hennar.\n\nHeimildir \n \n \n Kirkjur Íslands 9. bindi. Tjarnarkirkja bls. 271-307. Reykjavík 2007\n\nTenglar\nTjarnarkirkja á kirkjukort.net \n\nÍslenskir sveitabæir\nKirkjustaðir í Eyjafjarðarsýslu\nKirkjur á Íslandi\nSvarfaðardalur',
+  "question": 'Á hvaða bæ í Svarfaðardal hafa verið stundaðar úrkomumælingar á vegum Veðurstofunnar frá árinu 1970?',
+  "answers": {
+    "answer_start": 0,
+    "text": array(['Tjörn'], dtype=object)
   }
 }
 ```
 ```json
 {
-  'context': 'Fyrir greinina um þáttinn sem er í gangi í dag, sjá Kastljós (dægurmálaþáttur)\nKastljós var fréttaskýringaþáttur sem var á dagskrá Ríkisútvarpsins frá 1974 til 1998. Hann hóf göngu sína sem fréttaskýringaþáttur um innlendar fréttir árið 1974 og tók þá við af þætti sem nefndist Landshorn. Þátturinn var um fjörutíu mínútna langur, í umsjón fréttastofunnar og sýndur á föstudögum á besta tíma. Umsjónarmenn voru mismunandi fréttamenn í hvert skipti. Annar þáttur á miðvikudögum fjallaði þá um erlendar fréttir. 1980 var þáttunum tveimur slegið saman í eitt Kastljós á föstudögum í umsjón tveggja stjórnenda. 1987 var þættinum aftur breytt í fréttaskýringaþátt um innlend málefni stutt skeið. 1988 hét þátturinn Kastljós á sunnudegi og 1990 Kastljós á þriðjudegi eftir breyttum útsendingartíma en 1992 var þátturinn aftur fluttur á besta tíma á föstudegi. 1993 var Kastljós tekið af dagskrá um skeið þegar dægurmálaþátturinn Dagsljós hóf göngu sína. \n\nÍslenskir sjónvarpsþættir',
-  'question': 'Á hvaða árum var fréttaskýringaþátturinn Kastljós upphaflega á dagskrá Ríkisútvarpsins?',
-  'answers': {
-    'answer_start': 147,
-    'text': array(['Frá 1974 til 1998'], dtype=object)
+  "context": 'Fyrir greinina um þáttinn sem er í gangi í dag, sjá Kastljós (dægurmálaþáttur)\nKastljós var fréttaskýringaþáttur sem var á dagskrá Ríkisútvarpsins frá 1974 til 1998. Hann hóf göngu sína sem fréttaskýringaþáttur um innlendar fréttir árið 1974 og tók þá við af þætti sem nefndist Landshorn. Þátturinn var um fjörutíu mínútna langur, í umsjón fréttastofunnar og sýndur á föstudögum á besta tíma. Umsjónarmenn voru mismunandi fréttamenn í hvert skipti. Annar þáttur á miðvikudögum fjallaði þá um erlendar fréttir. 1980 var þáttunum tveimur slegið saman í eitt Kastljós á föstudögum í umsjón tveggja stjórnenda. 1987 var þættinum aftur breytt í fréttaskýringaþátt um innlend málefni stutt skeið. 1988 hét þátturinn Kastljós á sunnudegi og 1990 Kastljós á þriðjudegi eftir breyttum útsendingartíma en 1992 var þátturinn aftur fluttur á besta tíma á föstudegi. 1993 var Kastljós tekið af dagskrá um skeið þegar dægurmálaþátturinn Dagsljós hóf göngu sína. \n\nÍslenskir sjónvarpsþættir',
+  "question": 'Á hvaða árum var fréttaskýringaþátturinn Kastljós upphaflega á dagskrá Ríkisútvarpsins?',
+  "answers": {
+    "answer_start": 147,
+    "text": array(['Frá 1974 til 1998'], dtype=object)
   }
 }
 ```
@@ -491,9 +491,12 @@ $ euroeval --model <model-id> --dataset icelandic-qa
 
 ### Unofficial: BeleBele-is
 
-This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/) and features multiple-choice reading comprehension questions across 122 languages.
+This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/)
+and features multiple-choice reading comprehension questions across 122 languages.
 
-The original dataset contains 900 unique multiple-choice reading comprehension passages and questions. From these, we use a 256 / 64 / 580 split for training, validation and testing, respectively.
+The original dataset contains 900 unique multiple-choice reading comprehension passages
+and questions. From these, we use a 256 / 64 / 580 split for training, validation and
+testing, respectively.
 
 Here are a few examples from the training split:
 
@@ -553,6 +556,77 @@ $ euroeval --model <model-id> --dataset belebele-is
 ```
 
 
+### Unofficial: MultiWikiQA-is
+
+This dataset will be published in an upcoming paper, and contains Icelandic Wikipedia
+articles with generated questions and answers, using the LLM Gemini-1.5-pro.
+
+The original full dataset consists of 5,000 samples in a single split. We use a 1,024 /
+256 / 2,048 split for training, validation and testing, respectively, sampled randomly.
+
+Here are a few examples from the training split:
+
+```json
+{
+    "context": "Bergþór Pálsson (fæddur 22. október 1957) er íslenskur baritónsöngvari og skólastjóri Tónlistarskóla Ísafjarðar.\n\nHann fæddist í Reykjavík og foreldrar hans eru Hulda Baldursdóttir (1923-2013) ritari og Páll Bergþórsson (f. 1923) fyrrverandi veðurstofustjóri. Eiginmaður Bergþórs er Albert Eiríksson. Bergþór á einn son. \n\nBergþór lauk stúdentsprófi frá Menntaskólanum við Sund árið 1978 og BA gráðu í tónlist frá Indiana háskóla í Bandaríkjunum árið 1985, MA gráðu í tónlist frá sama skóla árið 1987 og útskrifaðist sem leikari frá Drama Studio í London árið 1997.\n\nHann var óperusöngvari við Óperuna í Kaiserslautern í Þýskalandi frá 1988-1991 og hefur sungið í fjölda verka sem Íslenska óperan hefur sett upp. Bergþór var ráðinn skólastjóri Tónlistarskóla Ísafjarðar árið 2020.\n\nBergþór var lengi orðaður við forsetaframboð í forsetakosningunum 2016 en í kjölfarið af því að Ólafur Ragnar Grímsson, sitjandi forseti, tilkynnti að hann myndi sækjast eftir endurkjöri ákvað Bergþór að bjóða sig ekki fram.\n\nTilvísanir\n\nÍslenskir tónlistarmenn\nÍslenskir söngvarar\n\nStúdentar úr Menntaskólanum við Sund\nÍslenskir leikarar",
+    "question": "Í hvaða ári útskrifaðist Bergþór Pálsson úr menntaskóla?",
+    "answers": {
+        "answer_start": array([383]),
+        "text": array(["1978"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Snillingur (á latínu: genius) er manneskja með óvenjulega andlega hæfileika og gáfur, svokallaða snilligáfu. Engin vísindaleg skilgreining er til á hugtakinu, sem á sér rætur aftur í fornöld, og deilt er um merkingu þess en eigi að síður er snillingshugtakið mikið notað í margháttuðu samhengi, ekki síst síðan á nítjándu öld.\n\nDæmi um snillinga\n\nBókmenntir \n Sófókles\n Evripídes\n Virgill\n William Shakespeare\n Johann Wolfgang von Goethe\n\nEðlis- og stærðfræði\n Arkímedes\n Isaac Newton\n Gottfried Leibniz\n Leonhard Euler\n Carl Friedrich Gauß\n Hendrik Antoon Lorentz\n Nikola Tesla\n Max Planck\n Marie Curie\n Albert Einstein\n Niels Bohr\n Erwin Schrödinger\n Werner Heisenberg\n Richard Feynman\n John Forbes Nash\n\nHeimspeki \n Platon\n Aristóteles\n David Hume\n Immanuel Kant\n John Stuart Mill\n Friedrich Nietzsche\n Ludwig Wittgenstein\n Saul Kripke\n\nLíffræði \n Charles Darwin\n\nMyndlist \n Leonardo da Vinci\n Michelangelo Buonarroti\n Rembrandt\n Vincent van Gogh\n\nSkák \n Bobby Fischer\n\nStjörnu- og heimsfræði \n Aristarkos\n Nikulás Kópernikus\n Stephen Hawking\n\nTónlist \n Johann Sebastian Bach\n Joseph Haydn\n Wolfgang Amadeus Mozart\n Ludwig van Beethoven\n\nHeimildir og ítarefni \n Clifford A. Pickover (1998). Strange Brains and Genius: The Secret Lives of Eccentric Scientists and Madmen. (Plenum Publishing Corporation). \n Eysenck, H.J. (1995). Genius: The Natural History of Creativity. (Cambridge: Cambridge University Press).\n Galton, F. (1869). Hereditary Genius: An Inquiry Into Its Laws and Consequences. (London: Macmillan).\n Gladwell, Malcolm. (2008). Outliers: The Story of Success. (New York: Little, Brown and Company).\n Harold Bloom (2002). Genius: A Mosaic of One Hundred Exemplary Creative Minds. (Warner Books). \n Murray, C. (2003). Human Accomplishment: The Pursuit of Excellence in the Arts and Sciences. 800 B.C. to 1950. (New York: HarperCollins).\n Simonton, Dean Keith (1999). Origins of genius: Darwinian Perspectives on Creativity. (Oxford: Oxford University Press).\n Simonton, Dean Keith (2004). Creativity in Science: Chance, Logic, Genius, and Zeitgeist. (Cambridge: Cambridge University Press).\n Simonton, Dean Keith (2009). Genius 101. (New York: Springer).\n\nGreind",
+    "question": "Hvaða rit fjallar um dulin leyndarmál vísindamanna sem eru að hætta störfum og einstaklinga með geðræn vandamál?",
+    "answers": {
+        "answer_start": array([1194]),
+        "text": array(["Strange Brains and Genius: The Secret Lives of Eccentric Scientists and Madmen"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Grasker er ávöxtur af ættkvíslinni Cucurbita og graskersætt af tegundunum Cucurbita pepo eða Cucurbita mixta. Grasker hafa vanalega þykkt appelsínugult eða gult hýði og eru ræktuð til matar og til skrauts og skemmtunar. Bökur úr graskerjum er hefðbundinn hluti af hinni bandarísku þakkargjörðarhátíð og útskorin grasker eru algengt skraut á hrekkjavöku.\n\nElstu menjar um graskersfræ fundust í Mexíkó og eru frá 7000 og 5500 fyrir Krist. Grasker vega um 450 kg en eru oft 4-8 kg. Grasker eru tvíkynja og eru kven- og karlblóm á sömu jurt.\n\nGrasker eru ræktuð víða bæði sem skepnufóður og til skrauts og sölu. Ræktun þeirra hefst í byrjun júlí og þarf jarðvegshiti þá á þriggja þumlunga dýpi (7.72 sm) að vera minnst 15.5°C og jarðvegur þarf að vera rakadrægur. Grasker eru  harðgerðar jurtir en uppskera getur þó brugðist vegna þurrka eða kulda eða vegna sandjarðvegs sem heldur illa raka. Stærstu grasker eru af tegundinni Cucurbita maxima. Skelin, fræ, lauf og blóm graskers eru æt.\n\nÞegar grasker hefur þroskast er hægt að sjóða, baka eða rista það. Fræin eru oft ristuð. Í Mið-Austurlöndum er grasker notað í sæta rétti, í sælgæti sem kallað er halawa yaqtin. Í Suður-Asíulöndum eins og Indlandi er grasker soðið með smjöri, sykri og kryddi í rétt sem kallast kadu ka halwa. Í Guangxi héraðinu í Kína eru laufblöð graskers soðin eins og grænmeti og notuð í súpur. Í Ástralíu og Nýja-Sjálandi er grasker oft ristað með öðru grænmeti. Graskersfræ eru oft notuð í staðinn fyrir sólblómafræ. Grasker má nota til að bragðbæta drykki. Graskersfræ eru talin holl. Niðursoðin grasker eru gefin köttum og hundum til að bæta meltingu.\n\nAlgengt er að skera út mynstur í grasker fyrir hrekkjavöku í Norður-Ameríku og nota þau sem luktir. Útskorin grasker voru fyrst tákn um uppskerutímann en urðu síðan tengd hrekkjavöku.\n\nRæktendur graskerja keppa oft um stærsta og þyngsta graskerið og haldnar eru hátíðir í kringum slík keppni. Grasker eru þekkt minni í ævintýrum og þjóðsögum, þau er oft tengt nornum í kringum hrekkjavöku. Í sögunni af Öskubusku breytir álfkona graskeri í vagn en á miðnætti verður hann aftur að graskeri.\n\nTenglar \n\n Squash Display at Missouri Botanical Garden — Myndir af 150 afbrigðum graskerja]\n Möndlugrasker eru stærstu ber í heimi (Bændablaðið=\n\nGraskersætt\n\ntl:Kalabasa",
+    "question": "Hver er algengur þyngd graskerja?",
+    "answers": {
+        "answer_start": array([471]),
+        "text": array(["4-8 kg"], dtype=object)
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 4
+- Prefix prompt:
+  ```
+  Eftirfarandi eru textar með tilheyrandi spurningum og svörum.
+  ```
+- Base prompt template:
+  ```
+  Texti: {text}
+  Spurning: {question}
+  Svaraðu með að hámarki 3 orðum: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Texti: {text}
+
+  Svaraðu eftirfarandi spurningu um textann að hámarki í 3 orðum.
+
+  Spurning: {question}
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset multi-wiki-qa-is
+```
+
+
 ## Knowledge
 
 ### IcelandicKnowledge
@@ -579,7 +653,8 @@ completion = client.beta.chat.completions.parse(
 )
 ```
 
-where `CandidateAnswers` is a Pydantic model that is used to ensure [structured outputs](https://platform.openai.com/docs/guides/structured-outputs).
+where `CandidateAnswers` is a Pydantic model that is used to ensure [structured
+outputs](https://platform.openai.com/docs/guides/structured-outputs).
 
 The original dataset has 2,000 samples, but only 1,994 unique questions, and the total
 length of this dataset is therefore 1,994. The split is given by 842 / 128 / 1024 for

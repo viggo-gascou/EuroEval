@@ -6,19 +6,18 @@ import typing as t
 from copy import deepcopy
 
 import demjson3
-import evaluate
 import numpy as np
-from evaluate import EvaluationModule
-from transformers.tokenization_utils import PreTrainedTokenizer
 
-from ..data_models import BenchmarkConfig, DatasetConfig, GenerativeModelOutput
 from ..exceptions import InvalidBenchmark
 from ..utils import raise_if_model_output_contains_nan_values
 
 if t.TYPE_CHECKING:
+    from datasets.arrow_dataset import Dataset
+    from transformers.tokenization_utils import PreTrainedTokenizer
     from transformers.tokenization_utils_base import BatchEncoding
     from transformers.trainer_utils import EvalPrediction
 
+    from ..data_models import DatasetConfig, GenerativeModelOutput
     from ..types import Labels, Predictions
 
 
@@ -29,7 +28,7 @@ def compute_metrics(
     model_outputs_and_labels: "tuple[Predictions, Labels] | EvalPrediction",
     has_misc_tags: bool,
     dataset_config: "DatasetConfig",
-    benchmark_config: "BenchmarkConfig",
+    dataset: "Dataset",
 ) -> dict[str, float]:
     """Compute the metrics needed for evaluation.
 
@@ -41,8 +40,9 @@ def compute_metrics(
             Whether the dataset has MISC tags.
         dataset_config:
             The configuration of the dataset.
-        benchmark_config:
-            The configuration of the benchmark.
+        dataset:
+            The dataset used for evaluation. This is only used in case any additional
+            metadata is used to compute the metrics.
 
     Returns:
         A dictionary with the names of the metrics as keys and the metric values as
@@ -54,17 +54,6 @@ def compute_metrics(
     # predictions
     if isinstance(model_outputs, tuple) and len(model_outputs) == 2:
         model_outputs = model_outputs[0]
-
-    metrics = {
-        metric_cfg.name: (
-            evaluate.load(
-                path=metric_cfg.huggingface_id, cache_dir=benchmark_config.cache_dir
-            )
-            if metric_cfg.huggingface_id != ""
-            else None
-        )
-        for metric_cfg in dataset_config.task.metrics
-    }
 
     predictions: list[list[str]]
     if not isinstance(model_outputs[0][0], str):
@@ -145,11 +134,16 @@ def compute_metrics(
         all(ner_tag == "o" for ner_tag in label_list) for label_list in labels
     )
     if predictions_all_zero and labels_all_zero:
-        results = dict(overall_f1=1.0)
+        micro_f1_score: float | None = 1.0
     else:
-        metric = metrics["micro_f1"]
-        assert isinstance(metric, EvaluationModule)
-        results = metric.compute(predictions=predictions, references=labels)
+        metric = next(
+            metric
+            for metric in dataset_config.task.metrics
+            if metric.name == "micro_f1"
+        )
+        micro_f1_score = metric(
+            predictions=predictions, references=list(labels), dataset=dataset
+        )
 
     # Compute the metrics without MISC tags
     # We manually set the F1 metric to be 100% if both the labels and the models
@@ -163,21 +157,22 @@ def compute_metrics(
         all(ner_tag == "o" for ner_tag in label_list) for label_list in labels_no_misc
     )
     if predictions_no_misc_all_zero and labels_no_misc_all_zero:
-        results_no_misc = dict(overall_f1=1.0)
+        micro_f1_no_misc_score: float | None = 1.0
     else:
-        metric = metrics["micro_f1_no_misc"]
-        assert isinstance(metric, EvaluationModule)
-        results_no_misc = metric.compute(
-            predictions=predictions_no_misc, references=labels_no_misc
+        metric = next(
+            metric
+            for metric in dataset_config.task.metrics
+            if metric.name == "micro_f1_no_misc"
+        )
+        micro_f1_no_misc_score = metric(
+            predictions=predictions_no_misc, references=labels_no_misc, dataset=dataset
         )
 
     # Raise error if the metrics are invalid
-    if results is None or results_no_misc is None:
+    if micro_f1_score is None or micro_f1_no_misc_score is None:
         raise InvalidBenchmark("The predictions and labels are not of the same length.")
 
-    return dict(
-        micro_f1_no_misc=results_no_misc["overall_f1"], micro_f1=results["overall_f1"]
-    )
+    return dict(micro_f1_no_misc=micro_f1_no_misc_score, micro_f1=micro_f1_score)
 
 
 def extract_labels_from_generation(

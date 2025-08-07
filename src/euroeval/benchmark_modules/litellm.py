@@ -11,7 +11,6 @@ from time import sleep
 
 import litellm
 import ollama
-from datasets import DatasetDict
 from huggingface_hub import HfApi
 from huggingface_hub.errors import (
     HFValidationError,
@@ -31,12 +30,12 @@ from litellm.exceptions import (
 )
 from litellm.llms.vertex_ai.common_utils import VertexAIError
 from litellm.router import Router
-from litellm.types.utils import ChoiceLogprobs, ModelResponse
+from litellm.types.utils import ChoiceLogprobs
+from litellm.utils import supports_reasoning, supports_response_schema
 from pydantic import conlist, create_model
 from requests.exceptions import RequestException
 from tqdm.asyncio import tqdm as tqdm_async
 from tqdm.auto import tqdm
-from transformers.trainer import Trainer
 
 from ..constants import MAX_LOGPROBS, REASONING_MAX_TOKENS, TASKS_USING_JSON
 from ..data_models import (
@@ -77,6 +76,11 @@ from ..utils import (
 )
 from .base import BenchmarkModule
 from .hf import HuggingFaceEncoderModel, load_hf_model_config, load_tokenizer
+
+if t.TYPE_CHECKING:
+    from datasets import DatasetDict
+    from litellm.types.utils import ModelResponse
+    from transformers.trainer import Trainer
 
 logger = logging.getLogger("euroeval")
 
@@ -140,18 +144,15 @@ NUM_PARAMS_MAPPING = {
 
 ALLOWED_PARAMS = {
     # OpenAI models
-    r"gpt-4.*": [],
-    r"o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": ["low", "high"],
+    r"o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": ["low", "medium", "high"],
     # Anthropic models
-    r"(anthropic/)?claude-3-(haiku|sonnet|opus).*": [],
-    r"(anthropic/)?claude-3-5-.*": [],
-    r"(anthropic/)?claude-3-7-sonnet.*": ["thinking"],
+    r"(anthropic/)?claude-3-7-sonnet.*": ["no-thinking", "thinking"],
+    r"(anthropic/)?claude-(sonnet|opus)-4.*": ["no-thinking", "thinking"],
     # Gemini models
-    r"(gemini/)?gemini-.*": [],
+    r"(gemini/)?gemini-2.5-flash-lite.*": ["no-thinking", "thinking"],
+    r"(gemini/)?gemini-2.5-flash-[0-9].*": ["no-thinking", "thinking"],
     # xAI models
-    r"(xai/)?grok-2.*": [],
-    r"(xai/)?grok-3(-fast)?(-beta)?": [],
-    r"(xai/)?grok-3-mini(-fast)?(-beta)?": ["low", "high"],
+    r"(xai/)?grok-3-mini(-fast)?(-beta)?": ["low", "medium", "high"],
 }
 
 
@@ -169,18 +170,6 @@ class LiteLLMModel(BenchmarkModule):
     fresh_model = False
     batching_preference = BatchingPreference.ALL_AT_ONCE
     high_priority = False
-
-    _handleable_exceptions = (
-        BadRequestError,
-        RateLimitError,
-        APIError,
-        APIConnectionError,
-        Timeout,
-        ServiceUnavailableError,
-        InternalServerError,
-        SystemError,
-        AuthenticationError,
-    )
 
     def __init__(
         self,
@@ -240,9 +229,13 @@ class LiteLLMModel(BenchmarkModule):
             )
         elif self.model_config.revision in {"thinking"}:
             type_ = GenerativeType.REASONING
+        elif self.model_config.revision in {"no-thinking"}:
+            type_ = GenerativeType.INSTRUCTION_TUNED
         elif re.fullmatch(
             pattern="|".join(REASONING_MODELS), string=self.model_config.model_id
         ):
+            type_ = GenerativeType.REASONING
+        elif supports_reasoning(model=self.model_config.model_id):
             type_ = GenerativeType.REASONING
         else:
             type_ = GenerativeType.INSTRUCTION_TUNED
@@ -324,9 +317,7 @@ class LiteLLMModel(BenchmarkModule):
                     "enable it.",
                     level=logging.DEBUG,
                 )
-            elif litellm.utils.supports_response_schema(
-                model=self.model_config.model_id
-            ):
+            elif supports_response_schema(model=self.model_config.model_id):
                 ner_tag_names = list(self.dataset_config.prompt_label_mapping.values())
                 keys_and_their_types: dict[str, t.Any] = {
                     tag_name: (conlist(str, max_length=5), ...)
@@ -370,7 +361,13 @@ class LiteLLMModel(BenchmarkModule):
                 f"Enabling thinking mode for model {self.model_config.model_id!r}",
                 level=logging.DEBUG,
             )
-        elif self.model_config.revision in {"low", "high"}:
+        elif self.model_config.revision == "no-thinking":
+            generation_kwargs["thinking"] = dict(budget_tokens=0)
+            log_once(
+                f"Disabling thinking mode for model {self.model_config.model_id!r}",
+                level=logging.DEBUG,
+            )
+        elif self.model_config.revision in {"low", "medium", "high"}:
             generation_kwargs["reasoning_effort"] = self.model_config.revision
             log_once(
                 f"Enabling reasoning effort {self.model_config.revision!r} for model "
@@ -381,7 +378,20 @@ class LiteLLMModel(BenchmarkModule):
         # Drop generation kwargs that are not supported by the model
         litellm.drop_params = True
 
-        all_responses: dict[int, ModelResponse] = {}
+        # First attempt is a test run with a single conversation to handle errors
+        # quickly
+        test_conversation = conversations[0]
+        _, failures = safe_run(
+            self._generate_async(
+                model_id=self.model_config.model_id,
+                conversations=[test_conversation],
+                **generation_kwargs,
+            )
+        )
+        for _, error in failures:
+            self._handle_exception(error=error, generation_kwargs=generation_kwargs)
+
+        all_responses: dict[int, "ModelResponse"] = {}
         conversations_to_run: list[tuple[int, list[litellm.AllMessageValues]]] = list(
             enumerate(conversations)
         )
@@ -477,6 +487,11 @@ class LiteLLMModel(BenchmarkModule):
         ]
         max_items_messages = ["'maxItems' is not permitted."]
         no_json_schema_messages = ["Property keys should match pattern"]
+        thinking_budget_pattern = re.compile(
+            r"the thinking budget [0-9]+ is invalid. please choose a value between "
+            r"[0-9]+ and ([0-9]+)\."
+        )
+        requires_thinking_disabled_messages = ["thinking.type: Field required"]
 
         if any(msg.lower() in error_msg for msg in stop_messages):
             log_once(
@@ -537,6 +552,38 @@ class LiteLLMModel(BenchmarkModule):
             )
             generation_kwargs["response_format"] = dict(type="json_object")
             return
+        elif thinking_match := thinking_budget_pattern.search(string=error_msg):
+            thinking_budget = int(thinking_match.group(1))
+            if thinking_budget >= REASONING_MAX_TOKENS:
+                raise InvalidBenchmark(
+                    f"The model {model_id!r} has an upper thinking budget of "
+                    f"{thinking_budget:,} tokens, which is within the limit of "
+                    f"{REASONING_MAX_TOKENS:,} tokens. This should not happen. The "
+                    f"error message was: {error_msg}."
+                )
+            log_once(
+                f"The model {model_id!r} can at most use {thinking_budget:,} tokens "
+                "for reasoning, which is less than the default of "
+                f"{REASONING_MAX_TOKENS:,} tokens. Setting the thinking budget to "
+                f"{thinking_budget:,} tokens.",
+                level=logging.DEBUG,
+            )
+            generation_kwargs["thinking"] = dict(
+                type="enabled", budget_tokens=thinking_budget - 1
+            )
+            return
+        elif (
+            any(msg.lower() in error_msg for msg in requires_thinking_disabled_messages)
+            and self.generative_type != GenerativeType.REASONING
+        ):
+            log_once(
+                f"The model {model_id!r} requires the `thinking.type` field to be "
+                f"set to `disabled` rather than just setting `budget_tokens` to 0. "
+                "Setting `thinking.type` to `disabled`.",
+                level=logging.DEBUG,
+            )
+            generation_kwargs["thinking"] = dict(type="disabled")
+            return
         elif isinstance(
             error, (Timeout, ServiceUnavailableError, InternalServerError, SystemError)
         ):
@@ -581,7 +628,7 @@ class LiteLLMModel(BenchmarkModule):
         model_id: str,
         conversations: list[list[litellm.AllMessageValues]],
         **generation_kwargs,
-    ) -> tuple[list[tuple[int, ModelResponse]], list[tuple[int, Exception]]]:
+    ) -> tuple[list[tuple[int, "ModelResponse"]], list[tuple[int, Exception]]]:
         """Generate outputs from the model asynchronously.
 
         Args:
@@ -641,7 +688,7 @@ class LiteLLMModel(BenchmarkModule):
 
     @staticmethod
     def _create_model_output(
-        model_responses: list[ModelResponse], model_id: str
+        model_responses: list["ModelResponse"], model_id: str
     ) -> GenerativeModelOutput:
         """Create a GenerativeModelOutput object from a list of ModelResponse objects.
 
@@ -1123,8 +1170,8 @@ class LiteLLMModel(BenchmarkModule):
         )
 
     def prepare_dataset(
-        self, dataset: DatasetDict, task: Task, itr_idx: int
-    ) -> DatasetDict:
+        self, dataset: "DatasetDict", task: Task, itr_idx: int
+    ) -> "DatasetDict":
         """Prepare the dataset for the model.
 
         This includes things like tokenisation.

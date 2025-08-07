@@ -312,31 +312,31 @@ Here are a few examples from the training split:
 
 ```json
 {
-  'context': "Lo studio del Corano e dell' Hadith prosperò in un' atmosfera così studiosa. Filosofia, Fiqh e teologia (kalaam) sono stati ulteriormente sviluppati, in particolare da Avicenna e dai suoi avversari. Al-Razi e Al-Farabi avevano fornito metodologie e conoscenze in medicina e filosofia. Avicenna ha avuto accesso alle grandi biblioteche di Balkh, Khwarezm, Gorgan, Rey, Isfahan e Hamadan. Vari testi (come il' Ahd con Bahmanyar') mostrano che egli ha dibattuto punti filosofici con i più grandi studiosi del tempo. Aruzi Samarqandi descrive come prima che Avicenna lasciasse Khwarezm aveva conosciuto Al-Biruni (un famoso scienziato e astronomo), Abu Nasr Iraqi (un famoso matematico), Abu Sahl Masihi (un illustre filosofo) e Abu al-Khayr Khammar (un grande medico).",
-  'question': "Che cosa è stato un tema che Avicenna ha ulteriormente sviluppato?",
-  'answers': {
-    'answer_start':  array([95]),
-    'text': array(['teologia'], dtype=object)
+  "context": "Lo studio del Corano e dell' Hadith prosperò in un' atmosfera così studiosa. Filosofia, Fiqh e teologia (kalaam) sono stati ulteriormente sviluppati, in particolare da Avicenna e dai suoi avversari. Al-Razi e Al-Farabi avevano fornito metodologie e conoscenze in medicina e filosofia. Avicenna ha avuto accesso alle grandi biblioteche di Balkh, Khwarezm, Gorgan, Rey, Isfahan e Hamadan. Vari testi (come il' Ahd con Bahmanyar') mostrano che egli ha dibattuto punti filosofici con i più grandi studiosi del tempo. Aruzi Samarqandi descrive come prima che Avicenna lasciasse Khwarezm aveva conosciuto Al-Biruni (un famoso scienziato e astronomo), Abu Nasr Iraqi (un famoso matematico), Abu Sahl Masihi (un illustre filosofo) e Abu al-Khayr Khammar (un grande medico).",
+  "question": "Che cosa è stato un tema che Avicenna ha ulteriormente sviluppato?",
+  "answers": {
+    "answer_start":  array([95]),
+    "text": array(['teologia'], dtype=object)
   }
 }
 ```
 ```json
 {
-  'context': "Florida Alta Velocità ferroviaria è stata proposta ferroviaria ad alta velocità sostenuta dal governo che avrebbe collegato Miami, Orlando e Tampa. La prima fase è stata pianificata per collegare Orlando e Tampa ed è stato offerto un finanziamento federale, ma è stato respinto dal governatore Rick Scott nel 2011. La seconda fase della linea è stata prevista per collegare Miami. Entro il 2014, un progetto privato conosciuto come All Aboard Florida da parte di una società della storica Florida East Coast Railway ha iniziato la costruzione di una linea ferroviaria ad alta velocità nel sud della Florida che dovrebbe terminare all' aeroporto internazionale di Orlando.",
-  'question': "In quale anno ha iniziato All Aboard Florida?",
-  'answers': {
-    'answer_start': array([390]),
-    'text': array(['2014'], dtype=object)
+  "context": "Florida Alta Velocità ferroviaria è stata proposta ferroviaria ad alta velocità sostenuta dal governo che avrebbe collegato Miami, Orlando e Tampa. La prima fase è stata pianificata per collegare Orlando e Tampa ed è stato offerto un finanziamento federale, ma è stato respinto dal governatore Rick Scott nel 2011. La seconda fase della linea è stata prevista per collegare Miami. Entro il 2014, un progetto privato conosciuto come All Aboard Florida da parte di una società della storica Florida East Coast Railway ha iniziato la costruzione di una linea ferroviaria ad alta velocità nel sud della Florida che dovrebbe terminare all' aeroporto internazionale di Orlando.",
+  "question": "In quale anno ha iniziato All Aboard Florida?",
+  "answers": {
+    "answer_start": array([390]),
+    "text": array(['2014'], dtype=object)
   }
 }
 ```
 ```json
 {
-  'context': "Gli insetti sociali, come le termiti, le formiche e molte api e vespe, sono la specie più familiare di animali eusociali. Vivono insieme in grandi colonie ben organizzate che possono essere così strettamente integrate e geneticamente simili che le colonie di alcune specie sono talvolta considerate superorganismi. Talvolta si sostiene che le varie specie di api da miele siano gli unici invertebrati (e addirittura uno dei pochi gruppi non umani) ad aver evoluto un sistema di comunicazione simbolica astratta in cui un comportamento viene utilizzato per rappresentare e trasmettere informazioni specifiche su qualcosa nell' ambiente. In questo sistema di comunicazione, chiamato linguaggio dance, l' angolo in cui una danza d' ape rappresenta una direzione relativa al sole, e la lunghezza della danza rappresenta la distanza da volare. 309-311 Anche se forse non così avanzato come le api mellifere, anche i bombi hanno potenzialmente alcuni comportamenti di comunicazione sociale.",
-  'question': "Termiti, api, vespe e quali altri insetti sono insetti sociali?",
-  'answers': {
-    'answer_start': array([41]),
-    'text': array(['formiche'], dtype=object)
+  "context": "Gli insetti sociali, come le termiti, le formiche e molte api e vespe, sono la specie più familiare di animali eusociali. Vivono insieme in grandi colonie ben organizzate che possono essere così strettamente integrate e geneticamente simili che le colonie di alcune specie sono talvolta considerate superorganismi. Talvolta si sostiene che le varie specie di api da miele siano gli unici invertebrati (e addirittura uno dei pochi gruppi non umani) ad aver evoluto un sistema di comunicazione simbolica astratta in cui un comportamento viene utilizzato per rappresentare e trasmettere informazioni specifiche su qualcosa nell' ambiente. In questo sistema di comunicazione, chiamato linguaggio dance, l' angolo in cui una danza d' ape rappresenta una direzione relativa al sole, e la lunghezza della danza rappresenta la distanza da volare. 309-311 Anche se forse non così avanzato come le api mellifere, anche i bombi hanno potenzialmente alcuni comportamenti di comunicazione sociale.",
+  "question": "Termiti, api, vespe e quali altri insetti sono insetti sociali?",
+  "answers": {
+    "answer_start": array([41]),
+    "text": array(['formiche'], dtype=object)
   }
 }
 ```
@@ -373,9 +373,12 @@ $ euroeval --model <model-id> --dataset squad-it
 
 ### Unofficial: BeleBele-it
 
-This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/) and features multiple-choice reading comprehension questions across 122 languages.
+This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/)
+and features multiple-choice reading comprehension questions across 122 languages.
 
-The original dataset contains 900 unique multiple-choice reading comprehension passages and questions. From these, we use a 256 / 64 / 580 split for training, validation and testing, respectively.
+The original dataset contains 900 unique multiple-choice reading comprehension passages
+and questions. From these, we use a 256 / 64 / 580 split for training, validation and
+testing, respectively.
 
 Here are a few examples from the training split:
 
@@ -435,6 +438,77 @@ $ euroeval --model <model-id> --dataset belebele-it
 ```
 
 
+### Unofficial: MultiWikiQA-it
+
+This dataset will be published in an upcoming paper, and contains Italian Wikipedia
+articles with generated questions and answers, using the LLM Gemini-1.5-pro.
+
+The original full dataset consists of 5,000 samples in a single split. We use a 1,024 /
+256 / 2,048 split for training, validation and testing, respectively, sampled randomly.
+
+Here are a few examples from the training split:
+
+```json
+{
+    "context": "I Campionati canadesi di sci alpino 2015 si sono svolti a Mont-Sainte-Anne e Nakiska dal 24 febbraio al 29 marzo. Il programma ha incluso gare di supergigante, slalom gigante, slalom speciale e combinata, tutte sia maschili sia femminili; tuttavia le gare di combinata sono state annullate.\n\nTrattandosi di competizioni valide anche ai fini del punteggio FIS, vi hanno partecipato anche sciatori di altre federazioni, senza che questo consentisse loro di concorrere al titolo nazionale canadese.\n\nRisultati\n\nUomini\n\nSupergigante \n\nData: 24 febbraio\nLocalità: Nakiska\nOre: 11.00 (UTC-5)\nPista: \nPartenza: 2\xa0255\xa0m\xa0s.l.m.\nArrivo: 1\xa0790\xa0m\xa0s.l.m.\nDislivello: 465\xa0m\nTracciatore: Richard Jagger\n\nSlalom gigante \n\nData: 26 marzo\nLocalità: Mont-Sainte-Anne\n1ª manche:\nOre: \nPista: \nPartenza: 615\xa0m\xa0s.l.m.\nArrivo: 265\xa0m\xa0s.l.m.\nDislivello: 350\xa0m\nTracciatore: John Kucera\n\n2ª manche:\nOre: \nPista: \nPartenza: 615\xa0m\xa0s.l.m.\nArrivo: 265\xa0m\xa0s.l.m.\nDislivello: 350\xa0m\nTracciatore: Mathieu Roy\n\nSlalom speciale \n\nData: 28 marzo\nLocalità: Mont-Sainte-Anne\n1ª manche:\nOre: \nPista: \nPartenza: 515\xa0m\xa0s.l.m.\nArrivo: 315\xa0m\xa0s.l.m.\nDislivello: 200\xa0m\nTracciatore: Johnny Crichton\n\n2ª manche:\nOre: \nPista: \nPartenza: 515\xa0m\xa0s.l.m.\nArrivo: 315\xa0m\xa0s.l.m.\nDislivello: 200\xa0m\nTracciatore: Duane Baird\n\nCombinata \nLa gara, originariamente in programma il 26 marzo a Mont-Sainte-Anne, è stata annullata.\n\nDonne\n\nSupergigante \n\nData: 24 febbraio\nLocalità: Nakiska\nOre: 9.30 (UTC-5)\nPista: \nPartenza: 2\xa0255\xa0m\xa0s.l.m.\nArrivo: 1\xa0790\xa0m\xa0s.l.m.\nDislivello: 465\xa0m\nTracciatore: Richard Jagger\n\nSlalom gigante \n\nData: 27 marzo\nLocalità: Mont-Sainte-Anne\n1ª manche:\nOre: \nPista: \nPartenza: 615\xa0m\xa0s.l.m.\nArrivo: 265\xa0m\xa0s.l.m.\nDislivello: 350\xa0m\nTracciatore: Peter Rybárik\n\n2ª manche:\nOre: \nPista: \nPartenza: 615\xa0m\xa0s.l.m.\nArrivo: 265\xa0m\xa0s.l.m.\nDislivello: 350\xa0m\nTracciatore: Martin Durocher\n\nSlalom speciale \n\nData: 28 marzo\nLocalità: Mont-Sainte-Anne\n1ª manche:\nOre: \nPista: \nPartenza: 515\xa0m\xa0s.l.m.\nArrivo: 315\xa0m\xa0s.l.m.\nDislivello: 200\xa0m\nTracciatore: Pierre-Luc Dumoulin\n\n2ª manche:\nOre: \nPista: \nPartenza: 515\xa0m\xa0s.l.m.\nArrivo: 315\xa0m\xa0s.l.m.\nDislivello: 200\xa0m\nTracciatore: Brett Zagazowski\n\nCombinata \nLa gara, originariamente in programma il 27 marzo a Mont-Sainte-Anne, è stata annullata.\n\nNote\n\nCollegamenti esterni \n \n \n\nCanadesi\n2015\nSport a Beaupré",
+    "question": "Qual è stato l'autore del tracciato della prima manche dello slalom speciale maschile a Mont-Sainte-Anne?",
+    "answers": {
+        "answer_start": array([1134]),
+        "text": array(["Johnny Crichton"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "\n\nCarriera\nTra il 1991 ed il 1995 è tesserato del , club della prima divisione inglese: nelle prime 2 stagioni gioca nelle giovanili, mentre dal 1993 al 1995 è aggregato alla prima squadra, in cui comunque gioca solamente una partita ufficiale, il 14 agosto 1994, quando subentra dalla panchina al 64' nel Charity Shield perso per 2-0 contro il  a Wembley. Nell'arco di queste stagioni trascorre anche un breve periodo in prestito al , club di quarta divisione, con cui nella parte finale della stagione 1993-1994 gioca 11 partite di campionato. Nella seconda parte della stagione 1994-1995 viene ceduto a titolo definitivo allo , con cui realizza 9 reti in 20 partite di campionato, non riuscendo comunque ad evitare la retrocessione in terza divisione del club, con cui in compenso raggiunge le semifinali di Coppa di Lega, risultato a cui contribuisce realizzando 2 reti in altrettante presenze nella competizione. L'anno seguente con 10 reti in 26 presenze contribuisce all'immediato ritorno del club in seconda divisione, categoria nella quale nella stagione 1996-1997 mette a segno 8 reti in 31 presenze.\n\nNell'estate del 1997 passa allo , altro club di seconda divisione, con cui mette a segno 12 reti in 36 partite nel campionato 1997-1998, che si conclude con la retrocessione in terza divisione delle Potteries; l'anno seguente realizza 9 reti in 34 presenze in questa categoria, mentre nella stagione 1999-2000 oltre a vincere un Football League Trophy realizza 24 reti in 45 partite di campionato, a cui aggiunge 16 reti in 38 partite nel campionato successivo. Nella stagione 2000-2001 realizza invece 4 reti in 5 presenze per poi essere ceduto al , altro club di terza divisione, con cui nella rimanente parte della stagione mette a segno 8 reti in 26 presenze. Nella stagione 2002-2003 vince invece i play-off di terza divisione, dopo aver segnato 13 reti in 46 partite di campionato; nella stagione 2003-2004 torna quindi nuovamente a giocare in seconda divisione, categoria nella quale va a segno per 13 volte in 23 presenze. L'anno seguente, che è anche il suo ultimo nel Cardiff City, gioca con maggior regolarità e va nuovamente in doppia cifra di reti segnate: chiude infatti il campionato con 31 presenze e 12 reti. Tra il 2005 ed il 2007 gioca ancora in seconda divisione, con la maglia del , ma con un ruolo da comprimario: nell'arco di 2 stagioni segna infatti solamente una rete in complessive 36 partite di campionato. Al termine della stagione 2006-2007 scende di categoria e si accasa al , in quarta divisione: qui, nelle stagioni 2007-2008 e 2008-2009 gioca stabilmente da titolare e torna a segnare con regolarità (31 reti in 70 partite di campionato nell'arco del biennio), mentre nella stagione 2009-2010, la sua ultima in carriera, perde il posto in squadra e gioca in totale solamente 9 partite fra tutte le competizioni (7 in campionato e 2 nel Football League Trophy) senza mai segnare.\n\nIn carriera ha totalizzato complessivamente 495 presenze e 174 reti nei campionati professionistici inglesi (play-off inclusi), più 25 presenze e 2 reti in FA Cup, 27 presenze e 14 reti in Coppa di Lega, una presenza nel Community Shield e 13 presenze e 7 reti nel Football League Trophy, per un totale complessivo di 561 presenze e 197 reti in carriera in partite ufficiali.\n\nPalmarès\n\nClub\n\nCompetizioni nazionali\n\nStoke: 1999-2000\n\nNote\n\nCollegamenti esterni",
+    "question": "In quale torneo ha disputato l'unico incontro ufficiale il calciatore con il Manchester City?",
+    "answers": {
+        "answer_start": array([306]),
+        "text": array(["Charity Shield"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "HD 56779 è una stella bianco-azzurra nella sequenza principale di magnitudine 5,01 situata nella costellazione della Poppa. Dista 959 anni luce dal sistema solare.\n\nOsservazione\nSi tratta di una stella situata nell'emisfero celeste australe. La sua posizione moderatamente australe fa sì che questa stella sia osservabile specialmente dall'emisfero sud, in cui si mostra alta nel cielo nella fascia temperata; dall'emisfero boreale la sua osservazione risulta invece più penalizzata, specialmente al di fuori della sua fascia tropicale. La sua magnitudine pari a 5 fa sì che possa essere scorta solo con un cielo sufficientemente libero dagli effetti dell'inquinamento luminoso.\n\nIl periodo migliore per la sua osservazione nel cielo serale ricade nei mesi compresi fra dicembre e maggio; nell'emisfero sud è visibile anche all'inizio dell'inverno, grazie alla declinazione australe della stella, mentre nell'emisfero nord può essere osservata limitatamente durante i mesi della tarda estate boreale.\n\nCaratteristiche fisiche\nLa stella è una bianco-azzurra nella sequenza principale; possiede una magnitudine assoluta di -2,33 e la sua velocità radiale positiva indica che la stella si sta allontanando dal sistema solare.\n\nVoci correlate\nStelle principali della costellazione della Poppa\n\nCollegamenti esterni\n\nStelle di classe spettrale B\nStelle bianco-azzurre di sequenza principale",
+    "question": "Quanto è distante HD 56779 dal nostro sistema solare?",
+    "answers": {
+        "answer_start": array([130]),
+        "text": array(["959 anni luce"], dtype=object)
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 4
+- Prefix prompt:
+  ```
+  I testi che seguono sono accompagnati da domande e risposte.
+  ```
+- Base prompt template:
+  ```
+  Testo: {text}
+  Domanda: {question}
+  Rispondere in massimo 3 parole: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Testo: {text}
+
+  Rispondi alla seguente domanda sul in un massimo di 3 parole.
+
+  Domanda: {question}
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset multi-wiki-qa-it
+```
+
+
 ## Knowledge
 
 ### MMLU-it
@@ -488,7 +562,7 @@ When evaluating generative models, we use the following setup (see the
   b. {option_b}
   c. {option_c}
   d. {option_d}
-  Réponse: {label}
+  Risposta: {label}
   ```
 - Instruction-tuned prompt template:
   ```
@@ -559,7 +633,7 @@ When evaluating generative models, we use the following setup (see the
   b. {option_b}
   c. {option_c}
   d. {option_d}
-  Réponse: {label}
+  Risposta: {label}
   ```
 - Instruction-tuned prompt template:
   ```
@@ -577,6 +651,72 @@ You can evaluate this dataset directly as follows:
 
 ```bash
 $ euroeval --model <model-id> --dataset hellaswag-it
+```
+
+
+### Unofficial: GoldenSwag-it
+
+This dataset is a filtered and machine translated version of the English [HellaSwag dataset](https://aclanthology.org/P19-1472/), featuring both video descriptions from ActivityNet as well as how-to articles from WikiHow. The machine translated version was published in [this paper](https://doi.org/10.48550/arXiv.2410.08928) and was done using DeepL, and the filtering was published in [this paper](https://doi.org/10.48550/arXiv.2504.07825), which resulted in higher quality samples.
+
+The original full dataset consists of 1530 / 1530 samples for training and validation, respectively. However, they are exactly equal. We use a split of 660 / 256 / 2,048 samples for training, validation, and testing, respectively.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "text": "Come sapere cosa indossare. Identificate la vostra tonalità di pelle. Ci sono molti termini usati per descrivere la tonalità della pelle, da quella chiara o scura, a quella pallida o olivastra. Il modo più accurato per capire quali colori vi stanno bene è capire il sottotono della vostra pelle.\nScelte:\na. Questa è la chiave numero uno per identificare il colore della vostra pelle. Se avete un misto di pelle olivastra e sottotono caldo (come una pelle avorio), il vostro tono di pelle è probabilmente a metà tra il caldo e il freddo.\nb. Se avete una corporatura media o calda, in genere avete sottotoni evidenti. Ecco alcuni sottotoni comuni: la pelle calda e i sottotoni caldi comprendono tutti e tre i toni medi, tutti e tre i toni freddi, tutti e quattro i toni caldi e tutti e quattro i toni caldi.\nc. La vostra pelle sarà del colore delle vostre spalle, dal collo alle dita, alle unghie dei piedi. Il sottotono è un colore di base per il vostro aspetto generale, come espressione primaria della vostra carnagione.\nd. Ne esistono tre tipi: caldo, freddo e neutro. Poiché si cercano i sottotoni della pelle, non basta guardarsi allo specchio per averne conferma.",
+  "label": "d"
+}
+```
+
+```json
+{
+  "text": "Come fare la treccia. Spazzolare i capelli. Spazzolate i capelli in modo che siano leggeri e soffici. Dovete eliminare tutti i nodi in modo che la treccia sia liscia come la seta! Questa operazione facilita anche il processo di intreccio, quindi assicuratevi di farlo.\nScelte:\na. Prendete tre o quattro pollici (da 5 a 10 cm) di capelli dalla nuca, pettinateli e metteteli in un porta-treccia. Legateli e rimetteteli nel supporto.\nb. Se i capelli sono molto aggrovigliati, potrebbero gocciolare e potreste non riuscire a intrecciarli in modo così ordinato! Avvolgere i capelli. Con i capelli raccolti in rulli, arricciateli intorno al dito in modo che tutti i rulli siano infilati.\nc. Decidete dove fare la treccia. Sarà dietro la testa in una coda di cavallo? Sarà laterale o più bassa, vicino al collo? Decidete questo per determinare dove e come sarà più bella.\nd. Inumidite i capelli e scompigliateli delicatamente con le dita, in modo da ottenere un risultato bello e soffice. Probabilmente sarà facile separarli tirandoli un po', ma fate attenzione a non farlo.",
+  "label": "c"
+}
+```
+
+```json
+{
+  "text": "Come mettere la carta velina in un sacchetto regalo. Raccogliete i materiali. Avrete bisogno di carta velina, del regalo, di nastri o abbellimenti, di un sacchetto regalo e di un biglietto. Avrete bisogno di diversi colori di carta velina che si abbinino al colore del sacchetto regalo.\nScelte:\na. Acquistate o realizzate un sacchetto di carta velina bianco o crema in un negozio di artigianato. La carta velina vi darà un colore rosa pastello e si completerà con il colore del sacchetto regalo.\nb. La carta velina colorata rende il regalo più festoso! Assicuratevi che il vostro sacchetto regalo sia adatto all'occasione. Se avete intenzione di arricciare il nastro per aggiungerlo come decorazione, avrete bisogno di forbici per arricciare il nastro o di un nastro già arricciato.\nc. Potreste aver bisogno di andare in un negozio di antiquariato o in un negozio dell'usato per trovare tutti i colori che vi servono. Considerate la possibilità di utilizzare diversi colori per il biglietto, tra cui carta commestibile, carta da regalo o carta da costruzione.\nd. Potete utilizzare carta di scarto, carta in rotoli, carta riciclata o carta da costruzione. Prendete un pezzo di carta velina, di carta igienica o di qualsiasi altro foglio di carta colorata.",
+  "label": "b"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 5
+- Prefix prompt:
+  ```
+  Le seguenti sono domande a scelta multipla (con relative risposte).
+  ```
+- Base prompt template:
+  ```
+  Domanda: {text}
+  Scelte:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+  Risposta: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Domanda: {text}
+  Scelte:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+
+  Rispondete alla domanda precedente con 'a', 'b', 'c' o 'd' e nient'altro.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset goldenswag-it
 ```
 
 

@@ -3,6 +3,7 @@
 import importlib.util
 import json
 import logging
+import typing as t
 from collections import defaultdict
 from functools import partial
 from pathlib import Path
@@ -24,12 +25,14 @@ from .task_group_utils import (
     token_classification,
 )
 from .tasks import NER
-from .types import ComputeMetricsFunction, ExtractLabelsFunction, ScoreDict
 from .utils import enforce_reproducibility
 
 if importlib.util.find_spec("gradio") is not None:
     import gradio as gr
     from gradio.components import HTML, Button, Dropdown, Markdown, Textbox
+
+if t.TYPE_CHECKING:
+    from .types import ComputeMetricsFunction, ExtractLabelsFunction, ScoreDict
 
 logger = logging.getLogger("euroeval")
 
@@ -86,8 +89,8 @@ class HumanEvaluator:
             }
         )
 
-        self.extract_labels_from_generation: ExtractLabelsFunction
-        self.compute_metrics: ComputeMetricsFunction
+        self.extract_labels_from_generation: "ExtractLabelsFunction"
+        self.compute_metrics: "ComputeMetricsFunction"
 
     def create_app(self) -> "gr.Blocks":
         """Create the Gradio app for human evaluation.
@@ -269,6 +272,7 @@ class HumanEvaluator:
             num_iterations=iteration + 1,
             api_base=None,
             api_version=None,
+            gpu_memory_utilization=0.9,
             debug=False,
             run_with_cli=True,
             only_allow_safetensors=False,
@@ -342,7 +346,6 @@ class HumanEvaluator:
                 self.compute_metrics = partial(
                     sequence_classification.compute_metrics,
                     dataset_config=self.dataset_config,
-                    benchmark_config=benchmark_config,
                 )
                 self.extract_labels_from_generation = partial(
                     sequence_classification.extract_labels_from_generation,
@@ -362,7 +365,6 @@ class HumanEvaluator:
                     token_classification.compute_metrics,
                     has_misc_tags=self.has_misc_tags,
                     dataset_config=self.dataset_config,
-                    benchmark_config=benchmark_config,
                 )
                 self.extract_labels_from_generation = partial(
                     token_classification.extract_labels_from_generation,
@@ -372,7 +374,6 @@ class HumanEvaluator:
                 self.compute_metrics = partial(
                     question_answering.compute_metrics,
                     dataset_config=self.dataset_config,
-                    benchmark_config=benchmark_config,
                 )
                 self.extract_labels_from_generation = (
                     question_answering.extract_labels_from_generation
@@ -619,7 +620,8 @@ class HumanEvaluator:
         )
         ground_truth = self.active_dataset["label"]
         itr_scores: dict[str, float] = self.compute_metrics(
-            model_outputs_and_labels=(all_preds, ground_truth)
+            model_outputs_and_labels=(all_preds, ground_truth),
+            dataset=self.active_dataset,
         )
 
         # We reverse the order, as the Info messages are printed in reverse order
@@ -641,7 +643,7 @@ class HumanEvaluator:
         # only a single iteration, so the results from the current annotation should be
         # added to the previous results.
         results_path = Path.cwd() / "euroeval_benchmark_results.jsonl"
-        results: ScoreDict = defaultdict(list)
+        results: "ScoreDict" = defaultdict(list)
         if results_path.exists():
             all_results = [
                 json.loads(line.strip())
@@ -664,15 +666,15 @@ class HumanEvaluator:
 
         # Aggregate scores
         total_dict: dict[str, float] = dict()
-        for metric_cfg in self.dataset_config.task.metrics:
+        for metric in self.dataset_config.task.metrics:
             test_score, test_se = aggregate_scores(
                 scores=results["raw"],  # type: ignore[arg-type]
-                metric_config=metric_cfg,
+                metric=metric,
             )
-            test_score, _ = metric_cfg.postprocessing_fn(test_score)
-            test_se, _ = metric_cfg.postprocessing_fn(test_se)
-            total_dict[f"test_{metric_cfg.name}"] = test_score
-            total_dict[f"test_{metric_cfg.name}_se"] = test_se
+            test_score, _ = metric.postprocessing_fn(test_score)
+            test_se, _ = metric.postprocessing_fn(test_se)
+            total_dict[f"test_{metric.name}"] = test_score
+            total_dict[f"test_{metric.name}_se"] = test_se
         results["total"] = total_dict
 
         benchmark_result = BenchmarkResult(

@@ -8,9 +8,13 @@ information about what these constitute.
 ## Sentiment Classification
 
 ### SentimentHeadlines-es
-This dataset was published in [this paper](https://arxiv.org/abs/2208.13947) and features political news headlines.
+This dataset was published in [this paper](https://doi.org/10.48550/arXiv.2208.13947)
+and features political news headlines.
 
-The original full dataset consists of 1,371 /  609 / 459 samples for training, validation, and testing, respectively. We use 861 /  256 / 1,024 samples for training, validation, and testing, respectively. All our splits are subsets of the original ones. The label distribution for the splits are as follows:
+The original full dataset consists of 1,371 /  609 / 459 samples for training,
+validation, and testing, respectively. We use 861 /  256 / 1,024 samples for training,
+validation, and testing, respectively. All our splits are subsets of the original ones.
+The label distribution for the splits are as follows:
 
 | Split | positive | negative | neutral | Total |
 |-------|----------|----------|---------|--------|
@@ -71,7 +75,10 @@ $ euroeval --model <model-id> --dataset sentiment-headlines-es
 
 ### CoNLL-es
 
-This dataset was published in [this paper](https://aclanthology.org/W02-2024/) and contains 8,324 / 1,916 / 1,518 samples for training, validation, and testing, respectively. We use 1,024 / 256 / 1,024 samples for training, validation, and testing, respectively. All the new splits are subsets of the original splits.
+This dataset was published in [this paper](https://aclanthology.org/W02-2024/) and
+contains 8,324 / 1,916 / 1,518 samples for training, validation, and testing,
+respectively. We use 1,024 / 256 / 1,024 samples for training, validation, and testing,
+respectively. All the new splits are subsets of the original splits.
 
 Here are a few examples from the training split:
 
@@ -133,16 +140,18 @@ $ euroeval --model <model-id> --dataset conll-es
 
 ### ScaLA-es
 
-This dataset was published in [this paper](https://aclanthology.org/L08-1222/) and was automatically created from the [Spanish Universal Dependencies](https://github.com/UniversalDependencies/UD_Spanish-AnCora) by
-assuming that the documents in the treebank are correct, and corrupting the samples to
-create grammatically incorrect samples. The corruptions were done by either removing a
-word from a sentence, or by swapping two neighbouring words in a sentence. To ensure
-that this does indeed break the grammaticality of the sentence, a set of rules were used
-on the part-of-speech tags of the words in the sentence.
+This dataset was published in [this paper](https://aclanthology.org/L08-1222/) and was
+automatically created from the [Spanish Universal
+Dependencies](https://github.com/UniversalDependencies/UD_Spanish-AnCora) by assuming
+that the documents in the treebank are correct, and corrupting the samples to create
+grammatically incorrect samples. The corruptions were done by either removing a word
+from a sentence, or by swapping two neighbouring words in a sentence. To ensure that
+this does indeed break the grammaticality of the sentence, a set of rules were used on
+the part-of-speech tags of the words in the sentence.
 
-The original dataset consists of 17,662 samples, from which we use 1,024 / 256 / 2,048 samples for training,
-validation and testing, respectively (so 3,328 samples used in total). These splits are
-used as-is in the framework.
+The original dataset consists of 17,662 samples, from which we use 1,024 / 256 / 2,048
+samples for training, validation and testing, respectively (so 3,328 samples used in
+total). These splits are used as-is in the framework.
 
 Here are a few examples from the training split:
 
@@ -198,7 +207,11 @@ $ euroeval --model <model-id> --dataset scala-es
 
 ### MLQA-es
 
-This dataset was published in [this paper](https://arxiv.org/abs/1910.07475) and contains 0 / 500 / 5,253 samples for training, validation, and testing, respectively. We have made a 1,024 / 256 / 2,048 split, where we use the 500 validation samples + 524 test samples for training. Then we split the remaining test set into validation (256 samples) and test (2048 samples).
+This dataset was published in [this paper](https://doi.org/10.48550/arXiv.1910.07475)
+and contains 0 / 500 / 5,253 samples for training, validation, and testing,
+respectively. We have made a 1,024 / 256 / 2,048 split, where we use the 500 validation
+samples + 524 test samples for training. Then we split the remaining test set into
+validation (256 samples) and test (2048 samples).
 
 Here are a few examples from the training split:
 
@@ -263,9 +276,13 @@ $ euroeval --model <model-id> --dataset xquad-es
 
 ### Unofficial: XQuAD-es
 
-This dataset was published in [this paper](https://aclanthology.org/2020.acl-main.421/) and contains 1190 question-answer pairs from [SQuAD v1.1](https://rajpurkar.github.io/SQuAD-explorer/) translated into ten languages by professional translators.
+This dataset was published in [this paper](https://aclanthology.org/2020.acl-main.421/)
+and contains 1190 question-answer pairs from [SQuAD
+v1.1](https://rajpurkar.github.io/SQuAD-explorer/) translated into ten languages by
+professional translators.
 
-The dataset is split intro 550 / 128 / 512 question-answer pairs for training, validation, and testing, respectively.
+The dataset is split intro 550 / 128 / 512 question-answer pairs for training,
+validation, and testing, respectively.
 
 Here are a few examples from the training split:
 
@@ -330,12 +347,14 @@ You can evaluate this dataset directly as follows:
 $ euroeval --model <model-id> --dataset xquad-es
 ```
 
-
 ### Unofficial: BeleBele-es
 
-This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/) and features multiple-choice reading comprehension questions across 122 languages.
+This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/)
+and features multiple-choice reading comprehension questions across 122 languages.
 
-The original dataset contains 900 unique multiple-choice reading comprehension passages and questions. From these, we use a 256 / 64 / 580 split for training, validation and testing, respectively.
+The original dataset contains 900 unique multiple-choice reading comprehension passages
+and questions. From these, we use a 256 / 64 / 580 split for training, validation and
+testing, respectively.
 
 Here are a few examples from the training split:
 
@@ -392,6 +411,76 @@ You can evaluate this dataset directly as follows:
 
 ```bash
 $ euroeval --model <model-id> --dataset belebele-es
+```
+
+### Unofficial: MultiWikiQA-es
+
+This dataset will be published in an upcoming paper, and contains Spanish Wikipedia
+articles with generated questions and answers, using the LLM Gemini-1.5-pro.
+
+The original full dataset consists of 5,000 samples in a single split. We use a 1,024 /
+256 / 2,048 split for training, validation and testing, respectively, sampled randomly.
+
+Here are a few examples from the training split:
+
+```json
+{
+    "context": "El moretum es una especie de queso untable tradicional que se servía como acompañamiento de algunos de los platos de la Antigua Roma. Se trata de un tipo de aderezo o salsa cuyos ingredientes se machacan en un mortero, del cual toma el nombre.\n\nCitas \n\nEn el Appendix Vergiliana, obra que, como indica su nombre, se atribuye a Virgilio, se dice que los ingredientes del moretum son hierbas aromáticas, ajo, queso, vinagre, aceite de oliva y sal, y se describe su preparación como desayuno por un campesino. Con respecto a la combinación de los ingredientes, en la línea 103 se lee \n\nEl moretum también es nombrado por Columela en el libro XII de su obra De re rustica.\n\nVéase también \n\n Pesto\n Almodrote\n\nBibliografía \n\n Rodríguez-Pantoja Márquez, Miguel: El \"Moretum\", estudio lingüístico y literario. , n.º 8, 1977, pp. 117 - 148. Departamento de Prehistoria y Arqueología. Universidad de Sevilla. ISSN 0210-7694\n Texto en PDF.\n\nNotas y referencias\n\nEnlaces externos \n\nGastronomía de la Antigua Roma\nDesayunos\nAlimentos untables\nPlatos de queso\nSalsas de Italia",
+    "question": "¿Quién es considerado el autor del poema Moretum, que forma parte del Appendix Vergiliana?",
+    "answers": {
+        "answer_start": array([327]),
+        "text": array(["Virgilio"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "La culebra-viborera mexicana (Clelia scytalina) también conocida como zopilota de altura, es una especie de serpiente que pertenece a la familia Colubridae. Es nativo del sur de México, América Central y Colombia.\nComo las demás especies de musurana, se alimenta principalmente de otras serpientes, especialmente de serpientes venenosas del género Bothrops.\n\nDescripción \nLos adultos poseen una coloración negra grisácea iridiscente o negra azulada en el dorso. Los juveniles tienen un dorso rojo, cabeza negra y un collar nucal amarillo opaco que está rodeado de pigmento negro; el vientre es color crema inmaculado; escamas dorsales en 17 hileras.\n\nDistribución \nClelia scytalina se distribuye a bajas y moderadas elevaciones (hasta 1,200 ) de Veracruz en la vertiente del Atlántico y desde Jalisco en la vertiente del Pacífico hacia el sur a través de América Central hasta Colombia. Está especie es generalmente rara en México excepto en la Sierra de los Tuxtlas en el sur de Veracruz donde es considerada como relativamente común. Es conocida de localidades dispersas en la vertiente del Atlántico en el centro de Veracruz, Oaxaca, Chiapas, Tabasco, suroeste de Campeche y sur de Quintana roo, y en el vertiente del Pacífico\xa0 en Jalisco, Colima, Guerrero y Chiapas.\n\nHábitat \nEsta serpiente grande y activa habita el bosque caducifolio tropical, el bosque estacional perennifolio y el bosque lluvioso. Es principalmente terrestre y nocturna, pero también se puede encontrar activa durante el día. Por lo general, forrajea por la noche en bosques primarios o secundarios, a menudo a lo largo de arroyos. Se alimenta principalmente de serpientes, incluidas las nauyacas (Bothrops asper) y otras serpientes venenosas, que a veces pueden ser tan largas como ella. Ocasionalmente comen ranas, lagartijas y mamíferos. Clelia scytalina es ovípara.\n\nEstado de conservación \nSe encuentra catalogada dentro de la lista roja de la IUCN como una especie con preocupación menor (LC).\n\nReferencias\n\nEnlaces externos \n . Encyclopedia of Life.\n\nscytalina\nReptiles de América Central\nAnimales descritos en 1867\nTaxones descritos por Edward Drinker Cope",
+    "question": "¿Cuál es el límite altitudinal de la distribución de Clelia scytalina?",
+    "answers": {
+        "answer_start": array([735]),
+        "text": array(["1,200"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Coslada Central es una estación de la línea 7 del Metro de Madrid, situada entre la calle de Pablo Neruda y el paseo de Francisco Javier Sauquillo, en el municipio madrileño de Coslada.\n\nOfrece una conexión con la estación de Coslada de las líneas C-2, C-7 y C-8 de Cercanías Madrid, formando ambas un intercambiador de transporte.\n\nHistoria y características \nLa estación fue inaugurada el 5 de mayo de 2007 y está decorada con grandes murales por los andenes y el vestíbulo, realizados por Raúl Díaz Reyes, los cuales, bajo el título de \"De Madrid al cielo\", reflejan diferentes imágenes de cielos de Madrid.\n\nLa estación ha sufrido varias obras de rehabilitación desde su inauguración para garantizar la seguridad y aliviar las grietas que se han formado encima de los túneles por los que discurre el tramo MetroEste. Véase Obras de rehabilitación en Línea 7 para más detalles.\n\nAccesos \nVestíbulo Coslada Central (Metro de Madrid)\n Doctor Fleming C/ Doctor Fleming, s/n (en el parque Doctor Fleming)\n  Ascensor C/ Doctor Fleming, s/n (en el parque Doctor Fleming)\n Renfe Abierto de 6:00 a 0:30 Correspondencia con Cercanías Renfe\nVestíbulo Renfe\n  Luis Braille C/ Luis Braille, s/n (Correspondencia con Cercanías Renfe)\n\nLíneas y conexiones\n\nMetro\n\nCercanías\n\nAutobuses\n\nReferencias\n\nVéase también \n Línea 7 (Metro de Madrid)\n MetroEste\n Estaciones del Metro de Madrid\n Coslada, ,\n\nEnlaces externos y referencias \n\n Ficha de la estación en metromadrid.es\n Página oficial del Metro de Madrid\n\nCoslada\nCoslada\nEstaciones de metro de España inauguradas en 2007",
+    "question": "¿Cómo se llaman las obras de arte que adornan esta estación de metro?",
+    "answers": {
+        "answer_start": array([539]),
+        "text": array(["\"De Madrid al cielo\""], dtype=object)
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 4
+- Prefix prompt:
+  ```
+  A continuación se presentan textos con sus preguntas y respuestas correspondientes.
+  ```
+- Base prompt template:
+  ```
+  Texto: {text}
+  Pregunta: {question}
+  Respuesta en máximo 3 palabras: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Texto: {text}
+
+  Responda la siguiente pregunta sobre el texto anterior en máximo 3 palabras.
+
+  Pregunta: {question}
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset multi-wiki-qa-es
 ```
 
 
@@ -538,13 +627,83 @@ You can evaluate this dataset directly as follows:
 $ euroeval --model <model-id> --dataset hellaswag-es
 ```
 
+
+### Unofficial: GoldenSwag-es
+
+This dataset is a filtered and machine translated version of the English [HellaSwag dataset](https://aclanthology.org/P19-1472/), featuring both video descriptions from ActivityNet as well as how-to articles from WikiHow. The machine translated version was published in [this paper](https://doi.org/10.48550/arXiv.2410.08928) and was done using DeepL, and the filtering was published in [this paper](https://doi.org/10.48550/arXiv.2504.07825), which resulted in higher quality samples.
+
+The original full dataset consists of 1530 / 1530 samples for training and validation, respectively. However, they are exactly equal. We use a split of 660 / 256 / 2,048 samples for training, validation, and testing, respectively.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "text": "Cómo desmaquillarse. Empapa un disco de algodón con desmaquillante de ojos. Un desmaquillante de ojos bifásico sirve para la mayoría del maquillaje de ojos. Combina el poder disolvente de un desmaquillante a base de aceite con las cualidades suaves y calmantes del agua limpiadora.\nOpciones:\na. Es una buena opción para el maquillaje de ojos intenso; sólo asegúrate de agitar bien el envase antes de usarlo, ya que la fórmula tiende a separarse. Si utilizas máscara y delineador de ojos resistentes al agua o un maquillaje muy resistente, utiliza un limpiador a base de aceite.\nb. Normalmente, el objetivo es hacer que el proceso de limpieza específico sea una experiencia más agradable, en lugar de que sea completamente autocalmante. Como alternativa, puedes simplemente humedecer tu disco de algodón con una solución de agua fría y aplicarla desde el rabillo del ojo hacia las esquinas interiores.\nc. Compra un bote de este desmaquillante en una farmacia o por Internet. Cuanto más tiempo lo apliques, más oscura será la capa externa de maquillaje de los ojos.\nd. Aunque estos productos son menos caros que los limpiadores faciales normales, no siempre son infalibles. Utilizarlos en exceso afectará a la eficacia de tu maquillaje.",
+  "label": "a"
+}
+```
+
+```json
+{
+  "text": "Cómo hacer turrón. Forre el molde. Forre el fondo y los lados de un molde de 20 cm por 20 cm con papel pergamino. Resérvalo para utilizarlo más tarde.\nOpciones:\na. Si quieres enfriar el pan sin papel pergamino, vierte 2 cucharadas (45 ml) de azúcar en un bol y mételo en el congelador para que se enfríe. También puede refrigerar la mezcla durante al menos un día.\nb. Lleve el agua a ebullición. En el fuego, ponga el fuego a tope para que el agua hierva.\nc. Verterá el sirope de arce en el cazo después de cocer la miel y el azúcar.. Calienta el agua en el cazo.\nd. Como alternativa, puedes engrasar el fondo y los lados del molde con mantequilla, manteca o spray antiadherente para cocinar. El papel de pergamino facilitará la limpieza del molde.",
+  "label": "d"
+}
+```
+
+```json
+{
+  "text": "Cómo seguir amamantando después de volver al trabajo. Prepárate. Antes de volver al trabajo, tienes que planificarte y prepararte con tiempo. Esto significa hacer acopio de leche materna extraída (ebm) y establecer la infraestructura necesaria para extraer leche materna con éxito en el trabajo.\nOpciones:\na. Hacer acopio parece consolidar la síntesis eficaz de un ciclo de lactancia sano y constante. Sin embargo, tener un suministro fresco de ebm puede dificultar el mantenimiento de una relación sana y productiva con tu bebé.\nb. Determina la edad ideal de tu hija. Si tu hija sólo tiene seis meses, reserva un poco de tiempo para empezar a amamantarla.\nc. Si inviertes tiempo y esfuerzo en conseguirlo antes, será menos complicado una vez que vuelvas al trabajo. Haz acopio de ebm mientras estés de baja por maternidad.\nd. Escribe todo lo que quieras saber en una hoja aparte y guárdalo para más tarde o sustitúyelo por una nota escrita a mano. Si es posible, planifica tomarte un día libre en el trabajo.",
+  "label": "c"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 5
+- Prefix prompt:
+  ```
+  Las siguientes son preguntas de opción múltiple (con respuestas).
+  ```
+- Base prompt template:
+  ```
+  Pregunta: {text}
+  Opciones:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+  Respuesta: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Pregunta: {text}
+  Opciones:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+
+  Responda la pregunta anterior usando solo 'a', 'b', 'c' o 'd', y nada más.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset goldenswag-es
+```
+
+
 ## Summarization
 
 ### MLSum-es
 
-The dataset was published in [this paper](https://aclanthology.org/2020.emnlp-main.647/) and is obtained from online newspapers.
+The dataset was published in [this paper](https://aclanthology.org/2020.emnlp-main.647/)
+and is obtained from online newspapers.
 
-The original full dataset consists of 266,367 / 10,358 / 13,920 samples for training, validation, and testing, respectively. We use 1,024 / 256 / 2,024 samples for training, validation, and testing, respectively. All our splits are subsets of the original ones.
+The original full dataset consists of 266,367 / 10,358 / 13,920 samples for training,
+validation, and testing, respectively. We use 1,024 / 256 / 2,024 samples for training,
+validation, and testing, respectively. All our splits are subsets of the original ones.
 
 Here are a few examples from the training split:
 

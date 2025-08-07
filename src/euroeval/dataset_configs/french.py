@@ -81,3 +81,23 @@ BELEBELE_FR_CONFIG = DatasetConfig(
     languages=[FR],
     unofficial=True,
 )
+
+MULTI_WIKI_QA_FR_CONFIG = DatasetConfig(
+    name="multi-wiki-qa-fr",
+    pretty_name="the truncated version of the French part of the reading "
+    "comprehension dataset MultiWikiQA",
+    huggingface_id="EuroEval/multi-wiki-qa-fr-mini",
+    task=RC,
+    languages=[FR],
+    unofficial=True,
+)
+
+GOLDENSWAG_FR_CONFIG = DatasetConfig(
+    name="goldenswag-fr",
+    pretty_name="the truncated version of the French common-sense reasoning "
+    "dataset GoldenSwag-fr, translated from the English GoldenSwag dataset",
+    huggingface_id="EuroEval/goldenswag-fr-mini",
+    task=COMMON_SENSE,
+    languages=[FR],
+    unofficial=True,
+)

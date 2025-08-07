@@ -19,8 +19,7 @@ ______________________________________________________________________
 
 ## Maintainer
 
-- Dan Saattrup Nielsen ([@saattrupdan](https://github.com/saattrupdan),
-  dan.nielsen@alexandra.dk)
+- Dan Saattrup Smart ([@saattrupdan](https://github.com/saattrupdan), dan.smart@alexandra.dk)
 
 
 ## Installation
@@ -160,6 +159,7 @@ A huge thank you to all the contributors who have helped make this project a suc
 <a href="https://github.com/BramVanroy"><img src="https://avatars.githubusercontent.com/u/2779410" width=50 alt="Contributor avatar for BramVanroy"/></a>
 <a href="https://github.com/peregilk"><img src="https://avatars.githubusercontent.com/u/9079808" width=50 alt="Contributor avatar for peregilk"/></a>
 <a href="https://github.com/Rijgersberg"><img src="https://avatars.githubusercontent.com/u/8604946" width=50 alt="Contributor avatar for Rijgersberg"/></a>
+<a href="https://github.com/duarteocarmo"><img src="https://avatars.githubusercontent.com/u/26342344" width=50 alt="Contributor avatar for duarteocarmo"/></a>
 
 
 ### Contribute to EuroEval
@@ -193,14 +193,14 @@ contributing new datasets, your help makes this project better for everyone.
 If you want to cite the framework then feel free to use this:
 
 ```
-@article{nielsen2024encoder,
+@article{smart2024encoder,
   title={Encoder vs Decoder: Comparative Analysis of Encoder and Decoder Language Models on Multilingual NLU Tasks},
-  author={Nielsen, Dan Saattrup and Enevoldsen, Kenneth and Schneider-Kamp, Peter},
+  author={Smart, Dan Saattrup and Enevoldsen, Kenneth and Schneider-Kamp, Peter},
   journal={arXiv preprint arXiv:2406.13469},
   year={2024}
 }
-@inproceedings{nielsen2023scandeval,
-  author = {Nielsen, Dan Saattrup},
+@inproceedings{smart2023scandeval,
+  author = {Smart, Dan Saattrup},
   booktitle = {Proceedings of the 24th Nordic Conference on Computational Linguistics (NoDaLiDa)},
   month = may,
   pages = {185--201},

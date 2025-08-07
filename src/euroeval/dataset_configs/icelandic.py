@@ -146,3 +146,13 @@ BELEBELE_IS_CONFIG = DatasetConfig(
     languages=[IS],
     unofficial=True,
 )
+
+MULTI_WIKI_QA_IS_CONFIG = DatasetConfig(
+    name="multi-wiki-qa-is",
+    pretty_name="the truncated version of the Icelandic part of the reading "
+    "comprehension dataset MultiWikiQA",
+    huggingface_id="EuroEval/multi-wiki-qa-is-mini",
+    task=RC,
+    languages=[IS],
+    unofficial=True,
+)

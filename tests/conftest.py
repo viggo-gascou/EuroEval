@@ -7,10 +7,11 @@ from typing import Generator
 import pytest
 import torch
 
-from euroeval.data_models import BenchmarkConfig, MetricConfig, ModelConfig, Task
+from euroeval.data_models import BenchmarkConfig, ModelConfig, Task
 from euroeval.dataset_configs import SPEED_CONFIG, get_all_dataset_configs
 from euroeval.enums import InferenceBackend, ModelType
 from euroeval.languages import DA, get_all_languages
+from euroeval.metrics import HuggingFaceMetric
 from euroeval.tasks import SENT, SPEED, get_all_tasks
 
 
@@ -86,6 +87,7 @@ def benchmark_config(
         num_iterations=1,
         api_base=None,
         api_version=None,
+        gpu_memory_utilization=0.9,
         debug=False,
         run_with_cli=True,
         only_allow_safetensors=False,
@@ -93,9 +95,9 @@ def benchmark_config(
 
 
 @pytest.fixture(scope="session")
-def metric_config() -> Generator[MetricConfig, None, None]:
+def metric() -> Generator[HuggingFaceMetric, None, None]:
     """Yields a metric configuration used in tests."""
-    yield MetricConfig(
+    yield HuggingFaceMetric(
         name="metric_name",
         pretty_name="Metric name",
         huggingface_id="metric_id",

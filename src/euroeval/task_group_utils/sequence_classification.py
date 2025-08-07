@@ -4,19 +4,17 @@ import logging
 import re
 import typing as t
 
-import evaluate
 import Levenshtein
 import numpy as np
-from evaluate import EvaluationModule
 
-from ..data_models import BenchmarkConfig, GenerativeModelOutput
 from ..exceptions import InvalidBenchmark
 from ..utils import log_once, raise_if_model_output_contains_nan_values
 
 if t.TYPE_CHECKING:
+    from datasets.arrow_dataset import Dataset
     from transformers.trainer_utils import EvalPrediction
 
-    from ..data_models import DatasetConfig
+    from ..data_models import DatasetConfig, GenerativeModelOutput
     from ..types import Labels, Predictions
 
 
@@ -26,7 +24,7 @@ logger = logging.getLogger("euroeval")
 def compute_metrics(
     model_outputs_and_labels: "tuple[Predictions, Labels] | EvalPrediction",
     dataset_config: "DatasetConfig",
-    benchmark_config: "BenchmarkConfig",
+    dataset: "Dataset",
 ) -> dict[str, float]:
     """Compute the metrics needed for evaluation.
 
@@ -36,8 +34,9 @@ def compute_metrics(
             contains the true labels.
         dataset_config:
             The configuration of the dataset.
-        benchmark_config:
-            The configuration of the benchmark.
+        dataset:
+            The dataset used for evaluation. This is only used in case any additional
+            metadata is used to compute the metrics.
 
     Returns:
         A dictionary with the names of the metrics as keys and the metric values as
@@ -50,17 +49,6 @@ def compute_metrics(
     # predictions
     if isinstance(model_outputs, tuple) and len(model_outputs) == 2:
         model_outputs = model_outputs[0]
-
-    metrics = {
-        metric_cfg.name: (
-            evaluate.load(
-                path=metric_cfg.huggingface_id, cache_dir=benchmark_config.cache_dir
-            )
-            if metric_cfg.huggingface_id != ""
-            else None
-        )
-        for metric_cfg in dataset_config.task.metrics
-    }
 
     model_output_dtype = np.asarray(model_outputs).dtype
     if model_output_dtype in [np.float16, np.float32, np.float64]:
@@ -89,27 +77,22 @@ def compute_metrics(
     ]
 
     results: dict[str, float] = dict()
-    for cfg in dataset_config.task.metrics:
-        metric = metrics[cfg.name]
-        assert isinstance(metric, EvaluationModule)
-        score_dict: dict[str, float] | None = metric.compute(
-            predictions=predictions, references=label_ids, **cfg.compute_kwargs
+    for metric in dataset_config.task.metrics:
+        score: float | None = metric(
+            predictions=predictions, references=label_ids, dataset=dataset
         )
 
         # The metric returns None if we are running on multi-GPU and the current
         # process is not the main process
-        if score_dict is not None:
-            scores = score_dict[cfg.results_key]
-            if isinstance(scores, list):
-                scores = sum(scores) / len(scores)
-            results[cfg.name] = scores
+        if score is not None:
+            results[metric.name] = score
 
     return results
 
 
 def extract_labels_from_generation(
     input_batch: dict[str, list],
-    model_output: GenerativeModelOutput,
+    model_output: "GenerativeModelOutput",
     dataset_config: "DatasetConfig",
     first_label_token_mapping: dict[str, str] | bool,
 ) -> list[str]:

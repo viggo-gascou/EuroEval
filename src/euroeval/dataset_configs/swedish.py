@@ -98,3 +98,23 @@ BELEBELE_SV_CONFIG = DatasetConfig(
     languages=[SV],
     unofficial=True,
 )
+
+MULTI_WIKI_QA_SV_CONFIG = DatasetConfig(
+    name="multi-wiki-qa-sv",
+    pretty_name="the truncated version of the Swedish part of the reading "
+    "comprehension dataset MultiWikiQA",
+    huggingface_id="EuroEval/multi-wiki-qa-sv-mini",
+    task=RC,
+    languages=[SV],
+    unofficial=True,
+)
+
+GOLDENSWAG_SV_CONFIG = DatasetConfig(
+    name="goldenswag-sv",
+    pretty_name="the truncated version of the Swedish common-sense reasoning "
+    "dataset GoldenSwag-sv, translated from the English GoldenSwag dataset",
+    huggingface_id="EuroEval/goldenswag-sv-mini",
+    task=COMMON_SENSE,
+    languages=[SV],
+    unofficial=True,
+)

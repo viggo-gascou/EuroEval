@@ -311,8 +311,6 @@ When evaluating generative models, we use the following setup (see the
 
   Beantwoord de volgende vraag over de bovenstaande tekst in maximaal 3 woorden.
 
-  Besvar følgende spørgsmål om teksten ovenfor med maks. 3 ord.
-
   Vraag: {question}
   ```
 
@@ -325,9 +323,12 @@ $ euroeval --model <model-id> --dataset squad-nl
 
 ### Unofficial: BeleBele-nl
 
-This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/) and features multiple-choice reading comprehension questions across 122 languages.
+This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/)
+and features multiple-choice reading comprehension questions across 122 languages.
 
-The original dataset contains 900 unique multiple-choice reading comprehension passages and questions. From these, we use a 256 / 64 / 580 split for training, validation and testing, respectively.
+The original dataset contains 900 unique multiple-choice reading comprehension passages
+and questions. From these, we use a 256 / 64 / 580 split for training, validation and
+testing, respectively.
 
 Here are a few examples from the training split:
 
@@ -384,6 +385,77 @@ You can evaluate this dataset directly as follows:
 
 ```bash
 $ euroeval --model <model-id> --dataset belebele-nl
+```
+
+
+### Unofficial: MultiWikiQA-nl
+
+This dataset will be published in an upcoming paper, and contains Dutch Wikipedia
+articles with generated questions and answers, using the LLM Gemini-1.5-pro.
+
+The original full dataset consists of 5,000 samples in a single split. We use a 1,024 /
+256 / 2,048 split for training, validation and testing, respectively, sampled randomly.
+
+Here are a few examples from the training split:
+
+```json
+{
+    "context": "Het Tokyo Aquatics Centre (Japans: 東京アクアティクスセンタ, Tōkyō akuatikusu sentā) is een zwembad in de Japanse hoofdstad Tokio. Het ligt in het stadsdeel Tatsumi dat deel uit maakt van de wijk Koto. De bouw begon in april 2017 en werd in februari 2020 afgewerkt. De officiële opening werd uitgesteld vanwege de coronapandemie en vond plaats op 26 oktober 2020. Het zwembad werd gebouwd voor de Olympische en Paralympische Spelen in 2020 en biedt plaats aan vijftienduizend toeschouwers. Tijdens de Olympische Spelen zullen het baanzwemmen, schoonspringen en synchroonzwemmen er plaatsvinden; het waterpolotoernooi wordt gehouden in het nabijgelegen Tokyo Tatsumi International Swimming Center.\n\nHet zwembadcomplex heeft twee zwembaden en een duikbad. Het dak werd eerst op de grond gebouwd en vervolgens geleidelijk verhoogd tot een hoogte van 37 meter. Het is 160 meter lang, 130 meter breed en 10 meter dik. Het dak weegt 7.000 ton. Het zwembad blijft na de Olympische en Paralympische spelen in gebruik als zwemarena, evenwel met een in aantal gereduceerde publiekstribune. Tevens wordt het een publiek zwembad.\n\nZwembad in Japan\nKoto\nAccommodatie tijdens de Olympische Zomerspelen 2020\nSportaccommodatie in Tokio",
+    "question": "In welke plaats is het Tokyo Aquatics Centre gevestigd?",
+    "answers": {
+        "answer_start": array([128]),
+        "text": array(["in het stadsdeel Tatsumi dat deel uit maakt van de wijk Koto"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "J.F. Scholten & Zonen was een textielfabriek in Enschede\n\nOntstaansgeschiedenis\n\nDe grondlegger voor wat later J.F. Scholten & zonen zou gaan heten is de schoolmeester Tijs Lammerink. Van 1800 tot 1810 is hij schoolmeester in Usselo en drijft hij daarnaast handel met de Usselose boeren, hij koopt het door hun geweven linnen op en verkoopt dit weer. In 1808 trouwt Tijs Lammerink met Geesken ten Thij en breidt hij zijn handelaarsactiviteiten uit. Hij koopt herberg \"de Swaene\" van de familie Wagelaar en koopt in korte tijd nog twee panden waarin hij in 1815 een katoenspinnerij en een zwartververij begint.\n\nHuwelijk dochter\nIn 1838 huwt de dochter van Tijs Lammerink, Bertiena, met Jan Frederik Scholten. Deze wordt opgenomen in het bedrijf van zijn schoonvader om het na diens overlijden alleen voort te zetten. De fabriek wordt getroffen door de stadsbrand van Enschede (1862)  en vanaf dat moment besluit J.F. Scholten zijn werkzaamheden voort te zetten met zijn drie zonen Jan, Gijs en Theunis. Ze vernieuwen de spinnerij en maken hem stoomgedreven, en daarmee klaar voor de toekomst. De merknaam die ze blijven voeren is \"De Swan\" naar de naam van de herberg waarin Tijs Lammerink zijn werkzaamheden begon.\n\nZonen\nOok oudste zoon Jan krijgt een aantal zonen waarmee het voortbestaan van de fabriek wordt gewaarborgd. Na 1889 worden de zoons van Jan Scholten, te weten Jan Fredrik Scholten (1867-1943), Jan Bernard Scholten (1870-1947) en Julius Scholten (1871-1969) geleidelijk in de firma opgenomen.\nDe lijn wordt voortgezet in 1931 en 1934 wanneer de zoons van Julius Scholten, respectievelijk Jan Scholten (1903) en Jan Fredrik Scholten (1910) als firmanten in het bedrijf worden opgenomen.\n\nNaamloze Vennootschap en overname\nIn 1936 wordt de firma omgezet in een naamloze vennootschap. Er werden goederen gefabriceerd voor de binnenlandse markt en stapelartikelen voor Nederlands-Indië op consignatie-basis. In 1956 werden de N.V. Katoenfabrieken v/h Arntzenius Jannink & Co. te Goor door J.F. Scholten & Zonen N.V. overgenomen.\n\nAfbraak\nIn 1977 wordt de fabriek afgebroken. Op de plaats staat nu het Medisch Spectrum Twente\n\nGeschiedenis van Enschede\nEconomie in Enschede\nVoormalig Nederlands textielbedrijf",
+    "question": "Welke logement verwierf Lammerink van de familie Wagelaar?",
+    "answers": {
+        "answer_start": array([467]),
+        "text": array(["\"de Swaene\""], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Een haardplaat is een metalen plaat achter of onder een open haard, meestal van gietijzer.\n\nToelichting\n\nFunctie van een haardplaat\nHaardplaten achter in de haard zijn bedoeld om warmte te verspreiden, haardplaten onder de haard om vonken op te vangen en zo brand te voorkomen. De meeste nog bewaarde haardplaten - in Nederland zijn er nog duizenden - zijn versierd met een beeltenis.\n\nEen open haard heeft een rendement van zo'n 10 tot 15%, wat betekent dat 85 tot 90 % van de warmte via de schoorsteen verloren gaat. Met een haardplaat achter de haard kan het rendement van een open haard worden verbeterd. Een haardplaat achter het vuur van de open haard neemt warmte op en straalt deze weer uit. Hoe dikker de plaat, hoe sterker de werking. Het rendement van een open haard kan met een haardplaat tot 50% verbeterd worden.\n\nGeschiedenis van de haardplaat\n\nHaardplaten deden hun intrede in de 15e eeuw. Voor die tijd bestond de achterkant van een open haard uit steen. Enkele haardplaten werden vooral gebruikt in Engeland, Frankrijk en Nederland. In Duitsland werden ook wel haardplaten gebruikt, vooral in de Eifel, maar in de rest van Duitsland zag men vooral haardkasten, dit waren meerdere haardplaten die met lijsten aan elkaar verbonden waren en zo een kast vormden. Deze haardkasten waren ook algemeen in de Scandinavische landen. Later werden de platen voor deze kachelkasten van keramiek gemaakt en ontstond de tegelkachel die in Duitsland, Scandinavië en Oost-Europa zeer algemeen was en hier en daar nog is.\n\nHaardplaten en kachelplaten ontstonden ongeveer gelijk en hebben hun oorsprong in de Eiffel en Elzas. De gietijzeren platen werden gegoten in een zandbed. Aanvankelijk waren de platen eenvoudig, maar al snel werden er houtsneden of stempels in het zandbed gedrukt waardoor de plaat een reliëf kreeg. Naarmate de vraag naar haard- en kachelplaten toenam werden de reliëfs verfraaid; later ontstonden complete taferelen. De versiering van haardplaten kent vele thema's: Bijbelse taferelen, allegorische voorstellingen, familiewapens, portretten, herdenkingen enz. De taferelen werden meestal gesneden naar het voorbeeld van prenten of gravures uit die tijd. Ook waren er modellenboeken in omloop. Er zijn maar weinig kunstenaars die zich specifiek richtten op haardplaten. Gelet op de versieringen zijn de Nederlandse haardplaten uit de 17e eeuw het meest opmerkelijk. Een haardplaat uit deze periode is te herkennen aan rijke versieringen rond een middentafereel. De versieringen bestonden vaak uit dolfijnen, slangen, salamanders, zeenimfen en schelpen. De zijkanten waren omrand met bloemen, bladeren en vruchten. De Duitse platen uit die tijd zijn veel soberder, meer rechttoe rechtaan. Ook de vorm van de Nederlandse en Duitse platen verschilden, de Nederlandse platen hebben meestal een ronde vorm aan de bovenkant terwijl de Duitse platen recht zijn.\n\nNederland heeft het Haardplatenmuseum in Klarenbeek.  Sommige musea hebben wel bijzondere haardplaten in bezit zoals Museum De Waag in Deventer en het Rijksmuseum in Amsterdam. De grootste Europese collectie haardplaten - circa 400 stuks - is te vinden in het stadhuis van Düsseldorf, Duitsland.\n\nOnderhoudstips voor de haardplaat\nHaardplaten slijten vrijwel niet. Eventuele roest kan met een staalborstel verwijderd worden. Vroeger werden de platen ook wel gezandstraald, maar hierbij verloren versierde platen veel van hun oorspronkelijke reliëf. Tegenwoordig bestaan er meer verfijnde straaltechnieken waarmee bijvoorbeeld verf en roest van een plaat kan worden verwijderd. Stralen wordt door gespecialiseerde bedrijven gedaan omdat de straalmethode, het straalmiddel, de druk en de grootte van de korrel het resultaat bepalen. Ondeskundig stralen kan de plaat beschadigen. Na het schoonmaken kan de plaat het best worden ingesmeerd met kachelpoets. Sommige mensen maken de plaat schoon met petroleum. Dit middel is echter ongeschikt, de plaat wordt er blijvend dof van.\n\nExterne links\n Tour stadhuis Düsseldorf\n Haardplaten in musea\n Voorbeelden van oude haardplaten met hun symbolen\n\nBouwkundig onderdeel\nVerwarming",
+    "question": "Hoe efficiënt is een open haard als er geen haardplaat gebruikt wordt?",
+    "answers": {
+        "answer_start": array([425]),
+        "text": array(["zo'n 10 tot 15%"], dtype=object)
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 4
+- Prefix prompt:
+  ```
+  Hieronder volgen teksten met bijbehorende vragen en antwoorden.
+  ```
+- Base prompt template:
+  ```
+  Tekst: {text}
+  Vraag: {question}
+  Antwoord in max 3 woorden: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Tekst: {text}
+
+  Beantwoord de volgende vraag over de bovenstaande tekst in maximaal 3 woorden.
+
+  Vraag: {question}
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset multi-wiki-qa-nl
 ```
 
 
@@ -599,6 +671,72 @@ You can evaluate this dataset directly as follows:
 
 ```bash
 $ euroeval --model <model-id> --dataset hellaswag-nl
+```
+
+
+### Unofficial: GoldenSwag-nl
+
+This dataset is a filtered and machine translated version of the English [HellaSwag dataset](https://aclanthology.org/P19-1472/), featuring both video descriptions from ActivityNet as well as how-to articles from WikiHow. The machine translated version was published in [this paper](https://doi.org/10.48550/arXiv.2410.08928) and was done using DeepL, and the filtering was published in [this paper](https://doi.org/10.48550/arXiv.2504.07825), which resulted in higher quality samples.
+
+The original full dataset consists of 1530 / 1530 samples for training and validation, respectively. However, they are exactly equal. We use a split of 660 / 256 / 2,048 samples for training, validation, and testing, respectively.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "text": "Hoe leer je je kind een potlood vasthouden? Koop het juiste potlood voor je kind. Het gebruik van korte potloden, zoals golfpotloden of gewone potloden die doormidden zijn gebroken, kan kinderen helpen om zelf de juiste greep te vinden. Korte potloden hebben minder ruimte voor overbodige vingers, dus je kind heeft weinig keus dan de juiste drievingerige greep te gebruiken.\nAntwoordopties:\na. Je kunt korte potloden kopen bij de meeste hobby- en kantoorboekhandels. Help je kind met een potloodgreep.\nb. Goede potloden om mee te beginnen zijn de "p" en "g" potloden. Begin in de onderste potloodhouder in het midden en let goed op hoe je kind het potlood op zijn plaats probeert te houden.\nc. Ga voor meer informatie over het hanteren van een potlood naar. Maak onderscheid tussen potloden die met de handen worden aangedreven en potloden die met beide handen worden gebruikt.\nd. Met een vinger met een langere potloodpunt kunnen kinderen potloden met veel meer controle vasthouden. Met een vinger met een lagere punt kun je proberen om zowat elke vingerpositie onder controle te houden.",
+  "label": "a"
+}
+```
+
+```json
+{
+  "text": "Hoe ontstop je een langzaam lopende afvoer van de badkamer gootsteen. Verzamel je materialen. In plaats van te vertrouwen op afvoerreinigingsproducten, die vaak bijtend zijn en allergische reacties en ademhalingsproblemen kunnen veroorzaken, kun je huishoudelijke artikelen gebruiken die je waarschijnlijk al in huis hebt. Je hebt nodig: Doekjes zuiveringszout azijn citroen kokend water. Meet je ingrediënten af.\nAntwoordopties:\na. Een afvoer met een diameter van ongeveer 0,64 centimeter. Was gootsteenontstoppingsproducten met de hand is een gebruikelijke methode, maar je kunt ze bij de meeste bouwmarkten kopen.\nb. Je hebt als basis bloem, zuiveringszout, witte azijn en water nodig. Je kunt een maatbeker gebruiken om ze af te meten, of zelfs een waterkoker.\nc. Neem ¼ kopje zuiveringszout, 1 kopje witte azijn en 1 grote pan water om te koken. Zorg dat je een vod of gootsteenstopper bij de hand hebt.\nd. Hoewel niet alle kleine gootstenen verstopt zijn, kan heet water helpen om de verstopte gaten te verwijderen. Het gebruik van een maatbeker om je ingrediënten af te meten is vooral belangrijk omdat kokend water ook vuil zoals lichaamsresten, klei en zelfs dierlijke uitwerpselen introduceert.",
+  "label": "c"
+}
+```
+
+```json
+{
+  "text": "Hoe doe je een dip powder manicure? Gebruik nagellakremover en een nagelriemduwer. Als je nagellak op je nagels hebt, verwijder deze dan met nagellakremover zonder aceton op een niet-pluizend wattenschijfje. Gebruik een nagelriemduwer om je nagelriemen voorzichtig een beetje naar achteren te duwen.\nAntwoordopties:\na. Gebruik alleen nagellakremover of een nagelriemduwer als je vieze handen hebt. Schrijf op je nagels met de nagelriemduwer.\nb. Duw ze niet krachtig terug zodat je geen pijn veroorzaakt aan je vingers of teennagels. Druk ze echter wel stevig aan met je vingers.\nc. Beweeg de drukker in een ronddraaiende beweging om de doorbloeding te stimuleren. Breng een leave-in conditioner aan nadat je je nagelriemen hebt ingesmeerd.\nd. Verwijder voorzichtig overtollige nagelriemen met een nagelriemtrimmer of schraper. Dit zorgt ervoor dat nieuwe nagelgroei zichtbaar wordt, zodat je manicure langer meegaat voordat je hem moet opvullen.",
+  "label": "d"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 5
+- Prefix prompt:
+  ```
+  Hieronder staan meerkeuzevragen (met antwoorden).
+  ```
+- Base prompt template:
+  ```
+  Vraag: {text}
+  Antwoordopties:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+  Antwoord: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Vraag: {text}
+  Antwoordopties:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+
+  Beantwoord de bovenstaande vraag met 'a', 'b', 'c' of 'd', en niets anders.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset goldenswag-nl
 ```
 
 

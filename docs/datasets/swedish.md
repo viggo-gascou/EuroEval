@@ -160,9 +160,9 @@ from a sentence, or by swapping two neighbouring words in a sentence. To ensure 
 this does indeed break the grammaticality of the sentence, a set of rules were used on
 the part-of-speech tags of the words in the sentence.
 
-The original dataset consists of 6,026 samples, from which we use 1,024 / 256 / 2,048 samples for training,
-validation and testing, respectively (so 3,328 samples used in total). These splits are
-used as-is in the framework.
+The original dataset consists of 6,026 samples, from which we use 1,024 / 256 / 2,048
+samples for training, validation and testing, respectively (so 3,328 samples used in
+total). These splits are used as-is in the framework.
 
 Here are a few examples from the training split:
 
@@ -298,12 +298,14 @@ You can evaluate this dataset directly as follows:
 $ euroeval --model <model-id> --dataset scandiqa-sv
 ```
 
-
 ### Unofficial: BeleBele-sv
 
-This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/) and features multiple-choice reading comprehension questions across 122 languages.
+This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/)
+and features multiple-choice reading comprehension questions across 122 languages.
 
-The original dataset contains 900 unique multiple-choice reading comprehension passages and questions. From these, we use a 256 / 64 / 580 split for training, validation and testing, respectively.
+The original dataset contains 900 unique multiple-choice reading comprehension passages
+and questions. From these, we use a 256 / 64 / 580 split for training, validation and
+testing, respectively.
 
 Here are a few examples from the training split:
 
@@ -360,6 +362,76 @@ You can evaluate this dataset directly as follows:
 
 ```bash
 $ euroeval --model <model-id> --dataset belebele-sv
+```
+
+### Unofficial: MultiWikiQA-sv
+
+This dataset will be published in an upcoming paper, and contains Swedish Wikipedia
+articles with generated questions and answers, using the LLM Gemini-1.5-pro.
+
+The original full dataset consists of 5,000 samples in a single split. We use a 1,024 /
+256 / 2,048 split for training, validation and testing, respectively, sampled randomly.
+
+Here are a few examples from the training split:
+
+```json
+{
+    "context": "Juan Mayorga, född 6 april 1965 i Madrid, är en spansk dramatiker och manusförfattare.\n\nBiografi\nJuan Mayorga har en examen i matematik och filosofi från Universidad Complutense de Madrid 1988. Därefter arbetade han som forskarassistent i filosofi vid Consejo Superior de Investigaciones Científicas. Fortsatta studier i Münster, Berlin och Paris ledde till en doktorsexamen i filosofi 1997 med en avhandling om Walter Benjamin. Han debuterade som dramatiker 1989 med Siete hombres buenos (Sju goda män). Tillsammans med dramatiker kollegorna José Ramón Fernández, Luis Miguel González Cruz och Raúl Hernández Garrido grundade han 1993 teatergruppen Teatro del Astillero. 2011 grundade han en ny teatergrupp, La Loca de la Casa. Sedan 1998 är Mayorga har han undervisat i filosofi och dramatik vid Escuela Superior de Arte Dramático i Madrid. För närvarande (2017) är han chef för avdelningen för scenkonst vid Universidad Carlos III de Madrid. Han har skrivit ett trettiotal pjäser (2017) och hans dramatik har spelats i 18 länder och översatts till 16 språk. Han eftersträvar en filosofiskt präglad teater som tvingar publiken till ställningstaganden. Till hans förebilder hör Harold Pinter. Bland utmärkelser han tilldelats kan nämnas de spanska priserna Nacional de Teatro 2007 och Nacional de Literatura Dramática 2013 samt Premio Europa New Theatrical Realities 2016.\n\n2007 regisserade Alexander Mørk-Eidem Mayorgas Himmelweg på Nationaltheatret i Oslo. 2014 skulle han även ha regisserat den på Stockholms stadsteater under titeln Himlavägen i Jens Nordenhöks översättning men det ställdes in.\n\nReferenser\n\nKällor\n Pressrelease, Premio Europa 14/3 2016 \n Juan Mayorga, The Playwrights Database (läst 5 april 2017)\n Juan Mayorga, France culture (läst 5 april 2017)\n Juan Mayorga, theatre-contemporain.net (läst 5 april 2017)\n Juan Mayorga, Théâtre de Rond-Point, Paris (läst 5 april 2017)\n Juan Mayorga, madridesteatro.com (läst 5 april 2017)\n Arkiv, Kulturhuset Stadsteatern (läst 5 april 2017)\n Lillian Bikset: Teater, løgn og bedrag, Dagbladet 31/8 2007\n Elisabeth Leinslie: Kjenn din besøkelsestid, Dagsavisen 2/9 2007\n Rocío García: Juan Mayorga: las obsesiones de un matemático y autor de éxito, El País 1/6 2016\n\nNoter\n\nExterna länkar\n Juan Mayorga, Internet Movie Database (IMDb)\n\nSpanska dramatiker\nSpanskspråkiga dramatiker\nSpanska manusförfattare\nSpanska författare under 1900-talet\nSpanska författare under 2000-talet\nDramatiker under 1900-talet\nDramatiker under 2000-talet\nPersoner från Madrid\nFödda 1965\nLevande personer\nMän",
+    "question": "Vilka akademiska examina har Juan Mayorga avlagt vid Universidad Complutense de Madrid?",
+    "answers": {
+        "answer_start": array([126]),
+        "text": array(["matematik och filosofi"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Janka Kupala (egentligen Ivan Daminikavitj Lutsevitj) född 7 juli 1882 i Vjazynka utanför Minsk, död 28 juni 1942 i Moskva, var en belarusisk författare. Tillsammans med Jakub Kolas räknas han som en av den moderna belarusiska litteraturens grundare.\n\nKupala var till stor del självlärd som författare. Han blev aktiv i den \"belarusiska pånyttfödelsen\" (1903–1921) och redaktör för den belarusiska tidskriften Nasja niva (1914–1915). 1928 blev han ledamot av den belarusiska och ukrainska vetenskapsakademin.\n\nHans tidiga diktning var patriotisk idealiserade den östslaviska statsbildningen i Polotsk under 900- till 1200-talet som ett slags vision för Belarus. Han var även en hård kritiker av både det tidiga polsk-litauiska och ryska väldet över Belarus, varför många av hans verk förbjöds av sovjetregimen. På grund av den politiska förföljelsen under Stalin försökte han 1930 begå självmord och därefter blev han mindre produktiv som författare. Under de sista årtiondena var hans diktning en lång hyllning till socialismen och sovjetmakten. 1941 fick han ta emot Leninorden för sin diktsamling Ад сэрца (1940).\n\nVid Nazitysklands ockupation av Vitryska SSR 1941 flyttade han till Moskva och senare till Tatarstan. \n \nHans fru grundade ett museum över honom i Minsk där många av hans verk finns samlade. Staden Hrodna namngav ett universitet efter honom Janka Kupala Statsuniversitet 1978.\n\nBibliografi i urval \n Sjalejka 1908 (diktsamling)\n Husljar 1910 (diktsamling)\n Advetsjnaja pesnja 1910 (poem)\n Paulinka 1912 (skådespel)\n Sjljacham sjytstsia 1913 (diktsamling)\n Son na kurgane 1913 (poem)\n Raskidanaje hnjazdo 1913 (skådespel)\n\nKällor\n\nNoter\n\nBelarusiska författare\nBelarusiskspråkiga författare\nSovjetiska författare\nPersoner från Minsk voblast\nMän\nFödda 1882\nAvlidna 1942",
+    "question": "Vilket datum är Janka Kupalas födelsedag?",
+    "answers": {
+        "answer_start": array([59]),
+        "text": array(["7 juli 1882"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Storsäl (Erignathus barbatus) är en sälart som lever i Norra ishavet.\n\nUtseende och anatomi \n\nStorsälen har gråbrun päls som är ljusare på buken än på ryggen. På vintern får den ett mycket tjock fettskikt så att huvudet ser ovanligt litet ut. Vikten är på vintern omkring 360\xa0kg (ibland upp till 430\xa0kg) och på sommaren ungefär 230\xa0kg. Djuret är vanligen mellan 230 och 250\xa0cm långt och har ett långt vitt skägg. Bröstfenorna har en kännetecknande fyrkantig form. Mellan mars och augusti byter individerna pälsens hår.\n\nUtbredning \n\nStorsälen förekommer på isflaken i hela Arktis. Många individer lever i Berings hav. Under vandringen händer det ibland att några djur simmar fel så att de kommer till europeiska kustlinjer. En gång har djuret observerats i norra Portugal. Liknande iakttagelser rapporterades i norra Kina och från den japanska ön Hokkaido.\n\nEkologi \n\nStorsälen lever mestadels ensam. De vistas alltid i närheten av vattnet, så de kan flytta sig när en isbjörn närmar sig. Djuret kan dyka till 200\xa0meters djup men föredrar att förbli i närheten av havsytan. Under sommaren när antalet isflak minskar vilar den ibland på land. Med skägget letar den på havsbotten efter räkor, musslor och snäckor. Dessutom ingår fiskar i födan.\n\nHannen skapar under vattnet ett ljud som liknar valarnas sång. Troligtvis är ljudet till för att skydda sälens territorium eller för att imponera på honan.\n\nHonan är dräktig i omkring elva månader och föder i april eller maj ett ungdjur. Under dessa elva månader stannar embryots utveckling av en tid så att ungen inte föds för tidig. Kuten väger vid födelsen omkring 34\xa0kg. Honan ger di till kuten två till tre veckor (18 till 24 dagar) och lämnar den sedan ensam på isen. Oftast kan kuten simma redan vid denna ålder. Unga honor blir efter 3 till 8 år könsmogna och unga hannar efter 6 till 7 år. Vanligen blir storsälar inte äldre än 25 år men enskilda individer med en livslängd på 31 år är dokumenterade.\n\nStorsälar jagas aktiv av isbjörnar och de dödas ibland av späckhuggare. Sällsynt faller ungar offer för valross.\n\nStorsäl och människan \n\nJakt på storsäl för kött och hud har bedrivits länge. Men storsälen lever inte i flockar och är därför inte lika lättjagad som andra sälarter. Huden används till exempel för umiak och skor. Själva pälsen är inte eftertraktad. Under senare 1900-talet och början av 2000-talet uppskattades antalet dödade individer per år till 6\xa0800 i Alaska, 2\xa0400 i Kanada och 500 till 1\xa0000 på Grönland. En mera omfattande jakt skedde efter andra världskriget i de sovjetiska delarna av Arktiska havet, där upp till 13\xa0000 individer dödades per år. När arten blev sällsynt under 1970-talet minskade jakten betydlig. Den sovjetiska/ryska fångsten under 1980-talet uppgick bara till 2\xa0000 individer per år. IUCN listar arten som livskraftig (LC) på grund av det stora utbredningsområdet och eftersom beståndsutvecklingen bedöms som stabil.\n\nNoter \n\nÖronlösa sälar\nDäggdjur i palearktiska regionen\nDäggdjur i nearktiska regionen",
+    "question": "Vilken bevarandestatus har storsälen enligt IUCN?",
+    "answers": {
+        "answer_start": array([2804]),
+        "text": array(["livskraftig (LC)"], dtype=object)
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 4
+- Prefix prompt:
+  ```
+  Nedan följer texter med tillhörande frågor och svar.
+  ```
+- Base prompt template:
+  ```
+  Text: {text}
+  Fråga: {question}
+  Svar på max 3 ord: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Text: {text}
+
+  Besvara följande fråga om texten ovan med högst 3 ord.
+
+  Fråga: {question}
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset multi-wiki-qa-sv
 ```
 
 
@@ -565,6 +637,72 @@ You can evaluate this dataset directly as follows:
 
 ```bash
 $ euroeval --model <model-id> --dataset hellaswag-sv
+```
+
+
+### Unofficial: GoldenSwag-sv
+
+This dataset is a filtered and machine translated version of the English [HellaSwag dataset](https://aclanthology.org/P19-1472/), featuring both video descriptions from ActivityNet as well as how-to articles from WikiHow. The machine translated version was published in [this paper](https://doi.org/10.48550/arXiv.2410.08928) and was done using DeepL, and the filtering was published in [this paper](https://doi.org/10.48550/arXiv.2504.07825), which resulted in higher quality samples.
+
+The original full dataset consists of 1530 / 1530 samples for training and validation, respectively. However, they are exactly equal. We use a split of 660 / 256 / 2,048 samples for training, validation, and testing, respectively.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "text": "Hur man staplar hö. Placera dina pallar på en tillgänglig plats. Det måste vara lätt att ta sig till staplarna, så välj en plats som du kan nå utan problem. Undvik att stapla balar direkt på marken.\nSvarsalternativ:\na. Håll balarna i detta område inom armlängds avstånd så att du inte skadar dig själv och andra i byggnaden. Tänk på att det bör finnas ca 6 balar så att varje person i rummet ska kunna komma åt en bal.\nb. Undvik att stapla balar på asfalterade ytor. Hitta en ojämn yta att stapla pallar på.\nc. Dina pallar måste vara lådliknande och hålla dina ben ut åt sidorna, samt stödja din fulla vikt. Använd betongblock om du har tillgång till sådana.\nd. Höet suger åt sig fukt och blir mögligt. För att förhindra detta, använd träpallar som grund.",
+  "label": "d"
+}
+```
+
+```json
+{
+  "text": "Hur du väljer vem som ska följa dig till altaret. Identifiera den viktigaste familjemedlemmen i ditt liv. Det kan vara bra att börja med att fundera på vem som är den viktigaste familjemedlemmen i ditt liv och sedan fundera på att be den personen att följa dig till altaret. Du kanske anser att din bror är den viktigaste personen i ditt liv.\nSvarsalternativ:\na. Eller så tänker du på din mamma, vars liv du älskade mest. Att identifiera din familjemedlem kan hjälpa dig att gå igenom några av de mer upplyftande stunderna, eftersom din familjemedlem sannolikt kan vara din make eller sambo.\nb. Kanske är din bror din pappas bästa vän och din mamma har varit din mammas bästa vän under en mycket lång tid. Att göra en lista över dessa personer kan hjälpa dig att förstå varför din mamma är viktig för dig och vad som motiverar henne att följa dig till altaret.\nc. Eller så kanske den första personen som dyker upp i ditt huvud är din ensamstående mamma som uppfostrade dig på egen hand. Du kan skriva ner några personer som är viktiga för dig i din familj på ett papper och sedan välja en från listan.\nd. Eller så kanske du väljer din mammas pappa som din hedersbrudtärna. En lista kan dyka upp framför dig när du organiserar dina kalendrar och möten, så det är viktigt att hitta några ord som tydligt hjälper dig.",
+  "label": "c"
+}
+```
+
+```json
+{
+  "text": "Hur man får gratis uppgraderingar på smekmånaden. Registrera dig för medlemskort för frequent flier miles. Om du har ett favoritflygbolag, registrera dig för dess bonusprogram så snart du kan, särskilt om du gör många affärsresor. Frekventa flygmil kan snabbt läggas ihop och leda till gratisbiljetter och uppgraderingar.\nSvarsalternativ:\na. Vissa flygbolag tillåter till och med att dina vänner och familj ger dig sina miles, så uppmuntra dem att också registrera sig.. Fråga ditt kreditkortsföretag om incitament.\nb. Välj en destination som du är villig att spendera pengar på. Det är en bra idé att prova några destinationer som du skulle älska att besöka, inklusive Japan, som öppnar upp ekonomiska möjligheter omedelbart.\nc. Skicka uppgifterna till det flygbolag du föredrar. Om du har för avsikt att använda bonuspoäng för affärsändamål ska du skicka uppgifterna till ditt favoritflygbolag på något av följande sätt.\nd. Besök webbplatsen för det flygbolag som arrangerar flygningar för dig, eller leta online för att hitta en resplan som specificerar miles. Förutom gratis resor kan du också använda back to back-bokningstjänster.",
+  "label": "a"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 5
+- Prefix prompt:
+  ```
+  Följande är flervalsfrågor (med svar).
+  ```
+- Base prompt template:
+  ```
+  Fråga: {text}
+  Svarsalternativ:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+  Svar: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Fråga: {text}
+  Svarsalternativ:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+
+  Besvara följande fråga med 'a', 'b', 'c' eller 'd', och inget annat.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset goldenswag-sv
 ```
 
 

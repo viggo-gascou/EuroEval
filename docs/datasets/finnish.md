@@ -8,9 +8,13 @@ information about what these constitute.
 
 ### ScandiSent-fi
 
-This dataset consists of reviews from Trustpilot and was published [here](https://aclanthology.org/2021.nodalida-main.42/). It is a binary sentiment classification dataset, with labels "positive" and "negative".
+This dataset consists of reviews from Trustpilot and was published
+[here](https://aclanthology.org/2021.nodalida-main.42/). It is a binary sentiment
+classification dataset, with labels "positive" and "negative".
 
-For the Finnish part of the dataset, there are 10,000 training samples. From these samples, we have created a 1,024 / 256 / 2,048 split for the train, validation and test splits, respectively.
+For the Finnish part of the dataset, there are 10,000 training samples. From these
+samples, we have created a 1,024 / 256 / 2,048 split for the train, validation and test
+splits, respectively.
 
 Here are a few examples from the training split:
 
@@ -67,9 +71,14 @@ $ euroeval --model <model-id> --dataset scandisent-fi
 
 ### Turku-NER-fi
 
-This dataset was published in [this paper](https://aclanthology.org/2020.lrec-1.567/). The dataset is a manually annotated corpus built on the Universal Dependencies Finnish corpus. The corpus was created by the Turku NLP group.
+This dataset was published in [this paper](https://aclanthology.org/2020.lrec-1.567/).
+The dataset is a manually annotated corpus built on the Universal Dependencies Finnish
+corpus. The corpus was created by the Turku NLP group.
 
-The original dataset contains 12,217 / 1,364 / 1,555 samples for the training, validation and test splits, respectively. We use 1,024 / 256 / 2,048 samples for our training, validation and test splits, respectively. All the new splits are subsets of the original splits.
+The original dataset contains 12,217 / 1,364 / 1,555 samples for the training,
+validation and test splits, respectively. We use 1,024 / 256 / 2,048 samples for our
+training, validation and test splits, respectively. All the new splits are subsets of
+the original splits.
 
 Here are a few examples from the training split:
 
@@ -141,9 +150,9 @@ word from a sentence, or by swapping two neighbouring words in a sentence. To en
 that this does indeed break the grammaticality of the sentence, a set of rules were used
 on the part-of-speech tags of the words in the sentence.
 
-The original dataset consists of 15,136 samples, from which we use 1,024 / 256 / 2,048 samples for training,
-validation and testing, respectively (so 3,328 samples used in total). These splits are
-used as-is in the framework.
+The original dataset consists of 15,136 samples, from which we use 1,024 / 256 / 2,048
+samples for training, validation and testing, respectively (so 3,328 samples used in
+total). These splits are used as-is in the framework.
 
 Here are a few examples from the training split:
 
@@ -199,9 +208,21 @@ $ euroeval --model <model-id> --dataset scala-fi
 ## Reading Comprehension
 
 ### TydiQA-fi
-This question-answering dataset was published in [this paper](https://aclanthology.org/2020.tacl-1.30/). TydiQA is a multilingual dataset covering 11 typologically diverse languages with 204K question-answer pairs collected from native speakers genuinely seeking information. It was designed to evaluate models across languages with varied linguistic features and contains questions written directly in each language without translation.
 
-The original Finnish TydiQA dataset contains 6,855 training and 782 validation samples (we use the [secondary task subset](https://huggingface.co/datasets/google-research-datasets/tydiqa/viewer/secondary_task?views%5B%5D=secondary_task_train)).  We created a 1,024 / 256 / 2,024 split, where the samples from the train and validation split are sampled from the original train and validation splits, respectively. The test set consists of the remaining samples from the original validation split + additional samples from the original train split.
+This question-answering dataset was published in [this
+paper](https://aclanthology.org/2020.tacl-1.30/). TydiQA is a multilingual dataset
+covering 11 typologically diverse languages with 204K question-answer pairs collected
+from native speakers genuinely seeking information. It was designed to evaluate models
+across languages with varied linguistic features and contains questions written directly
+in each language without translation.
+
+The original Finnish TydiQA dataset contains 6,855 training and 782 validation samples
+(we use the [secondary task
+subset](https://huggingface.co/datasets/google-research-datasets/tydiqa/viewer/secondary_task?views%5B%5D=secondary_task_train)).
+We created a 1,024 / 256 / 2,024 split, where the samples from the train and validation
+split are sampled from the original train and validation splits, respectively. The test
+set consists of the remaining samples from the original validation split + additional
+samples from the original train split.
 
 Here are a few examples from the training split:
 
@@ -214,7 +235,7 @@ Here are a few examples from the training split:
     "answer_start": [59]
   }
 }
-
+```
 ```json
 {
   "question": "Milloin Cristiano Ronaldo liittyi Juventukseen?",
@@ -268,9 +289,12 @@ $ euroeval --model <model-id> --dataset tydiqa-fi
 
 ### Unofficial: BeleBele-fi
 
-This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/) and features multiple-choice reading comprehension questions across 122 languages.
+This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/)
+and features multiple-choice reading comprehension questions across 122 languages.
 
-The original dataset contains 900 unique multiple-choice reading comprehension passages and questions. From these, we use a 256 / 64 / 580 split for training, validation and testing, respectively.
+The original dataset contains 900 unique multiple-choice reading comprehension passages
+and questions. From these, we use a 256 / 64 / 580 split for training, validation and
+testing, respectively.
 
 Here are a few examples from the training split:
 
@@ -330,13 +354,87 @@ $ euroeval --model <model-id> --dataset belebele-fi
 ```
 
 
+### Unofficial: MultiWikiQA-fi
+
+This dataset will be published in an upcoming paper, and contains Finnish Wikipedia
+articles with generated questions and answers, using the LLM Gemini-1.5-pro.
+
+The original full dataset consists of 5,000 samples in a single split. We use a 1,024 /
+256 / 2,048 split for training, validation and testing, respectively, sampled randomly.
+
+Here are a few examples from the training split:
+
+```json
+{
+    "context": "Aarne Silvio Heikinheimo (20. maaliskuuta 1894 Tornio – 24. tammikuuta 1938) oli suomalainen jääkärikenraalimajuri. Hänen vanhempansa olivat ylimetsänhoitaja Johan Henrik Heikel ja Sally Armida Thauvón. Hänet vihittiin avioliittoon vuonna 1919 Sylvi Amalia Jurveliuksen kanssa.\n\nOpinnot\nHeikinheimo kirjoitti ylioppilaaksi Oulun suomalaisesta yhteiskoulusta vuonna 1913 ja liittyi Pohjois-Pohjalaiseen Osakuntaan. Opintojaan hän jatkoi Teknillisen korkeakoulun koneinsinööriosastolla vuosina 1913–1914. Hän seurasi opetusta Sotakorkeakoulun komentajakurssilla vuonna 1925 ja kävi Sotakorkeakoulun yleisen osaston vuosina 1926–1927.\n\nJääkäriaika\nHän liittyi yhtenä ensimmäisten vapaaehtoisten joukkoon, jonka päämääränä oli Saksassa sotilaskoulutusta antava Pfadfinder-kurssi, joka järjestettiin Pohjois-Saksassa sijaitsevalla Lockstedter Lagerin harjoitusalueella. Leirille hän ilmoittautui 25. helmikuuta 1915. Hänet sijoitettiin joukon 1. komppaniaan. Myöhemmin hänet sijoitettiin Kuninkaallisen, Preussin Jääkäripataljoona 27:n 1. komppaniaan. Hän otti osaa taisteluihin ensimmäisessä maailmansodassa Saksan itärintamalla Misse-joella, Riianlahdella ja Aa-joella. Hän osallistui kesällä vuonna 1917 Libaussa järjestetyille moottoriveneenkuljettaja- ja konekivääriasemestarikursseille ja  elokuussa vuonna 1917 Schaulenissa järjestetylle autokurssille  sekä syksyllä Libaussa vuonna 1917 järjestetylle räjäytyskurssille.\n\nSuomen sisällissota\n\nKatso myös: Suomen sisällissota\nHän saapui Suomeen oberzugführer Friedel Jacobssonin komennuskunnan mukana 30. tammikuuta 1918 ja liittyi Perä-Pohjolan suojeluskuntajoukkoihin Tervolassa. Hänet komennettiin joukkueenjohtajaksi Tervolaa ja Torniota vastaan taisteleviin joukkoihin. Tervolan ja Tornion valtausten jälkeen hänet nimitettiin Kemin kaupungin komendantiksi 7. helmikuuta, kunnes 5. maaliskuuta hänet nimitettiin Perä-Pohjolan pataljoonan komentajaksi. Hän johdatti pataljoonansa taisteluihin Vilkkilässä, Haavistolla (Oriveden), Tervaniemessä, Lempäälässä, Vesilahdella, Karkussa ja Tyrväällä. Sisällissodan loppuvaiheissa hän sai tehtäväkseen muodostaa Lahdessa Itä-Uudenmaan rykmentin.\n\nSisällissodan jälkeinen aika\n\nSisällissodan jälkeen Heikinheimo määrättiin 1. heinäkuuta 1918 alkaen 1. Divisioonan adjutantiksi ja myöhemmin väliaikaiseksi esikuntapäälliköksi, josta hänet siirrettiin 15. elokuuta 1918 Suomen valkoisen kaartin I pataljoonan komentajaksi ja edelleen komentajaksi 11. syyskuuta 1918 Viipurin rykmentin II pataljoonaan. II Polkupyöräpataljoonan komentajaksi hänet siirrettiin 27. huhtikuuta 1921 ja Viipurin rykmentin komentajaksi 15. elokuuta 1924. Hän toimi 12. elokuuta 1926 alkaen komentajana Jääkäriprikaatissa, josta hänet siirrettiin komentajaksi 3. Divisioonaan 9. kesäkuuta 1928. Esikuntatehtäviin hänet siirrettiin 25. elokuuta 1934 ja sijoitettiin Yleisesikuntaan ja määrättiin jalkaväen tarkastajaksi. Hän menehtyi tapaturmaisesti koeammunnoissa Harakan saarella kranaatinheittimen putken räjähdettyä 24. tammikuuta 1938. Hänet on haudattu Ouluun Intiön hautausmaalle, aivan sankarihautojen viereen.\n\nLuottamustoimet\nHeikinheimo toimi 2. Divisioonan kunniatuomioistuimen puheenjohtajana vuonna 1920 ja  3. Divisioonan kunniatuomioistuimen puheenjohtajana vuosina 1921 ja 1925. Polkupyöräjoukkojen erikoiskysymyksiä käsitelleen komitean jäsenenä hän toimi vuonna 1922 ja polkupyöräjoukkojen ohjesääntökomitean puheenjohtajana vuonna 1924 sekä pikakiväärinkokeilukomitean jäsenenä vuosina 1924–1925. Talvivarustuskomitean jäsenenä hän toimi vuonna 1924 ja kenttävarustustoimikunnan puheenjohtajana vuosina 1931–1934 sekä ohjesääntökomitean puheenjohtajana vuonna 1934. Mikkelin kaupunkiseurakunnan lisätyn kirkkovaltuuston jäsenenä hän toimi vuosina 1933–1934.\n\nLähteet \n Puolustusministeriön Sotahistoriallisen toimiston julkaisuja IV, Suomen jääkärien elämäkerrasto, WSOY Porvoo 1938.\n Sotatieteen Laitoksen Julkaisuja XIV, Suomen jääkärien elämäkerrasto 1975, Vaasa 1975 ISBN 951-99046-8-9.\n\nViitteet \n\nJääkärikenraalit\nVuonna 1894 syntyneet\nVuonna 1938 kuolleet",
+    "question": "Milloin Aarne Heikinheimo sai ylioppilastutkinnon suoritettua?",
+    "answers": {
+        "answer_start": array([365]),
+        "text": array(["1913"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Peter Costa (s. 17. tammikuuta Kíti, Kypros) on englantilainen Las Vegasissa asuva pokeriammattilainen. Hänen vanhempansa ovat kyproksenkreikkalaisia. Perhe muutti Liverpooliin Peterin ollessa nuori. Perheen yritys myi \"fish and chipsejä\" ja yritys laajentui myöhemmin ketjuksi.\n\nBritteinsaarilla Costa tuli tunnetuksi voitettuaan Late Night Pokerin kuudennen tuotantokauden finaalin. Lopun kaksinpelissä Costa kukisti itävaltalaisen Jin Cai Linin ja ansaitsi 60\xa0000 puntaa.\n\nTammikuussa 2003 Costa voitti Aussie Millions -tapahtuman pääturnauksen ja ansaitsi ykköstilastaan 394\xa0870 Australian dollaria. Costalla on myös useita turnausvoittoja Yhdysvalloista: esimerkiksi kesäkuussa 2002 hän voitti kolme turnausta kolmessa viikossa – kaikissa näissä ykköspalkinto oli yli 110\xa0000 dollaria. \n\nWorld Series of Pokerissa Costa on parhaimmillaan ollut seitsemäs (kaksi kertaa). World Poker Tourilta hänellä on rahasijoja, mutta ei toistaiseksi finaalipöytäsijoituksia.\n\nVuosina 2002 ja 2003 Costa oli ehdolla Europaan parhaan pelaajan palkinnon saajaksi. Hän teki maailmanennätyksen voitettuaan kaikkien aikojen suurimman (1\xa0166 pelaajaa) limiitti-hold\'em -turnauksen Orleansin kasinolla heinäkuussa 2003.\n\nKesäkuussa 2007 Costan pokeriuran turnausansiot ylittivät 1,7 miljoonaa dollaria.\n\nLähteet\n\nAiheesta muualla \n\n \n WPT:n profiili\n PokerListings.com:n profiili \n\nBrittiläiset pokerinpelaajat",
+    "question": "Mikä on Peter Costan asuinpaikka?",
+    "answers": {
+        "answer_start": array([63]),
+        "text": array(["Las Vegasissa"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Sigrid Vaasa (1566–1633) oli Ruotsin kuninkaan Eerik XIV:n ja hänen puolisonsa Kaarina Maununtyttären tytär.\n\nSigrid Vaasa asui lapsuudessaan äitinsä Kaarina Maununtyttären kanssa Liuksialan kartanossa ja jäätyään kahdesti leskeksi palasi asumaan sinne kuolemaansa asti. Vuonna 1597 hän avioitui Henrik Klaunpoika Tottin kanssa. Sen jälkeen oli Kirkniemen ja Sjundbyn kartanoiden emäntä. Heidän lapsistaan merkittävin oli Åke Tott, joka sai mainetta kuningas Kustaa II Aadolfin johtamissa sodissa. Kaarle-herttuan ja Sigismundin valtataistelun aikana Henrik Tott asettui suomalaisten aatelismiesten ja sitä kautta myös Sigismundin puolelle, minkä vuoksi hän joutui pakenemaan maasta ja kuoli ilmeisesti noin vuonna 1603 maanpaossa. Sigrid solmi uuden avioliiton vuonna 1609 Natt och Dag -sukuun kuuluvan Nils Nilsinpojan kanssa, muutti Ruotsiin mutta jäi neljän vuoden kuluttua leskeksi. Leskeksi jäätyään hän palasi Suomeen ja kuoli Liuksialassa.\n\nLähteet\n\nRuotsin prinsessat\nVuonna 1566 syntyneet\nVuonna 1633 kuolleet",
+    "question": "Millä kartanolla Sigrid Vaasa vietti lapsuusvuotensa?",
+    "answers": {
+        "answer_start": array([180]),
+        "text": array(["Liuksialan kartanossa"], dtype=object)
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 4
+- Prefix prompt:
+  ```
+  Seuraavassa on tekstejä ja niihin liittyviä kysymyksiä ja vastauksia.
+  ```
+- Base prompt template:
+  ```
+  Teksti: {text}
+  Kysymys: {question}
+  Vastaa enintään 3 sanalla: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Teksti: {text}
+
+  Vastaa seuraavaan kysymykseen yllä olevasta tekstistä enintään 3 sanalla.
+
+  Kysymys: {question}
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset multi-wiki-qa-fi
+```
+
+
 ## Common-sense Reasoning
 
 ### HellaSwag-fi
 
 This dataset is a machine translated version of the English [HellaSwag
-dataset](https://aclanthology.org/P19-1472/). The [dataset](https://huggingface.co/datasets/Finnish-NLP/hellaswag-fi-google-translate) was created by Finnish-NLP using Google Translate. The dataset is designed to
-be used in EuroEval and it therefore already has a 1,024 / 256 / 2,048 split for the train, validation and test splits, respectively.
+dataset](https://aclanthology.org/P19-1472/). The
+[dataset](https://huggingface.co/datasets/Finnish-NLP/hellaswag-fi-google-translate) was
+created by Finnish-NLP using Google Translate. The dataset is designed to be used in
+EuroEval and it therefore already has a 1,024 / 256 / 2,048 split for the train,
+validation and test splits, respectively.
 
 Here are a few examples from the training split:
 
@@ -396,13 +494,86 @@ $ euroeval --model <model-id> --dataset hellaswag-fi
 ```
 
 
+### Unofficial: GoldenSwag-fi
+
+This dataset is a filtered and machine translated version of the English [HellaSwag dataset](https://aclanthology.org/P19-1472/), featuring both video descriptions from ActivityNet as well as how-to articles from WikiHow. The machine translated version was published in [this paper](https://doi.org/10.48550/arXiv.2410.08928) and was done using DeepL, and the filtering was published in [this paper](https://doi.org/10.48550/arXiv.2504.07825), which resulted in higher quality samples.
+
+The original full dataset consists of 1530 / 1530 samples for training and validation, respectively. However, they are exactly equal. We use a split of 660 / 256 / 2,048 samples for training, validation, and testing, respectively.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "text": "Miten auton ulkoinen pesu tehdään oikein. Ensimmäinen asia, joka sinun on tehtävä kunnolla, on pestä autosi tehokkaasti. Ei ole mitään järkeä yrittää tehdä auton ulkoista detaljointia, jos päädyt vain naarmuttamaan ducosi entistä enemmän, koska jätit autoosi likaa. Sinun on ensin huuhdeltava autosi letkulla kovalla paineella.\nVastausvaihtoehdot:\na. Tämä poistaa suurimman osan liasta moottoristasi ja pitää moottorin moitteettomana. Käytä autosi pesemiseen korkeapainepesukoneita.\nb. Sitten sinun on alettava imuroida likaa pois. Kun olet poistanut mahdollisimman paljon likaa, voit palata ajoneuvon luokse keräämään roskia.\nc. Vie letku kaasuttimesta moottorilohkon yläosaan, odota viisi minuuttia, sulje sitten vesi ja päästä ilma ulos jäähdyttimestä. Irrota vanhat tiivisteet ja aloita vedellä pesu moottorin kannesta alas.\nd. Älä käytä letkusta lasertyyppistä pesua, vaan mieluummin pientä suppiloa. Aloita aina ylhäältä ja etene alaspäin.",
+  "label": "d"
+}
+```
+
+```json
+{
+  "text": "Miten kylpeä merisuolalla. Varaa itsellesi riittävästi aikaa 15-20 minuutin kylpyyn. Kylpy ei ole kuin suihku, jossa usein kiirehditään. Sen sijaan niiden on tarkoitus kestää pidempään, jotta keho ja mieli voivat rentoutua.\nVastausvaihtoehdot:\na. Ennen kylpyä haluat, että kehosi rentoutuu, ota päivittäin noin minuutti rentoutumista. Kylvystä voi saada samoja hyötyjä: suolahoito on helpompaa, mikä voi vähentää stressiä.\nb. Jotta saisit kylvystäsi suurimman hyödyn, suunnittele, että vietät vedessä 15-20 minuuttia. Ota suolakylpy illalla, jos haluat hoitaa unettomuutta.\nc. Jos haluat nopean kylpyläkokemuksen, 15-20 minuutin kylpy voi olla hyvä valinta. Anna itsellesi muutama tunti aikaa tottua lämpimään, rentouttavaan veteen.\nd. Jos sinulla on kiire, saatat jännittyä niin paljon, että menetät ajantajusi. Jos väsyt, ota myös nopea 15-20 minuutin kylpy.",
+  "label": "b"
+}
+```
+
+```json
+{
+  "text": "Kuinka tehdä ylösnousemussämpylöitä. Kaada maito kulhoon. Jotta hiiva aktivoituu, sinun on sekoitettava se lämpimään nesteeseen. Lisää ½ kupillista (118 ml) lämmintä maitoa tehosekoittimen kulhoon.\nVastausvaihtoehdot:\na. Jos haluat pidemmän prosessin, voit juoksuttaa hiivan lavuaarissa ennen kuin jatkat.... Sekoita maito ja seos vähitellen vispilällä.\nb. Sekoita, kunnes maito on hyvin vaaleaa (noin 110 ml). Jos maito on liian pehmeää tähän reseptiin, lisää 1/2 kupillista (120 ml) smetanaa.\nc. Maidon lämpötilan tulisi olla 105 °f (41 °c). Voit käyttää 1- tai 2-prosenttista maitoa, mutta täysmaidosta saadaan yleensä parhaat sämpylät.\nd. Jos sinulla on sauvasekoitin, voit tehdä sämpylöiden taikinan itse. Tarvitset vain 2 kuppia (500 ml) maitoa.",
+  "label": "c"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 5
+- Prefix prompt:
+  ```
+  Seuraavat ovat monivalintakysymyksiä (vastauksineen).
+  ```
+- Base prompt template:
+  ```
+  Kysymys: {text}
+  Vastausvaihtoehdot:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+  Vastaus: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Kysymys: {text}
+  Vastausvaihtoehdot:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+
+  Vastaa yllä olevaan kysymykseen käyttämällä 'a', 'b', 'c' tai 'd', äläkä mitään muuta.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset goldenswag-fi
+```
+
+
 ## Summarization
 
 ### XLSum-fi
 
-This dataset is a machine translation of the XL-Sum dataset, which was published in [this paper](https://aclanthology.org/2021.findings-acl.413/). [TurkuNLP](https://huggingface.co/datasets/TurkuNLP) has translated the dataset to Finnish using DeepL.
+This dataset is a machine translation of the XL-Sum dataset, which was published in
+[this paper](https://aclanthology.org/2021.findings-acl.413/).
+[TurkuNLP](https://huggingface.co/datasets/TurkuNLP) has translated the dataset to
+Finnish using DeepL.
 
-The original Finnish XL-Sum dataset contains 54,966 / 1,803 / 1,791 training, validation and test samples, respectively. We use 1,024 / 256 / 2,048 samples for our training, validation and test splits, respectively. The new training and validation splits are subsets of the original splits. The test split is the same as the original test split + additional samples from the original validation split.
+The original Finnish XL-Sum dataset contains 54,966 / 1,803 / 1,791 training, validation
+and test samples, respectively. We use 1,024 / 256 / 2,048 samples for our training,
+validation and test splits, respectively. The new training and validation splits are
+subsets of the original splits. The test split is the same as the original test split +
+additional samples from the original validation split.
 
 Here are a few examples from the training split:
 

@@ -78,6 +78,7 @@ class Benchmarker:
         num_iterations: int = 10,
         api_base: str | None = None,
         api_version: str | None = None,
+        gpu_memory_utilization: float = 0.9,
         debug: bool = False,
         run_with_cli: bool = False,
         only_allow_safetensors: bool = False,
@@ -145,6 +146,11 @@ class Benchmarker:
                 to a model on an inference API. Defaults to None.
             api_version:
                 The version of the API to use. Defaults to None.
+            gpu_memory_utilization:
+                The GPU memory utilization to use for vLLM. Only relevant if the model
+                is generative. A larger value will result in faster evaluation, but at
+                the risk of running out of GPU memory. Only reduce this if you are
+                running out of GPU memory. Defaults to 0.9.
             debug:
                 Whether to output debug information. Defaults to False.
             run_with_cli:
@@ -192,6 +198,7 @@ class Benchmarker:
             num_iterations=num_iterations,
             api_base=api_base,
             api_version=api_version,
+            gpu_memory_utilization=gpu_memory_utilization,
             debug=debug,
             run_with_cli=run_with_cli,
             only_allow_safetensors=only_allow_safetensors,
@@ -372,7 +379,16 @@ class Benchmarker:
 
         current_benchmark_results: list[BenchmarkResult] = list()
         for model_id in model_ids:
-            model_config: ModelConfig | None = None
+            # Load the model configuration, or skip the model if it is invalid
+            try:
+                model_config = get_model_config(
+                    model_id=model_id, benchmark_config=benchmark_config
+                )
+            except InvalidModel as e:
+                logger.info(e.message)
+                num_finished_benchmarks += len(dataset_configs)
+                continue
+
             loaded_model: BenchmarkModule | None = None
             for dataset_config in dataset_configs:
                 # Skip if we have already benchmarked this model on this dataset and
@@ -391,16 +407,6 @@ class Benchmarker:
                     )
                     num_finished_benchmarks += 1
                     continue
-
-                if model_config is None:
-                    try:
-                        model_config = get_model_config(
-                            model_id=model_id, benchmark_config=benchmark_config
-                        )
-                    except InvalidModel as e:
-                        logger.info(e.message)
-                        num_finished_benchmarks += len(dataset_configs)
-                        continue
 
                 # Skip if the model is an encoder model and the task is generative
                 task_is_generative = (
@@ -767,7 +773,7 @@ class Benchmarker:
 
                 results = log_scores(
                     dataset_name=dataset_config.pretty_name,
-                    metric_configs=dataset_config.task.metrics,
+                    metrics=dataset_config.task.metrics,
                     scores=scores,
                     model_id=model_config.model_id,
                     model_revision=model_config.revision,

@@ -11,10 +11,11 @@ information about what these constitute.
 
 This dataset was published in [this Github
 repository](https://github.com/TheophileBlard/french-sentiment-analysis-with-bert) and
-features reviews from the French movie review website [AlloCiné](https://www.allocine.fr/). The reviews range from
-0.5 to 5 (inclusive), with steps of 0.5. The negative samples are reviews with a rating
-of at most 2, and the positive ones are reviews with a rating of at least 4. The reviews
-in between were discarded.
+features reviews from the French movie review website
+[AlloCiné](https://www.allocine.fr/). The reviews range from 0.5 to 5 (inclusive), with
+steps of 0.5. The negative samples are reviews with a rating of at most 2, and the
+positive ones are reviews with a rating of at least 4. The reviews in between were
+discarded.
 
 The original full dataset consists of 160,000 / 20,000 / 20,000 samples for training,
 validation, and testing, respectively. We use 1,024 / 256 / 2,048 samples for training,
@@ -163,9 +164,9 @@ word from a sentence, or by swapping two neighbouring words in a sentence. To en
 that this does indeed break the grammaticality of the sentence, a set of rules were used
 on the part-of-speech tags of the words in the sentence.
 
-The original dataset consists of 16,342 samples, from which we use 1,024 / 256 / 2,048 samples for training,
-validation and testing, respectively (so 3,328 samples used in total). These splits are
-used as-is in the framework.
+The original dataset consists of 16,342 samples, from which we use 1,024 / 256 / 2,048
+samples for training, validation and testing, respectively (so 3,328 samples used in
+total). These splits are used as-is in the framework.
 
 Here are a few examples from the training split:
 
@@ -237,31 +238,31 @@ Here are a few examples from the training split:
 
 ```json
 {
-  'context': "Parmi leurs thèmes récurrents, on en trouve qui sont communs à beaucoup d'autres groupes contemporains ou plus anciens : les Stranglers ont décrit, à plusieurs reprises, la vie d'un groupe de rock dans toutes ses dimensions (fans, autres groupes, vie en tournée). Le thème rebattu - chez les groupes des années 1960-1970 - de la drogue, est abordée sur une demi-douzaine de chansons (Don't Bring Harry), tandis que la vision angoissée du futur, dans le contexte de la guerre froide ou en lien avec les avancées de la science, a donné lieu à plusieurs titres (Curfew). On retrouve également chez eux des préoccupations écologiques (Dreamtime) ou sociales. La guerre, notamment les deux guerres mondiales (Northwinds), mais aussi les guerres contemporaines (I Don't Agree), sont à l'origine de divers textes. Mais le thème qui les a le plus inspirés, c'est de loin les femmes (The Man They Love to Hate).",
-  'question': 'Sur combien de chanson le thème de la drogue est il abordé ?',
-  'answers': {
-    'answer_start': array([353]),
-    'text': array(['une demi-douzaine'], dtype=object)
+  "context": "Parmi leurs thèmes récurrents, on en trouve qui sont communs à beaucoup d'autres groupes contemporains ou plus anciens : les Stranglers ont décrit, à plusieurs reprises, la vie d'un groupe de rock dans toutes ses dimensions (fans, autres groupes, vie en tournée). Le thème rebattu - chez les groupes des années 1960-1970 - de la drogue, est abordée sur une demi-douzaine de chansons (Don't Bring Harry), tandis que la vision angoissée du futur, dans le contexte de la guerre froide ou en lien avec les avancées de la science, a donné lieu à plusieurs titres (Curfew). On retrouve également chez eux des préoccupations écologiques (Dreamtime) ou sociales. La guerre, notamment les deux guerres mondiales (Northwinds), mais aussi les guerres contemporaines (I Don't Agree), sont à l'origine de divers textes. Mais le thème qui les a le plus inspirés, c'est de loin les femmes (The Man They Love to Hate).",
+  "question": 'Sur combien de chanson le thème de la drogue est il abordé ?',
+  "answers": {
+    "answer_start": array([353]),
+    "text": array(['une demi-douzaine'], dtype=object)
   }
 }
 ```
 ```json
 {
-  'context': "Au cours de cette période, Cavour se distingue par son talent de financier. Il contribue de manière prépondérante à la fusion de la Banque de Gênes et de la nouvelle Banque de Turin au sein de la Banque Nationale des États sardes (Banca Nazionale degli Stati Sardi). Après le succès électoral de décembre 1849, Cavour devient également une des figures dominantes de la politique piémontaise et il prend la fonction de porte-parole de la majorité modérée qui vient de se créer. Fort de cette position, il fait valoir que le moment des réformes est arrivé, favorisé par le Statut albertin qui a créé de réelles perspectives de progrès. Le Piémont peut ainsi s'éloigner du front catholique et réactionnaire, qui triomphe dans le reste de l'Italie. ",
-  'question': "En quel année sort-il vainqueur d'une élection ?",
-  'answers': {
-    'answer_start': array([305]),
-    'text': array(['1849'], dtype=object)
+  "context": "Au cours de cette période, Cavour se distingue par son talent de financier. Il contribue de manière prépondérante à la fusion de la Banque de Gênes et de la nouvelle Banque de Turin au sein de la Banque Nationale des États sardes (Banca Nazionale degli Stati Sardi). Après le succès électoral de décembre 1849, Cavour devient également une des figures dominantes de la politique piémontaise et il prend la fonction de porte-parole de la majorité modérée qui vient de se créer. Fort de cette position, il fait valoir que le moment des réformes est arrivé, favorisé par le Statut albertin qui a créé de réelles perspectives de progrès. Le Piémont peut ainsi s'éloigner du front catholique et réactionnaire, qui triomphe dans le reste de l'Italie. ",
+  "question": "En quel année sort-il vainqueur d'une élection ?",
+  "answers": {
+    "answer_start": array([305]),
+    "text": array(['1849'], dtype=object)
   }
 }
 ```
 ```json
 {
-  'context': "Pour autant, le phénomène météorologique se décline sous d'autres variantes : ocelles du paon, évoquant les cent yeux d'Argus, fleurs champêtres et ornant les jardins où s'établit l'osmose entre couleurs complémentaires. La poésie tient en main la palette du peintre,, celle de Claude Gellée ou de Poussin. Pour autant, il ne s'agit pas là d'une posture habituelle chez lui, qui privilégie les paysages quasi-monochromes.",
-  'question': "Qu'est ce que l'auteur préfère décrire ?",
-  'answers': {
-    'answer_start': array([394]),
-    'text': array(['paysages'], dtype=object)
+  "context": "Pour autant, le phénomène météorologique se décline sous d'autres variantes : ocelles du paon, évoquant les cent yeux d'Argus, fleurs champêtres et ornant les jardins où s'établit l'osmose entre couleurs complémentaires. La poésie tient en main la palette du peintre,, celle de Claude Gellée ou de Poussin. Pour autant, il ne s'agit pas là d'une posture habituelle chez lui, qui privilégie les paysages quasi-monochromes.",
+  "question": "Qu'est ce que l'auteur préfère décrire ?",
+  "answers": {
+    "answer_start": array([394]),
+    "text": array(['paysages'], dtype=object)
   }
 }
 ```
@@ -298,9 +299,12 @@ $ euroeval --model <model-id> --dataset fquad
 
 ### Unofficial: BeleBele-fr
 
-This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/) and features multiple-choice reading comprehension questions across 122 languages.
+This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/)
+and features multiple-choice reading comprehension questions across 122 languages.
 
-The original dataset contains 900 unique multiple-choice reading comprehension passages and questions. From these, we use a 256 / 64 / 580 split for training, validation and testing, respectively.
+The original dataset contains 900 unique multiple-choice reading comprehension passages
+and questions. From these, we use a 256 / 64 / 580 split for training, validation and
+testing, respectively.
 
 Here are a few examples from the training split:
 
@@ -357,6 +361,77 @@ You can evaluate this dataset directly as follows:
 
 ```bash
 $ euroeval --model <model-id> --dataset belebele-fr
+```
+
+
+### Unofficial: MultiWikiQA-fr
+
+This dataset will be published in an upcoming paper, and contains French Wikipedia
+articles with generated questions and answers, using the LLM Gemini-1.5-pro.
+
+The original full dataset consists of 5,000 samples in a single split. We use a 1,024 /
+256 / 2,048 split for training, validation and testing, respectively, sampled randomly.
+
+Here are a few examples from the training split:
+
+```json
+{
+    "context": "L'advocaat est une liqueur onctueuse d'origine néerlandaise, faite de jaune d'œuf, de sucre et d'alcool. Il a un léger goût rappelant celui des amandes. Dans les pays anglophones, il contient généralement 15 % d'alcool, tandis qu'en Europe continentale ce taux varie selon les pays, souvent entre 14 et 20 %.\n\nOutre le jaune d'œuf, l'alcool et le sucre, l'advocaat peut contenir du miel, de la vanille, de l'eau-de-vie et parfois de la crème fraîche (ou du lait concentré non sucré). Parmi les fabricants, on trouve Warners, Bols, Verpoorten, de Korenaer, Élixir d'Anvers, Warninks, De Kuyper, Dalkowski et Zwarte Kip.\n\nTypes \n\nAux Pays-Bas et dans le Tyrol, on vend un advocaat épais, souvent consommé à la cuillère, tandis qu'une version plus liquide est réservée à l'exportation. Cet advocaat épais entre dans la composition de plusieurs desserts, notamment des glaces et des pâtisseries. Il est aussi servi en apéritif ou en digestif. Traditionnellement, on le sert avec de la crème fouettée saupoudrée de cacao.\n\nLa qualité d'exportation, plus liquide, est particulièrement bien adaptée à la fabrication de cocktails et de long drinks. Le cocktail le plus connu est le Snowball : un mélange d'advocaat, de limonade et parfois de jus de citron vert (facultatif). Une autre boisson courante à base d'advocaat est le bombardino, servi dans les stations de ski italiennes : c'est un mélange d'advocaat, de café noir et de whisky.\n\nHistoire \nL'advocaat original était une liqueur créée par les Néerlandais du Suriname et de Recife avec des avocats. De retour aux Pays-Bas, où ce fruit n'était pas disponible, ils reconstituèrent une texture identique avec du jaune d'œuf épaissi. Le nom du fruit en nahuatl, ahuacatl, avait été transformé en espagnol en aguacate, puis en anglais en avocado et en néerlandais en advocaatpeer ou advocaat (par analogie avec la profession). De là, il se répandit dans les autres pays d'Europe. Le rompope de Puebla, au Mexique, est une liqueur très similaire, à base de jaune d'œuf et de vanille.\n\nVoir aussi \n\n \n Gogli\n Lait de poule\n Ponche Crema\n Rompope\n Sabayon\n\nNotes et références\n\nBibliographie \n \n \n\nLiqueur\nBoisson à base d'œuf\nBoisson néerlandaise",
+    "question": "Nommez deux marques qui produisent de l'advocaat.",
+    "answers": {
+        "answer_start": array([516]),
+        "text": array(["Warners, Bols"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "La Sabine de Gandon est un timbre-poste d'usage courant qui a servi en France de  au retrait de la vente des derniers timbres en . Ce type remplace la Marianne de Béquet et est remplacé en  par la Liberté de Gandon d'après Delacroix.\n\nDescription \n\nLa Sabine est dessinée et gravée par Pierre Gandon à partir de la tête de l'héroïne Hersilie, représentée au centre du tableau de Jacques Louis David Les Sabines, sur lequel elle s'interpose entre les Sabins et les Romains. Le modèle est Aurore de Bellegarde, une amie du peintre.\n\nLes timbres sont imprimés en taille-douce en feuille de cent exemplaires.\n\nDeux mentions de pays émetteurs ont figuré sur ces timbres. De 1977 à 1981, la mention est « FRANCE » comme sur les timbres commémoratifs depuis le début de l'année 1975, après le début de la présidence de Valéry Giscard d'Estaing. Après l'élection de François Mitterrand à la présidence de la République, « République française » revient sur les timbres, y compris les derniers émis au type Sabine, dans la deuxième partie de l'année 1981.\n\nCarrière \nLa première émission a lieu le  pour les 0,80 franc vert et 1 franc rouge, servant aux tarifs les plus fréquents de la lettre économique et prioritaire de moins de 20 grammes. Les valeurs de compléments et les autres valeurs d'usage sont émises le  et le .\n\nEnsuite, les nouvelles émissions suivent les changements de tarifs : , . Ce dernier changement de tarif est également à l'origine de l'émission de six timbres le .\n\nLes trois derniers timbres au type Sabine émis le sont le  pour correspondre aux tarifs des  août et  septembre précédents. Ils portent la mention « REPUBLIQUE FRANÇAISE ». Le , paraissent les timbres au type Liberté de Gandon d'après Delacroix.\n\nNotes et références\n\nVoir aussi\n\nBibliographie \n Catalogue de cotations de timbres de France, éd. Dallay, 2005-2006.\n\nArticle connexe \n Timbre de France d'usage courant\n\nLiens externes \n Bibliographie sur le type Sabine sur le site du Cercle des amis de Marianne.\n Liste des timbres au type Sabine sur le site Phil-Ouest.\n\nTimbre de France d'usage courant",
+    "question": "Quel tableau de Jacques-Louis David a servi de modèle au timbre-poste La Sabine, dont le dessin et la gravure sont de Pierre Gandon\xa0?",
+    "answers": {
+        "answer_start": array([399]),
+        "text": array(["Les Sabines"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "(parfois sous-titré Collectible Lennon) est le septième album de John Lennon, sorti en 1975. Il s'agit de la première compilation de son œuvre , et du dernier album qu'il ait publié avant sa retraite de cinq ans destinée à s'occuper de son fils Sean.\n\nParution \nL'album reprend onze chansons publiées par Lennon en single entre 1969 et 1974. Cinq des chansons, parmi les plus anciennes, n'avaient jusque-là jamais été publiées sur un 33 tours. Cet aspect a été particulièrement apprécié par la critique qui a généralement bien noté l'album. Celui-ci s'est bien vendu et a atteint le huitième rang des ventes au Royaume-Uni, et le douzième rang aux États-Unis, où il est devenu disque d'or.\n\nGive Peace a Chance est présenté ici sous forme d'un court extrait tandis qu'une portion de sa version live, enregistrée le  au Madison Square Garden à New York lors du concert de charité « One to One », est greffée au final de Happy Xmas (War Is Over). Cette version augmentée de la chanson de Noël est inédite à cette collection.\n\nLe nom du disque fait référence au katsuobushi, une méthode japonaise de préparation et de conservation du poisson.\n\nLe sous-titre varie selon les éditions : absent des premières éditions américaines, il est parfois indiqué Collectible Lennon sur une étiquette rouge, parfois Collectable Lennon imprimé au dos de la pochette, avant la liste des titres.\n\nPochette \nLe recto de la pochette est composé de douze dessins : onze pour les titres des chansons, plus un pour le titre de l'album qui est illustré d'un disque rouge sur fond blanc semblable au drapeau du Japon, crédité à « Lennon Plastic Ono Band ». La palette de couleurs, dans des tons pastel, est volontairement limitée : un bleu pâle prédomine, formant sur la plupart des vignettes un ciel agrémenté de nuages blancs ; la palette est complétée par des tons de rose et de couleur chair.\n\nLes illustrations pour Imagine, Mind Games, et Whatever Gets You Thru the Night rappellent les pochettes des albums dont les chansons sont tirées. L'illustration pour Give Peace a Chance est réalisée à partir d'une photo de presse du bed-in de John et Yoko à Amsterdam, avec, posée sur le lit, la pochette du second album expérimental du couple, Unfinished Music No.2: Life with the Lions. Pour Happy Xmas (War is Over), un bombardier B29 apparaît suspendu à la façon d'une maquette , une boule de Noël rouge étant à son tour suspendue à l'avion. La chanson Instant Karma! est représentée par un flacon de produit lyophilisé. Woman is the Nigger of the World est illustrée par une femme nue, à la tête couverte, sous une pluie de tubes de rouge à lèvres fusant à la façon de balles de fusil, en référence aux paroles  (). L'illustration pour Mother est directement inspirée du tableau La Mère de Whistler, la mère ayant ici les traits de Lennon, tandis que le cadre de gauche compte un second portrait de Lennon, en gros plan, laissant échapper des larmes. Power to the People est représenté par un texte déclarant Lennon admissible à une green card et commençant par , rappelant le manuscrit de la constitution des États-Unis. Des dessins de Lennon sont utilisés pour illustrer Cold Turkey et #9 Dream.\n\nLe dessin au verso représente un emballage, ouvert, de poisson séché selon la méthode japonaise de la compagnie fictive « Lennon Brand ». Une citation de Lennon, sous le pseudonyme Dr. Winston O'Boogie,  y est inscrite.\n\nLa pochette intérieure porte au recto un grand disque rouge sur fond blanc , et au verso les paroles des chansons en blanc sur fond rouge, avec quelques erreurs de transcription.\n\nLa direction artistique est confiée à Roy Kohara, le même qui créa les pochettes des deux précédents albums de Lennon, Mind Games et Rock 'n' Roll et celle de la compilation des Beatles Rock 'n' Roll Music l'année suivante. Les illustrations sont de Michael Bryant.\n\nListe des chansons \nLes titres sont crédités à John Lennon sauf indication contraire.\n\nClassement\n\nNotes et références\n\nNotes\n\nRéférences \n\nAlbum de John Lennon\nCompilation musicale sortie en 1975\nAlbum publié par Apple Records\nAlbum publié par EMI Group\nAlbum produit par Phil Spector",
+    "question": "Qui est l'illustrateur de la couverture de l'album Shaved Fish?",
+    "answers": {
+        "answer_start": array([3828]),
+        "text": array(["Michael Bryant"], dtype=object)
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 4
+- Prefix prompt:
+  ```
+  Les textes suivants sont accompagnés de questions et de réponses.
+  ```
+- Base prompt template:
+  ```
+  Texte: {text}
+  Question: {question}
+  Réponse en 3 mots maximum: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Texte: {text}
+
+  Répondez à la question suivante sur le texte ci-dessus en 3 mots maximum.
+
+  Question: {question}
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset multi-wiki-qa-fr
 ```
 
 
@@ -502,6 +577,72 @@ You can evaluate this dataset directly as follows:
 
 ```bash
 $ euroeval --model <model-id> --dataset hellaswag-fr
+```
+
+
+### Unofficial: GoldenSwag-fr
+
+This dataset is a filtered and machine translated version of the English [HellaSwag dataset](https://aclanthology.org/P19-1472/), featuring both video descriptions from ActivityNet as well as how-to articles from WikiHow. The machine translated version was published in [this paper](https://doi.org/10.48550/arXiv.2410.08928) and was done using DeepL, and the filtering was published in [this paper](https://doi.org/10.48550/arXiv.2504.07825), which resulted in higher quality samples.
+
+The original full dataset consists of 1530 / 1530 samples for training and validation, respectively. However, they are exactly equal. We use a split of 660 / 256 / 2,048 samples for training, validation, and testing, respectively.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "text": "Comment réparer des lunettes tordues. Prenez une paire de pinces à becs en plastique. Les pinces vous permettront d'effectuer des micro-ajustements sur les montures tordues de manière plus sûre qu'en essayant de les forcer à se mettre en forme à la main. Si possible, équipez-vous d'une paire de pinces dont les pointes sont recouvertes d'un revêtement en plastique souple.\nChoix:\na. Les pinces en métal ordinaires risquent de rayer, voire de casser, les montures en fil métallique fin. Si vous ne disposez pas d'une pince appropriée, une pince à main en plastique ou une paire de pinces peut également faire l'affaire.\nb. Sinon, vous pouvez simplement tenir la pince dans votre main et la laisser glisser. Soulevez la lentille avec les pointes de la pince.\nc. Les boîtiers métalliques sont parmi les matériaux les moins chers disponibles, mais ils rendent la tâche beaucoup plus difficile. Si vous ne trouvez pas de pince à bouts en plastique, votre dentiste optera probablement pour des étuis en verre.\nd. Le plastique souple peut être meilleur que le plastique dur. Le but du plastique est d'améliorer l'apparence des lentilles, tout en les rendant plus faciles à nettoyer et à remplacer.",
+  "label": "a"
+}
+```
+
+```json
+{
+  "text": "Comment être une meilleure personne à l'école. Développez votre sens du bien et du mal. Le monde d'aujourd'hui est rapide et impatient, mais pour devenir une meilleure personne, il faut prendre le temps de travailler sur ses valeurs. Décidez quelles sont les valeurs et les vertus les plus importantes pour vous.\nChoix:\na. Si vous pratiquez un sport, profitez-en pour vous entraîner. Si vous passez vos journées de gym à garder vos muscles immobiles, assurez-vous de prendre le temps de faire cet exercice.\nb. Efforcez-vous de voir toutes vos situations idéales en termes de bonne et de mauvaise situation afin d'avoir une meilleure attitude à l'égard de ces choses. Pensez à la façon dont vous aborderiez la situation dans laquelle vous avez l'intention de faire ce qu'il faut.\nc. Créez un système personnel de moralité en rejoignant des clubs et des organisations qui vous aideront à développer vos vertus, comme une équipe sportive, des clubs de service communautaire, une chorale ou un gouvernement étudiant. L'empathie, l'honnêteté, la patience, l'humour et la persévérance ne sont que quelques exemples de bonnes valeurs.\nd. La dernière chose que vous souhaitez, c'est de vous retrouver coincé dans un bar, de passer une mauvaise journée ou de vouloir faire du bénévolat pour votre cause. Pratiquez l'empathie et essayez de vivre votre vie sous un meilleur angle.",
+  "label": "c"
+}
+```
+
+```json
+{
+  "text": "Comment préparer une pommade antibactérienne à la maison. Choisissez vos huiles. L'huile de coco est naturellement antivirale, antibactérienne et antifongique. L'huile de coco devrait être le premier ingrédient, représentant environ la moitié de votre base d'huile (environ ½ tasse).\nChoix:\na. Vous ne devez pas en utiliser trop - 1-1 pour cent est une quantité excessive qui endommage facilement la peau du bébé et l'irrite. Vous n'avez pas besoin d'utiliser toutes vos huiles, mais essayez-en quelques-unes pour les peaux sensibles.\nb. Mais l'huile de coco peut aussi être rigide et difficile à travailler, vous devriez donc envisager d'utiliser ½ tasse d'une autre huile. D'excellents choix incluent l'huile d'olive, l'huile de jojoba ou l'huile d'amande.\nc. Utilisez 1 à 2 gouttes de votre huile essentielle préférée comme antibactérien. L'huile de coco est naturellement antibactérienne.\nd. L'huile peut être un ingrédient irritant pour la peau, provoquant irritation, sécheresse et inflammation. Appliquez de l'huile de coco sur la peau sèche comme remède topique ou à domicile.",
+  "label": "b"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 5
+- Prefix prompt:
+  ```
+  Les questions suivantes sont des questions à choix multiples (avec réponses).
+  ```
+- Base prompt template:
+  ```
+  Question: {text}
+  Choix:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+  Réponse: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Question: {text}
+  Choix:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+
+  Répondez à la question ci-dessus par 'a', 'b', 'c' ou 'd', et rien d'autre.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset goldenswag-fr
 ```
 
 
