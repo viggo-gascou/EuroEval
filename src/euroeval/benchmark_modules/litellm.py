@@ -106,7 +106,7 @@ VOCAB_SIZE_MAPPING = {
 
 MODEL_MAX_LENGTH_MAPPING = {
     # OpenAI models
-    r"gpt-5-.*": 100_256,
+    r"gpt-5-.*": 272_000,
     r"gpt-4(-[0-9]{4})?": 8_191,
     r"gpt-4-32k(-[0-9]{4})?": 32_767,
     r"gpt-4-[0-9]{4}-preview": 128_000,
