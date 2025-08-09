@@ -87,6 +87,7 @@ logger = logging.getLogger("euroeval")
 
 VOCAB_SIZE_MAPPING = {
     # OpenAI models
+    r"gpt-5-.*": 100_256,
     r"gpt-4-(32k)?(-[0-9]{4})?": 100_256,
     r"gpt-4-[0-9]{4}-preview": 100_256,
     r"gpt-4-turbo(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 100_256,
@@ -105,6 +106,7 @@ VOCAB_SIZE_MAPPING = {
 
 MODEL_MAX_LENGTH_MAPPING = {
     # OpenAI models
+    r"gpt-5-.*": 272_000,
     r"gpt-4(-[0-9]{4})?": 8_191,
     r"gpt-4-32k(-[0-9]{4})?": 32_767,
     r"gpt-4-[0-9]{4}-preview": 128_000,
@@ -129,6 +131,7 @@ MODEL_MAX_LENGTH_MAPPING = {
 
 NUM_PARAMS_MAPPING = {
     # OpenAI models
+    r"gpt-5-.*": -1,
     r"gpt-4.*": -1,
     r"o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": -1,
     # Anthropic models
@@ -144,6 +147,7 @@ NUM_PARAMS_MAPPING = {
 
 ALLOWED_PARAMS = {
     # OpenAI models
+    r"gpt-5-.*": ["minimal", "low", "medium", "high"],
     r"o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": ["low", "medium", "high"],
     # Anthropic models
     r"(anthropic/)?claude-3-7-sonnet.*": ["no-thinking", "thinking"],
@@ -367,7 +371,7 @@ class LiteLLMModel(BenchmarkModule):
                 f"Disabling thinking mode for model {self.model_config.model_id!r}",
                 level=logging.DEBUG,
             )
-        elif self.model_config.revision in {"low", "medium", "high"}:
+        elif self.model_config.revision in {"minimal", "low", "medium", "high"}:
             generation_kwargs["reasoning_effort"] = self.model_config.revision
             log_once(
                 f"Enabling reasoning effort {self.model_config.revision!r} for model "

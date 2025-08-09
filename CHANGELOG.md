@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Added
+- Added metadata for GPT-5 models.
+
 ### Changed
 - Updated `transformers` dependency to `>=4.55.0`.
 

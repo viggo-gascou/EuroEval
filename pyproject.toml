@@ -190,3 +190,7 @@ testpaths = [
     "tests",
     "src/euroeval",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
