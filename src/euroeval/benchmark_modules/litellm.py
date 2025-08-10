@@ -1268,6 +1268,11 @@ def raise_if_wrong_params(
                     msg += " No parameters are allowed."
                 raise InvalidModel(msg)
             return
+    else:
+        raise InvalidModel(
+            f"The parameter {param!r} is not supported for the model "
+            f"{model_config.model_id!r}."
+        )
 
 
 def try_download_ollama_model(model_id: str) -> bool:

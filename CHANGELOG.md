@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   that does not exist - now only logs this once.
 - Cleaner error message when attempting to benchmark a generative model without having a
   GPU available.
+- Now raises error if an inference API is used with a parameter that is not supported.
 
 
 ## [v15.15.0] - 2025-08-06
