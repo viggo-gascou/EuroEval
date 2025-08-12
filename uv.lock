@@ -1123,8 +1123,8 @@ wheels = [
 
 [[package]]
 name = "euroeval"
-version = "15.15.0.dev0"
-source = { virtual = "." }
+version = "15.16.0"
+source = { editable = "." }
 dependencies = [
     { name = "accelerate" },
     { name = "bert-score" },

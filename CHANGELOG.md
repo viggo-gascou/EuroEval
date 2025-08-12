@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v15.16.0] - 2025-08-12
 ### Added
 - Added metadata for GPT-5 models.
 
