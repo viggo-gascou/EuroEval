@@ -234,9 +234,9 @@ class Benchmarker:
 
     def _download(
         self,
-        dataset_config: DatasetConfig,
-        model_config: ModelConfig,
-        benchmark_config: BenchmarkConfig,
+        dataset_config: "DatasetConfig",
+        model_config: "ModelConfig",
+        benchmark_config: "BenchmarkConfig",
     ) -> None:
         """Download data, metrics, and model for the given dataset, and model."""
         log_once(f"Loading data for {dataset_config.name}", level=logging.INFO)
@@ -257,7 +257,7 @@ class Benchmarker:
         )
         for metric_name in dataset_config.task.metrics:
             log_once(f"Loading metric {metric_name.name}", level=logging.INFO)
-            metric = metric_name.download()
+            metric = metric_name.download(cache_dir=benchmark_config.cache_dir)
             del metric
 
     def benchmark(
