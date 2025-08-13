@@ -49,6 +49,10 @@ class Metric(abc.ABC):
             else lambda x: (100 * x, f"{x:.2%}")
         )
 
+    def download(self) -> "Metric":
+        """Initiates the download of the metric if needed."""
+        return self
+
     @abc.abstractmethod
     def __call__(
         self, predictions: t.Sequence, references: t.Sequence, dataset: "Dataset | None"
@@ -131,6 +135,11 @@ class HuggingFaceMetric(Metric):
         )
         self.metric: "EvaluationModule | None" = None
 
+    def download(self) -> "HuggingFaceMetric":
+        """Initiates the download of the metric if needed."""
+        self.metric = evaluate.load(path=self.huggingface_id)
+        return self
+
     def __call__(
         self, predictions: t.Sequence, references: t.Sequence, dataset: "Dataset | None"
     ) -> float | None:
@@ -149,8 +158,9 @@ class HuggingFaceMetric(Metric):
             The calculated metric score, or None if the score should be ignored.
         """
         if self.metric is None:
-            self.metric = evaluate.load(path=self.huggingface_id)
+            self.download()
 
+        assert self.metric is not None
         with HiddenPrints():
             results = self.metric.compute(
                 predictions=predictions, references=references, **self.compute_kwargs
