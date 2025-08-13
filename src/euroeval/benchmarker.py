@@ -82,6 +82,7 @@ class Benchmarker:
         debug: bool = False,
         run_with_cli: bool = False,
         only_allow_safetensors: bool = False,
+        download_only: bool = False,
     ) -> None:
         """Initialise the benchmarker.
 
@@ -159,6 +160,9 @@ class Benchmarker:
             only_allow_safetensors:
                 Whether to only allow models that use the safetensors format. Defaults
                 to False.
+            download_only:
+                Whether to only download models and datasets without performing any
+                benchmarking. Defaults to False.
 
         Raises:
             ValueError:
@@ -202,6 +206,7 @@ class Benchmarker:
             debug=debug,
             run_with_cli=run_with_cli,
             only_allow_safetensors=only_allow_safetensors,
+            download_only=download_only,
         )
 
         self.benchmark_config = build_benchmark_config(
@@ -250,6 +255,7 @@ class Benchmarker:
         few_shot: bool | None = None,
         num_iterations: int | None = None,
         only_allow_safetensors: bool | None = None,
+        download_only: bool | None = None,
     ) -> list[BenchmarkResult]:
         """Benchmarks models on datasets.
 
@@ -330,6 +336,9 @@ class Benchmarker:
             only_allow_safetensors:
                 Whether to only allow models that use the safetensors format. Defaults
                 to the value specified when initialising the benchmarker.
+            download_only:
+                Whether to only download the models without evaluating them. Defaults
+                to the value specified when initialising the benchmarker.
 
         Returns:
             A list of benchmark results.
@@ -362,6 +371,7 @@ class Benchmarker:
             few_shot=few_shot,
             num_iterations=num_iterations,
             only_allow_safetensors=only_allow_safetensors,
+            download_only=download_only,
         )
 
         adjust_logging_level(verbose=benchmark_config.verbose)
@@ -536,6 +546,7 @@ class Benchmarker:
         debug: bool | None = None,
         run_with_cli: bool | None = None,
         only_allow_safetensors: bool | None = None,
+        download_only: bool | None = None,
     ) -> "BenchmarkConfig":
         """Get an updated benchmark configuration.
 
@@ -612,6 +623,9 @@ class Benchmarker:
             only_allow_safetensors:
                 Whether to only allow models that use the safetensors format. If None,
                 then this value will not be updated.
+            download_only:
+                Whether to only download the models without evaluating them. If None,
+                then this value will not be updated.
 
         Returns:
             The updated benchmark configuration.
@@ -668,6 +682,8 @@ class Benchmarker:
             benchmark_config_params.run_with_cli = run_with_cli
         if only_allow_safetensors is not None:
             benchmark_config_params.only_allow_safetensors = only_allow_safetensors
+        if download_only is not None:
+            benchmark_config_params.download_only = download_only
 
         return build_benchmark_config(**benchmark_config_params.model_dump())
 
