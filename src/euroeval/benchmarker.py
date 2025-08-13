@@ -16,7 +16,7 @@ from torch.distributed import destroy_process_group
 
 from .benchmark_config_factory import build_benchmark_config
 from .constants import GENERATIVE_DATASET_TASK_GROUPS, GENERATIVE_PIPELINE_TAGS
-from .data_loading import load_data
+from .data_loading import load_data, load_raw_data
 from .data_models import BenchmarkConfigParams, BenchmarkResult
 from .dataset_configs import get_all_dataset_configs
 from .enums import Device, ModelType
@@ -28,7 +28,7 @@ from .model_loading import load_model
 from .scores import log_scores
 from .speed_benchmark import benchmark_speed
 from .tasks import SPEED
-from .utils import enforce_reproducibility, get_package_version
+from .utils import enforce_reproducibility, get_package_version, log_once
 
 if t.TYPE_CHECKING:
     from .benchmark_modules import BenchmarkModule
@@ -232,6 +232,34 @@ class Benchmarker:
         else:
             return list()
 
+    def _download(
+        self,
+        dataset_config: DatasetConfig,
+        model_config: ModelConfig,
+        benchmark_config: BenchmarkConfig,
+    ) -> None:
+        """Download data, metrics, and model for the given dataset, and model."""
+        log_once(f"Loading data for {dataset_config.name}", level=logging.INFO)
+        dataset = load_raw_data(
+            dataset_config=dataset_config, cache_dir=benchmark_config.cache_dir
+        )
+        del dataset
+        log_once(f"Loading model {model_config.model_id}", level=logging.INFO)
+        model = load_model(
+            model_config=model_config,
+            dataset_config=dataset_config,
+            benchmark_config=benchmark_config,
+        )
+        del model
+        log_once(
+            f"Loading metrics for the '{dataset_config.task.name}' task",
+            level=logging.INFO,
+        )
+        for metric_name in dataset_config.task.metrics:
+            log_once(f"Loading metric {metric_name.name}", level=logging.INFO)
+            metric = metric_name.download()
+            del metric
+
     def benchmark(
         self,
         model: list[str] | str,
@@ -401,22 +429,24 @@ class Benchmarker:
 
             loaded_model: BenchmarkModule | None = None
             for dataset_config in dataset_configs:
-                # Skip if we have already benchmarked this model on this dataset and
-                # we are not forcing the benchmark
-                if not benchmark_config.force and model_has_been_benchmarked(
-                    model_id=model_id,
-                    dataset=dataset_config.name,
-                    few_shot=benchmark_config.few_shot,
-                    validation_split=not benchmark_config.evaluate_test_split,
-                    benchmark_results=self.benchmark_results,
-                ):
-                    logger.debug(
-                        f"Skipping benchmarking {model_id} on "
-                        f"{dataset_config.pretty_name}, as it has already been "
-                        "benchmarked."
-                    )
-                    num_finished_benchmarks += 1
-                    continue
+                if not benchmark_config.download_only:
+                    # Skip if we have already benchmarked this model on this dataset and
+                    # we are not forcing the benchmark, only if we are not in
+                    # download_only mode
+                    if not benchmark_config.force and model_has_been_benchmarked(
+                        model_id=model_id,
+                        dataset=dataset_config.name,
+                        few_shot=benchmark_config.few_shot,
+                        validation_split=not benchmark_config.evaluate_test_split,
+                        benchmark_results=self.benchmark_results,
+                    ):
+                        logger.debug(
+                            f"Skipping benchmarking {model_id} on "
+                            f"{dataset_config.pretty_name}, as it has already been "
+                            "benchmarked."
+                        )
+                        num_finished_benchmarks += 1
+                        continue
 
                 # Skip if the model is an encoder model and the task is generative
                 task_is_generative = (
@@ -463,46 +493,55 @@ class Benchmarker:
                     else:
                         loaded_model.dataset_config = dataset_config
 
-                # Benchmark a single model on a single dataset
-                benchmark_output_or_err = self._benchmark_single(
-                    model=loaded_model,
-                    model_config=model_config,
-                    dataset_config=dataset_config,
-                    benchmark_config=benchmark_config,
-                )
-
-                if (
-                    isinstance(benchmark_output_or_err, Exception)
-                    and benchmark_config.raise_errors
-                ):
-                    raise benchmark_output_or_err
-
-                elif isinstance(benchmark_output_or_err, InvalidBenchmark):
-                    logger.info(benchmark_output_or_err.message)
-                    num_finished_benchmarks += 1
-                    continue
-
-                elif isinstance(benchmark_output_or_err, InvalidModel):
-                    logger.info(benchmark_output_or_err.message)
-
-                    # Add the remaining number of benchmarks for the model to our
-                    # benchmark counter, since we're skipping the rest of them
-                    num_finished_benchmarks += (
-                        len(dataset_configs) - dataset_configs.index(dataset_config) - 1
+                if benchmark_config.download_only:
+                    self._download(
+                        model_config=model_config,
+                        dataset_config=dataset_config,
+                        benchmark_config=benchmark_config,
                     )
-                    break
-
                 else:
-                    record: BenchmarkResult = benchmark_output_or_err
-                    current_benchmark_results.append(record)
-                    if benchmark_config.save_results:
-                        record.append_to_results(results_path=self.results_path)
+                    # Benchmark a single model on a single dataset
+                    benchmark_output_or_err = self._benchmark_single(
+                        model=loaded_model,
+                        model_config=model_config,
+                        dataset_config=dataset_config,
+                        benchmark_config=benchmark_config,
+                    )
 
-                num_finished_benchmarks += 1
-                logger.info(
-                    f"Finished {num_finished_benchmarks} out of "
-                    f"{total_benchmarks} benchmarks."
-                )
+                    if (
+                        isinstance(benchmark_output_or_err, Exception)
+                        and benchmark_config.raise_errors
+                    ):
+                        raise benchmark_output_or_err
+
+                    elif isinstance(benchmark_output_or_err, InvalidBenchmark):
+                        logger.info(benchmark_output_or_err.message)
+                        num_finished_benchmarks += 1
+                        continue
+
+                    elif isinstance(benchmark_output_or_err, InvalidModel):
+                        logger.info(benchmark_output_or_err.message)
+
+                        # Add the remaining number of benchmarks for the model to our
+                        # benchmark counter, since we're skipping the rest of them
+                        num_finished_benchmarks += (
+                            len(dataset_configs)
+                            - dataset_configs.index(dataset_config)
+                            - 1
+                        )
+                        break
+
+                    else:
+                        record: BenchmarkResult = benchmark_output_or_err
+                        current_benchmark_results.append(record)
+                        if benchmark_config.save_results:
+                            record.append_to_results(results_path=self.results_path)
+
+                    num_finished_benchmarks += 1
+                    logger.info(
+                        f"Finished {num_finished_benchmarks} out of "
+                        f"{total_benchmarks} benchmarks."
+                    )
 
             del loaded_model
             if benchmark_config.clear_model_cache:
