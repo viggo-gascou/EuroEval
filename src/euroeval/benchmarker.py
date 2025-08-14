@@ -429,24 +429,29 @@ class Benchmarker:
 
             loaded_model: BenchmarkModule | None = None
             for dataset_config in dataset_configs:
-                if not benchmark_config.download_only:
-                    # Skip if we have already benchmarked this model on this dataset and
-                    # we are not forcing the benchmark, only if we are not in
-                    # download_only mode
-                    if not benchmark_config.force and model_has_been_benchmarked(
-                        model_id=model_id,
-                        dataset=dataset_config.name,
-                        few_shot=benchmark_config.few_shot,
-                        validation_split=not benchmark_config.evaluate_test_split,
-                        benchmark_results=self.benchmark_results,
-                    ):
-                        logger.debug(
-                            f"Skipping benchmarking {model_id} on "
-                            f"{dataset_config.pretty_name}, as it has already been "
-                            "benchmarked."
-                        )
-                        num_finished_benchmarks += 1
-                        continue
+                if benchmark_config.download_only:
+                    self._download(
+                        model_config=model_config,
+                        dataset_config=dataset_config,
+                        benchmark_config=benchmark_config,
+                    )
+                    continue
+                # Skip if we have already benchmarked this model on this dataset and
+                # we are not forcing the benchmark
+                if not benchmark_config.force and model_has_been_benchmarked(
+                    model_id=model_id,
+                    dataset=dataset_config.name,
+                    few_shot=benchmark_config.few_shot,
+                    validation_split=not benchmark_config.evaluate_test_split,
+                    benchmark_results=self.benchmark_results,
+                ):
+                    logger.debug(
+                        f"Skipping benchmarking {model_id} on "
+                        f"{dataset_config.pretty_name}, as it has already been "
+                        "benchmarked."
+                    )
+                    num_finished_benchmarks += 1
+                    continue
 
                 # Skip if the model is an encoder model and the task is generative
                 task_is_generative = (
@@ -492,14 +497,6 @@ class Benchmarker:
                             break
                     else:
                         loaded_model.dataset_config = dataset_config
-
-                if benchmark_config.download_only:
-                    self._download(
-                        model_config=model_config,
-                        dataset_config=dataset_config,
-                        benchmark_config=benchmark_config,
-                    )
-                    continue
 
                 # Benchmark a single model on a single dataset
                 benchmark_output_or_err = self._benchmark_single(
