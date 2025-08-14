@@ -499,49 +499,48 @@ class Benchmarker:
                         dataset_config=dataset_config,
                         benchmark_config=benchmark_config,
                     )
-                else:
-                    # Benchmark a single model on a single dataset
-                    benchmark_output_or_err = self._benchmark_single(
-                        model=loaded_model,
-                        model_config=model_config,
-                        dataset_config=dataset_config,
-                        benchmark_config=benchmark_config,
-                    )
+                    continue
 
-                    if (
-                        isinstance(benchmark_output_or_err, Exception)
-                        and benchmark_config.raise_errors
-                    ):
-                        raise benchmark_output_or_err
+                # Benchmark a single model on a single dataset
+                benchmark_output_or_err = self._benchmark_single(
+                    model=loaded_model,
+                    model_config=model_config,
+                    dataset_config=dataset_config,
+                    benchmark_config=benchmark_config,
+                )
 
-                    elif isinstance(benchmark_output_or_err, InvalidBenchmark):
-                        logger.info(benchmark_output_or_err.message)
-                        num_finished_benchmarks += 1
-                        continue
+                if (
+                    isinstance(benchmark_output_or_err, Exception)
+                    and benchmark_config.raise_errors
+                ):
+                    raise benchmark_output_or_err
 
-                    elif isinstance(benchmark_output_or_err, InvalidModel):
-                        logger.info(benchmark_output_or_err.message)
-
-                        # Add the remaining number of benchmarks for the model to our
-                        # benchmark counter, since we're skipping the rest of them
-                        num_finished_benchmarks += (
-                            len(dataset_configs)
-                            - dataset_configs.index(dataset_config)
-                            - 1
-                        )
-                        break
-
-                    else:
-                        record: BenchmarkResult = benchmark_output_or_err
-                        current_benchmark_results.append(record)
-                        if benchmark_config.save_results:
-                            record.append_to_results(results_path=self.results_path)
-
+                elif isinstance(benchmark_output_or_err, InvalidBenchmark):
+                    logger.info(benchmark_output_or_err.message)
                     num_finished_benchmarks += 1
-                    logger.info(
-                        f"Finished {num_finished_benchmarks} out of "
-                        f"{total_benchmarks} benchmarks."
+                    continue
+
+                elif isinstance(benchmark_output_or_err, InvalidModel):
+                    logger.info(benchmark_output_or_err.message)
+
+                    # Add the remaining number of benchmarks for the model to our
+                    # benchmark counter, since we're skipping the rest of them
+                    num_finished_benchmarks += (
+                        len(dataset_configs) - dataset_configs.index(dataset_config) - 1
                     )
+                    break
+
+                else:
+                    record: BenchmarkResult = benchmark_output_or_err
+                    current_benchmark_results.append(record)
+                    if benchmark_config.save_results:
+                        record.append_to_results(results_path=self.results_path)
+
+                num_finished_benchmarks += 1
+                logger.info(
+                    f"Finished {num_finished_benchmarks} out of "
+                    f"{total_benchmarks} benchmarks."
+                )
 
             del loaded_model
             if benchmark_config.clear_model_cache:

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import evaluate
 import litellm
+from datasets import DownloadConfig
 from litellm.types.utils import Choices, ModelResponse
 from pydantic import BaseModel, Field
 from tqdm.auto import tqdm
@@ -51,7 +52,15 @@ class Metric(abc.ABC):
         )
 
     def download(self, cache_dir: str) -> "Metric":
-        """Initiates the download of the metric if needed."""
+        """Initiates the download of the metric if needed.
+
+        Args:
+            cache_dir:
+                The directory where the metric will be downloaded to.
+
+        Returns:
+            The metric object itself.
+        """
         return self
 
     @abc.abstractmethod
@@ -141,11 +150,17 @@ class HuggingFaceMetric(Metric):
         self.metric: "EvaluationModule | None" = None
 
     def download(self, cache_dir: str) -> "HuggingFaceMetric":
-        """Initiates the download of the metric if needed."""
-        # annoying but needed to make the metric download to a different cache dir
-        from datasets import DownloadConfig
+        """Initiates the download of the metric if needed.
 
-        download_config = DownloadConfig(cache_dir=Path(cache_dir).joinpath("evaluate"))
+        Args:
+            cache_dir:
+                The directory where the metric will be downloaded to.
+
+        Returns:
+            The metric object itself.
+        """
+        # annoying but needed to make the metric download to a different cache dir
+        download_config = DownloadConfig(cache_dir=Path(cache_dir, "evaluate"))
         self.metric = evaluate.load(
             path=self.huggingface_id, download_config=download_config
         )
