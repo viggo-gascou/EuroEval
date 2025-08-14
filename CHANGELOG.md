@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-
+### Fixed
+- Now disables the `seed` parameter if the API inference model does not support it,
+  which prevented evaluating some models.
+- Now correctly detects an API inference model as non-existing, even if LiteLLM *does*
+  see it as existing. We have an additional check during evaluation to ensure this now.
+- Catch an `ImportError` error that sometimes happens when finishing the evaluation of a
+  vLLM model, during shutdown.
 
 
 ## [v15.16.0] - 2025-08-12
