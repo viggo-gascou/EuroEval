@@ -429,6 +429,18 @@ class Benchmarker:
 
             loaded_model: BenchmarkModule | None = None
             for dataset_config in dataset_configs:
+                # Skip if the model is an encoder model and the task is generative
+                task_is_generative = (
+                    dataset_config.task.task_group in GENERATIVE_DATASET_TASK_GROUPS
+                )
+                if model_config.model_type == ModelType.ENCODER and task_is_generative:
+                    logger.debug(
+                        f"Skipping benchmarking {model_id} on "
+                        f"{dataset_config.pretty_name}, as it is an encoder model and "
+                        "the task is generative."
+                    )
+                    continue
+
                 if benchmark_config.download_only:
                     self._download(
                         model_config=model_config,
@@ -436,6 +448,7 @@ class Benchmarker:
                         benchmark_config=benchmark_config,
                     )
                     continue
+
                 # Skip if we have already benchmarked this model on this dataset and
                 # we are not forcing the benchmark
                 if not benchmark_config.force and model_has_been_benchmarked(
@@ -451,18 +464,6 @@ class Benchmarker:
                         "benchmarked."
                     )
                     num_finished_benchmarks += 1
-                    continue
-
-                # Skip if the model is an encoder model and the task is generative
-                task_is_generative = (
-                    dataset_config.task.task_group in GENERATIVE_DATASET_TASK_GROUPS
-                )
-                if model_config.model_type == ModelType.ENCODER and task_is_generative:
-                    logger.debug(
-                        f"Skipping benchmarking {model_id} on "
-                        f"{dataset_config.pretty_name}, as it is an encoder model and "
-                        "the task is generative."
-                    )
                     continue
 
                 # We do not re-initialise generative models as their architecture is not
