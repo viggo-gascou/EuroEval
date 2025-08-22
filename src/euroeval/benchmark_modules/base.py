@@ -198,6 +198,7 @@ class BenchmarkModule(ABC):
                 return partial(
                     sequence_classification.compute_metrics,
                     dataset_config=self.dataset_config,
+                    benchmark_config=self.benchmark_config,
                 )
             case TaskGroup.TEXT_TO_TEXT:
                 return partial(

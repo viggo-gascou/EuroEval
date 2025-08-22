@@ -238,12 +238,19 @@ class Benchmarker:
         model_config: "ModelConfig",
         benchmark_config: "BenchmarkConfig",
     ) -> None:
-        """Download data, metrics, and model for the given dataset, and model."""
-        log_once(f"Loading data for {dataset_config.name}", level=logging.INFO)
+        """Download data, metrics, and model for the given dataset, and model.
+
+        Args:
+            dataset_config: The configuration for the dataset.
+            model_config: The configuration for the model.
+            benchmark_config: The configuration for the benchmark.
+        """
+        log_once(f"Loading data for {dataset_config.pretty_name}", level=logging.INFO)
         dataset = load_raw_data(
             dataset_config=dataset_config, cache_dir=benchmark_config.cache_dir
         )
         del dataset
+
         log_once(f"Loading model {model_config.model_id}", level=logging.INFO)
         model = load_model(
             model_config=model_config,
@@ -251,12 +258,13 @@ class Benchmarker:
             benchmark_config=benchmark_config,
         )
         del model
+
         log_once(
             f"Loading metrics for the '{dataset_config.task.name}' task",
             level=logging.INFO,
         )
         for metric_name in dataset_config.task.metrics:
-            log_once(f"Loading metric {metric_name.name}", level=logging.INFO)
+            log_once(f"Loading metric {metric_name.name}", level=logging.DEBUG)
             metric = metric_name.download(cache_dir=benchmark_config.cache_dir)
             del metric
 

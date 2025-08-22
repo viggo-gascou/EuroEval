@@ -159,7 +159,7 @@ class HuggingFaceMetric(Metric):
         Returns:
             The metric object itself.
         """
-        # annoying but needed to make the metric download to a different cache dir
+        # Annoying but needed to make the metric download to a different cache dir
         download_config = DownloadConfig(cache_dir=Path(cache_dir, "evaluate"))
         self.metric = evaluate.load(
             path=self.huggingface_id, download_config=download_config
