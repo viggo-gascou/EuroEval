@@ -11,6 +11,7 @@ from datasets.exceptions import DatasetsError
 from huggingface_hub.errors import HfHubHTTPError
 from numpy.random import Generator
 
+from ..tasks import EUROPEAN_VALUES
 from .exceptions import HuggingFaceHubDown, InvalidBenchmark
 from .utils import unscramble
 
@@ -57,8 +58,9 @@ def load_data(
             if text_feature in dataset[split].features:
                 dataset = dataset.filter(lambda x: len(x[text_feature]) > 0)
 
-    # If we are testing then truncate the test set
-    if hasattr(sys, "_called_from_test"):
+    # If we are testing then truncate the test set, unless we need the full set for
+    # evaluation
+    if hasattr(sys, "_called_from_test") and dataset_config.task != EUROPEAN_VALUES:
         dataset["test"] = dataset["test"].select(range(1))
 
     # Bootstrap the splits, if applicable
