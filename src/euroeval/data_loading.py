@@ -11,8 +11,8 @@ from datasets.exceptions import DatasetsError
 from huggingface_hub.errors import HfHubHTTPError
 from numpy.random import Generator
 
-from ..tasks import EUROPEAN_VALUES
 from .exceptions import HuggingFaceHubDown, InvalidBenchmark
+from .tasks import EUROPEAN_VALUES
 from .utils import unscramble
 
 if t.TYPE_CHECKING:
