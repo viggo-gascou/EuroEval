@@ -384,7 +384,7 @@ class HuggingFaceEncoderModel(BenchmarkModule):
                             ),
                             batched=True,
                             batch_size=10,
-                            remove_columns=dataset["train"].column_names,
+                            remove_columns=split.column_names,
                             load_from_cache_file=False,
                             keep_in_memory=True,
                         )
