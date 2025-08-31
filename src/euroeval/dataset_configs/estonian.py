@@ -55,11 +55,8 @@ WINOGRANDE_ET_CONFIG = DatasetConfig(
     huggingface_id="EuroEval/winogrande-et",
     task=COMMON_SENSE,
     languages=[ET],
-    # requires custom templates as WinoGrande is different from
-    # the usual multiple choice tasks
     _prompt_prefix="Sulle esitatakse lüngaga (_) tekstülesanded, "
     "igal ülesandel on kaks vastusevarianti (a ja b).",
-    # includes the question and the options
     _prompt_template="Tekstülesanne: {text}\nVastus: {label}",
     _instruction_prompt="Tekstülesanne: {text}\n\n"
     "Sinu ülesanne on valida lünka sobiv vastusevariant. "
