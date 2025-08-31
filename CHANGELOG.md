@@ -8,10 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- Added support for Latvian 🇱🇻! This includes the Latvian part of the reading comprehension
-  dataset MultiWikiQA, the sentiment classification dataset Latvian Twitter Sentiment,
-  the linguistic acceptability dataset ScaLA-lv, the NER dataset WikiANN-lv, the
-  NER dataset FullStack-NER-lv, and the knowledge dataset MMLU-lv.
+- Added support for Latvian 🇱🇻! This includes the Latvian part of the reading
+  comprehension dataset MultiWikiQA, the sentiment classification dataset Latvian
+  Twitter Sentiment, the linguistic acceptability dataset ScaLA-lv, the NER dataset
+  WikiANN-lv, the NER dataset FullStack-NER-lv, and the knowledge dataset MMLU-lv.
 - Added support for Estonian 🇪🇪 It includes the sentiment classification dataset
   Estonian Valence, the linguistic acceptability dataset ScaLA-et, the named entity
   recognition dataset EstNER, the reading comprehension dataset MultiWikiQA-et, the
