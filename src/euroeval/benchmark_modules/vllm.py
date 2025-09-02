@@ -999,7 +999,7 @@ def get_end_of_reasoning_token(
             f"The model {model_id!r} did not generate any beginning-of-reasoning "
             "tokens in the prompt or the completion. Assuming the model is not "
             "a reasoning model.",
-            level=logging.INFO,
+            level=logging.DEBUG,
         )
         return None
 
@@ -1025,7 +1025,7 @@ def get_end_of_reasoning_token(
             "the beginning-of-reasoning tokens "
             f"{[bor_token for bor_token, _ in bor_reasoning_matches]!r}. "
             "This is probably not correct, so please report this issue.",
-            level=logging.INFO,
+            level=logging.WARNING,
         )
         return None
 
@@ -1035,14 +1035,14 @@ def get_end_of_reasoning_token(
             f"model {model_id!r}. Using {eor_reasoning_matches[0]!r} as "
             "the reasoning token. If this is not the correct reasoning token, "
             "please report this issue.",
-            level=logging.INFO,
+            level=logging.WARNING,
         )
 
     bor_token, eor_token = eor_reasoning_matches[0]
     log_once(
         f"Detected beginning-of-reasoning token {bor_token!r} and end-of-reasoning "
         f"token {eor_token!r} for model {model_id!r}.",
-        level=logging.INFO,
+        level=logging.DEBUG,
     )
 
     return eor_token
