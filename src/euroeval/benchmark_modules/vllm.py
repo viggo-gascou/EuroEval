@@ -481,7 +481,7 @@ class VLLMModel(HuggingFaceEncoderModel):
                 else:
                     raise InvalidBenchmark(
                         f"An error occurred during vLLM generation: {str(e)}"
-                    )
+                    ) from e
         else:
             raise InvalidBenchmark(
                 f"Could not generate sequences after {num_attempts} attempts."
@@ -830,16 +830,16 @@ def load_model_and_tokeniser(
             raise InvalidModel(
                 f"The model {model_id!r} is awaiting a review from the repository "
                 "authors. Please try again later."
-            )
+            ) from e
         elif "trust_remote_code" in str(e):
             raise InvalidModel(
                 f"Loading the model {model_id!r} needs to trust remote code. "
                 "If you trust the suppliers of this model, then you can enable "
                 "this by setting the `--trust-remote-code` flag."
-            )
+            ) from e
         raise InvalidModel(
             f"The model {model_id!r} could not be loaded. The error was {e!r}."
-        )
+        ) from e
 
     model.config = hf_model_config
 
@@ -905,7 +905,7 @@ def load_tokeniser(
                 raise InvalidModel(
                     f"Could not load tokeniser for model {model_id!r}. The error was "
                     f"{str(e)}."
-                )
+                ) from e
             logger.debug(
                 f"Could not load tokeniser for {model_id!r}. Falling back to "
                 f"{adapter_base_model_id!r}."
@@ -928,7 +928,7 @@ def load_tokeniser(
             raise InvalidModel(
                 f"Could not load tokeniser for model {model_id!r}. The error was "
                 f"{str(e)}."
-            )
+            ) from e
     else:
         raise InvalidModel(
             f"Could not load tokeniser for model {model_id!r} after {num_retries} "
