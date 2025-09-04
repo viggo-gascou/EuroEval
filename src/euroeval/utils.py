@@ -95,18 +95,13 @@ def block_terminal_output() -> None:
     warnings.filterwarnings("ignore", category=FutureWarning)
     logging.getLogger("absl").setLevel(logging.CRITICAL)
 
-    # Disable torch logging
-    warnings.filterwarnings(action="ignore", module="torch.nn.parallel*")
-    warnings.filterwarnings(action="ignore", module="torch.csrc.distributed.c10d*")
-    logging.getLogger("torch.utils.cpp_extension").setLevel(logging.CRITICAL)
-    os.environ["TORCH_LOGS"] = "-all"
-
     # Disable matplotlib logging
     logging.getLogger("matplotlib.font_manager").setLevel(logging.CRITICAL)
 
     # Disable PyTorch logging
-    logging.getLogger("torch.distributed.distributed_c10d").setLevel(logging.CRITICAL)
-    logging.getLogger("torch.nn.parallel.distributed").setLevel(logging.CRITICAL)
+    logging.getLogger("torch.utils.cpp_extension").setLevel(logging.CRITICAL)
+    warnings.filterwarnings(action="ignore", module="torch*")
+    os.environ["TORCH_LOGS"] = "-all"
 
     # Disable huggingface_hub logging
     logging.getLogger("huggingface_hub").setLevel(logging.CRITICAL)
