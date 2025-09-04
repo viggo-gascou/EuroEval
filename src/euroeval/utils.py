@@ -93,14 +93,17 @@ def block_terminal_output() -> None:
     # Ignore miscellaneous warnings
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=FutureWarning)
+    logging.getLogger("absl").setLevel(logging.CRITICAL)
+
+    # Disable torch logging
     warnings.filterwarnings(
         "ignore",
         module="torch.nn.parallel*",
         message="Was asked to gather along dimension 0, but all input tensors were "
         "scalars; will instead unsqueeze and return a vector.",
     )
-    warnings.filterwarnings("ignore", module="seqeval*")
-    logging.getLogger("absl").setLevel(logging.CRITICAL)
+    logging.getLogger("torch.utils.cpp_extension").setLevel(logging.CRITICAL)
+    os.environ["TORCH_LOGS"] = "-all"
 
     # Disable matplotlib logging
     logging.getLogger("matplotlib.font_manager").setLevel(logging.CRITICAL)
@@ -137,6 +140,9 @@ def block_terminal_output() -> None:
     logging.getLogger("datasets").setLevel(logging.CRITICAL)
     logging.getLogger("filelock").setLevel(logging.CRITICAL)
     disable_progress_bar()
+
+    # Disable evaluate logging
+    warnings.filterwarnings("ignore", module="seqeval*")
 
     # Disable most of the `transformers` logging
     tf_logging._default_log_level = logging.CRITICAL
