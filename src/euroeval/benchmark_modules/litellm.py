@@ -4,7 +4,6 @@ import asyncio
 import collections.abc as c
 import json
 import logging
-import os
 import re
 import typing as t
 from functools import cache, cached_property, partial
@@ -79,6 +78,7 @@ from ..types import ExtractLabelsFunction
 from ..utils import (
     add_semaphore_and_catch_exception,
     create_model_cache_dir,
+    get_hf_token,
     log_once,
     safe_run,
 )
@@ -787,9 +787,7 @@ class LiteLLMModel(BenchmarkModule):
                     repo_info = hf_api.model_info(
                         repo_id=model_id,
                         revision="main",
-                        token=os.getenv("HUGGINGFACE_API_KEY")
-                        or self.benchmark_config.api_key
-                        or True,
+                        token=get_hf_token(api_key=self.benchmark_config.api_key),
                     )
                 except (
                     RepositoryNotFoundError,

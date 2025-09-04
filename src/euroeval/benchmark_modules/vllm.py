@@ -5,7 +5,6 @@ import contextlib
 import importlib.util
 import json
 import logging
-import os
 import re
 import typing as t
 from functools import partial
@@ -67,6 +66,7 @@ from ..types import ExtractLabelsFunction
 from ..utils import (
     clear_memory,
     create_model_cache_dir,
+    get_hf_token,
     get_min_cuda_compute_capability,
     log_once,
 )
@@ -786,7 +786,7 @@ def load_model_and_tokeniser(
         trust_remote_code=benchmark_config.trust_remote_code,
         model_max_length=true_max_model_len,
         model_cache_dir=model_config.model_cache_dir,
-        token=benchmark_config.api_key or os.getenv("HUGGINGFACE_API_KEY") or True,
+        token=get_hf_token(api_key=benchmark_config.api_key),
     )
 
     clear_vllm()

@@ -16,6 +16,7 @@ from functools import cache
 from pathlib import Path
 
 import demjson3
+import huggingface_hub as hf_hub
 import litellm
 import numpy as np
 import requests
@@ -413,3 +414,26 @@ def extract_json_dict_from_string(s: str) -> dict | None:
         )
         return None
     return json_output
+
+
+def get_hf_token(api_key: str | None) -> str | bool:
+    """Get the Hugging Face token.
+
+    Args:
+        api_key:
+            The API key to use as the Hugging Face token. If None, we will try to
+            extract it in other ways.
+
+    Returns:
+        The Hugging Face token, or True if no token is set but the user is logged in, or
+        False if no token is set and the user is not logged in.
+    """
+    if api_key is not None:
+        return api_key
+    elif (token := os.getenv("HUGGINGFACE_API_KEY")) is not None:
+        return token
+    try:
+        hf_hub.whoami()
+        return True
+    except hf_hub.errors.LocalTokenNotFoundError:
+        return False
