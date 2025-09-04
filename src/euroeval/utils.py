@@ -96,12 +96,8 @@ def block_terminal_output() -> None:
     logging.getLogger("absl").setLevel(logging.CRITICAL)
 
     # Disable torch logging
-    warnings.filterwarnings(
-        "ignore",
-        module="torch.nn.parallel*",
-        message="Was asked to gather along dimension 0, but all input tensors were "
-        "scalars; will instead unsqueeze and return a vector.",
-    )
+    warnings.filterwarnings(action="ignore", module="torch.nn.parallel*")
+    warnings.filterwarnings(action="ignore", module="torch.csrc.distributed.c10d*")
     logging.getLogger("torch.utils.cpp_extension").setLevel(logging.CRITICAL)
     os.environ["TORCH_LOGS"] = "-all"
 
