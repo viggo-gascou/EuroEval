@@ -429,11 +429,30 @@ def get_hf_token(api_key: str | None) -> str | bool:
         False if no token is set and the user is not logged in.
     """
     if api_key is not None:
+        log_once(
+            "Using the Hugging Face API key passed to the function.",
+            level=logging.DEBUG,
+        )
         return api_key
     elif (token := os.getenv("HUGGINGFACE_API_KEY")) is not None:
+        log_once(
+            "Using the Hugging Face API key from the environment variable "
+            "`HUGGINGFACE_API_KEY`.",
+            level=logging.DEBUG,
+        )
         return token
     try:
         hf_hub.whoami()
+        log_once(
+            "No Hugging Face API key was set, but the user is logged in to Hugging "
+            "Face, so using the local token.",
+            level=logging.DEBUG,
+        )
         return True
     except hf_hub.errors.LocalTokenNotFoundError:
+        log_once(
+            "No Hugging Face API key was set and the user is not logged in to Hugging "
+            "Face, so no token will be used.",
+            level=logging.DEBUG,
+        )
         return False

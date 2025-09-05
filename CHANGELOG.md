@@ -55,6 +55,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Now always uses the `multiprocessing` backend when evaluating vLLM models, rather than
   reverting to `ray` when using multiple GPUs, as `ray` led to evaluations of several
   models freezing.
+- Now does not require the user to be logged in to Hugging Face to benchmark models on
+  the Hugging Face Hub, if the models are public.
 
 ### Removed
 - Removed support for human evaluation, as it was not actively maintained and not used.
