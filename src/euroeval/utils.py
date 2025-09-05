@@ -416,6 +416,7 @@ def extract_json_dict_from_string(s: str) -> dict | None:
     return json_output
 
 
+@cache
 def get_hf_token(api_key: str | None) -> str | bool:
     """Get the Hugging Face token.
 
