@@ -102,6 +102,13 @@ os.environ["DISABLE_AIOHTTP_TRANSPORT"] = "True"
 os.environ["VLLM_USE_V1"] = "1"
 
 
+# Use the FlashInfer flash-attention backend for vLLM. The FORCE_TENSOR_CORES
+# environment variable speeds up the FlashInfer backend, as mentioned in this vLLM PR:
+# https://github.com/vllm-project/vllm/pull/9497
+os.environ["VLLM_ATTENTION_BACKEND"] = "FLASHINFER"
+os.environ["FORCE_TENSOR_CORES"] = "1"
+
+
 # Set the HF_TOKEN env var to copy the HUGGINGFACE_API_KEY env var, as vLLM uses the
 # former and LiteLLM uses the latter
 if os.getenv("HUGGINGFACE_API_KEY"):
