@@ -142,6 +142,7 @@ EUROPEAN_VALUES = Task(
     ],
     requires_zero_shot=True,
     uses_logprobs=True,
+    allow_invalid_model_outputs=False,
 )
 
 
