@@ -14,9 +14,8 @@ Each language has two leaderboards:
 - **Generative Leaderboard**: This leaderboard shows the performance of models that can
   generate text. These models have been evaluated on _all_ [tasks](/tasks), both NLU and
   NLG.
-- **NLU Leaderboard**: This leaderboard shows the performance of models that can only
-  understand text, and not generate text themselves. These models have been evaluated on
-  the NLU tasks only.
+- **NLU Leaderboard**: This leaderboard shows the performance of models that can
+  understand text, which includes both generative and non-generative models.
 
 
 ## 📊 How to Read the Leaderboards
