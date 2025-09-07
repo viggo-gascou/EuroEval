@@ -47,11 +47,3 @@ the given model on each of the datasets.
 To read more about the individual datasets, see the [datasets](/datasets) page. If
 you're interested in the methodology behind the benchmark, see the
 [methodology](/methodology) page.
-
-/// tab | Generative Scatter Plot
-
-///
-
-/// tab | NLU Scatter Plot
-
-///
