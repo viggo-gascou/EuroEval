@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   240 / 60 / 500 samples for training, validation and test splits, respectively.
   This replaces Exam-et as the official Estonian knowledge dataset. This was contributed
   by @slowwavesleep ✨
+- Added the English and German versions of XQuAD as unofficial reading comprehension
+  datasets.
 - Added new `--generative-type` argument, which can be used to override the automatic
   detection of the generative type (base decoder, instruction-tuned decoder, or
   reasoning decoder) of a decoder model. This can be useful if the automatic detection
