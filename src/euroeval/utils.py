@@ -8,6 +8,7 @@ import importlib.util
 import logging
 import os
 import random
+import socket
 import sys
 import typing as t
 import warnings
@@ -16,10 +17,8 @@ from pathlib import Path
 
 import litellm
 import numpy as np
-import requests
 import torch
 from datasets.utils import disable_progress_bar
-from requests.exceptions import RequestException
 from transformers import logging as tf_logging
 
 from .exceptions import NaNValueInModelOutput
@@ -204,10 +203,17 @@ def internet_connection_available() -> bool:
         Whether or not internet connection is available.
     """
     try:
-        requests.get("https://www.google.com")
+        s = socket.create_connection(("1.1.1.1", 80))
+        s.close()
         return True
-    except RequestException:
-        return False
+    # a bit ugly but we dont want to actually import the pytest-socket exceptions
+    # we catch all exceptions and check if the name matches any known errors
+    except Exception as e:
+        pytest_socket_errors = ["SocketConnectBlockedError", "SocketBlockedError"]
+        if type(e).__name__ in pytest_socket_errors or e is OSError:
+            return False
+        else:
+            raise e
 
 
 class HiddenPrints:
