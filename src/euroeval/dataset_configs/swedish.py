@@ -1,6 +1,7 @@
 """All Swedish dataset configurations used in EuroEval."""
 
 from ..data_models import DatasetConfig
+from ..enums import ModelType
 from ..languages import SV
 from ..tasks import COMMON_SENSE, EUROPEAN_VALUES, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
@@ -153,5 +154,16 @@ EUROPEAN_VALUES_COMPLETIONS_SV_CONFIG = DatasetConfig(
     splits=["test"],
     bootstrap_samples=False,
     _instruction_prompt="{text}",
+    unofficial=True,
+)
+
+SKOLPROV_CONFIG = DatasetConfig(
+    name="skolprov",
+    pretty_name="the Swedish knowledge dataset Skolprov",
+    huggingface_id="EuroEval/skolprov",
+    task=KNOW,
+    languages=[SV],
+    splits=["train", "test"],
+    _allowed_model_types=[ModelType.GENERATIVE],
     unofficial=True,
 )
