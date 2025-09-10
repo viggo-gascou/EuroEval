@@ -7,9 +7,17 @@ information about what these constitute.
 ## Sentiment Classification
 
 ### PolEmo2
-This dataset was published in [this paper](https://aclanthology.org/K19-1092/) and consists of Polish online reviews from the medicine and hotels domains, annotated for sentiment. Each review is labelled as positive, negative, neutral, or ambiguous. We have filtered out the ambiguous samples.
+This dataset was published in [this paper](https://doi.org/10.18653/v1/K19-1092) and
+consists of Polish online reviews from the medicine and hotels domains, annotated for
+sentiment. Each review is labelled as positive, negative, neutral, or ambiguous. We have
+filtered out the ambiguous samples.
 
-The original full dataset consists of 6,573 / 823 / 820 samples for the training, validation and test splits, respectively. We use 1,024 / 256 / 2,048 samples for our training, validation and test splits, respectively. The train and validation splits are subsets of the original splits. For the test split, we use all available test samples and supplement with additional samples from the training set to reach 2,048 samples in total.
+The original full dataset consists of 6,573 / 823 / 820 samples for the training,
+validation and test splits, respectively. We use 1,024 / 256 / 2,048 samples for our
+training, validation and test splits, respectively. The train and validation splits are
+subsets of the original splits. For the test split, we use all available test samples
+and supplement with additional samples from the training set to reach 2,048 samples in
+total.
 
 The distribution of sentiment labels across the combined splits is as follows:
 - **Negative**: 1,592 samples
@@ -72,9 +80,20 @@ $ euroeval --model <model-id> --dataset polemo2
 
 ### KPWr-NER
 
-This dataset was published in [this paper](https://aclanthology.org/L12-1574/) and is part of the KPWr (KrakówPoland Wrocław) corpus - a free Polish corpus annotated with various types of linguistic entities including named entities. The corpus was created to serve as training and testing material for Machine Learning algorithms and is released under a Creative Commons licence. The named entity annotations include persons, locations, organizations, and miscellaneous entities, which are mapped to standard BIO format labels.
+This dataset was published in [this paper](https://aclanthology.org/L12-1574/) and is
+part of the KPWr (KrakówPoland Wrocław) corpus - a free Polish corpus annotated with
+various types of linguistic entities including named entities. The corpus was created to
+serve as training and testing material for Machine Learning algorithms and is released
+under a Creative Commons licence. The named entity annotations include persons,
+locations, organizations, and miscellaneous entities, which are mapped to standard BIO
+format labels.
 
-The original dataset uses the train and test splits from the source corpus. The original data train split has 13,959 samples and test split has 4,323 samples. The validation split is created from the original training split. We use 1,024 / 256 / 2,048 samples for our training, validation and test splits, respectively. The train and validation splits are subsets of the original training split, while the test split is a subset of the original test split.
+The original dataset uses the train and test splits from the source corpus. The original
+data train split has 13,959 samples and test split has 4,323 samples. The validation
+split is created from the original training split. We use 1,024 / 256 / 2,048 samples
+for our training, validation and test splits, respectively. The train and validation
+    splits are subsets of the original training split, while the test split is a subset
+    of the original test split.
 
 Here are a few examples from the training split:
 
@@ -151,8 +170,8 @@ from a sentence, or by swapping two neighbouring words in a sentence. To ensure 
 this does indeed break the grammaticality of the sentence, a set of rules were used on
 the part-of-speech tags of the words in the sentence.
 
-The original full dataset consists of 22,152 samples, from which we use 1,024 / 256 / 2,048 samples for training,
-validation and testing, respectively.
+The original full dataset consists of 22,152 samples, from which we use 1,024 / 256 /
+2,048 samples for training, validation and testing, respectively.
 
 Here are a few examples from the training split:
 
@@ -209,12 +228,14 @@ $ euroeval --model <model-id> --dataset scala-pl
 
 ### PoQuAD
 
-PoQuAD is a Polish Question Answering dataset with contexts from Polish Wikipedia. It follows the SQuAD format with innovations including lower annotation density, abstractive answers, polar questions, and impossible questions.
+PoQuAD was published in [this paper](https://doi.org/10.1145/3587259.3627548) and is a
+Polish Question Answering dataset with contexts from Polish Wikipedia. It follows the
+SQuAD format with innovations including lower annotation density, abstractive answers,
+polar questions, and impossible questions.
 
-This dataset was published in [this paper](https://dl.acm.org/doi/10.1145/3587259.3627548).
-
-The original dataset consists of 51,951 samples. We use 1,024 / 256 / 2,048 samples for training, validation and testing, respectively.
-We do not use the impossible questions in this version of the dataset.
+The original dataset consists of 51,951 samples. We use 1,024 / 256 / 2,048 samples for
+training, validation and testing, respectively. We do not use the impossible questions
+in this version of the dataset.
 
 Here are a few examples from the training split:
 
@@ -267,14 +288,94 @@ You can evaluate this dataset directly as follows:
 $ euroeval --model <model-id> --dataset poquad
 ```
 
+### Unofficial: MultiWikiQA-pl
+
+This dataset was published in [this paper](https://doi.org/10.48550/arXiv.2509.04111)
+and contains Wikipedia articles with LLM-generated questions and answers in 300+
+languages.
+
+The original full dataset consists of 5,000 samples in a single split. We use a 1,024 /
+256 / 2,048 split for training, validation and testing, respectively, sampled randomly.
+
+Here are a few examples from the training split:
+
+```json
+{
+    'context': 'Marcus Terrell Thornton (ur. 5 czerwca 1987 w Baton Rouge) – amerykański koszykarz, występujący na pozycji rzucającego obrońcy, wybrany do drugiego składu najlepszych debiutantów NBA.\n\n25 lipca 2015 roku podpisał umowę z Houston Rockets.\n\n18 lutego 2016 w ramach wymiany między trzema klubami miał trafić do Detroit Pistons. Jednak cztery dni później umowa została anulowana, ponieważ inny gracz biorący udział w wymianie, litewski skrzydłowy Donatas Motiejūnas, nie przeszedł testów medycznych i tym samym Thornton pozostał w drużynie Houston Rockets. 26 lutego 2016 roku został zwolniony przez klub Rockets. 9 marca 2016 roku podpisał umowę do końca sezonu z klubem Washington Wizards.\n\n22 lutego 2017 został wytransferowany wraz z Andrew Nicholsonem oraz przyszłym wyborem I rundy draftu 2017 do Brooklyn Nets w zamian za Bojana Bogdanovicia i Chrisa McCullougha. Kolejnego dnia został zwolniony przez Nets.\n\nOsiągnięcia \nStan na 29 grudnia 2020, na podstawie, o ile nie zaznaczono inaczej.\n College\n Uczestnik turnieju NCAA (2009)\n Mistrz sezonu regularnego konferecji Southeastern NCAA (SEC – 2009)\n Zawodnik roku konferencji Southeastern (2009)\n MVP turnieju NJCAA Basketball Coaches Association Classic\n Najlepszy nowo przybyły zawodnik konferencji SEC (2008)\n Zaliczony do:\n I składu: \n SEC (2008, 2009)\n All-Louisiana (2008)\n NJCAA All-American (2007)\n\n NBA\n Wybrany do II składu debiutantów NBA (2010)\n\n Inne\n Uczestnik meczu gwiazd G-League (2018)\n\nPrzypisy\n\nLinki zewnętrzne \n Profil na NBA.com \n Statystyki na basketball-reference.com \n Profil na landofbasketball.com \n\nAmerykańscy koszykarze\nKoszykarze Boston Celtics\nKoszykarze New Orleans Hornets\nKoszykarze Sacramento Kings\nKoszykarze Phoenix Suns\nKoszykarze Houston Rockets\nKoszykarze LSU Tigers\nKoszykarze Grand Rapids Drive\nKoszykarze Washington Wizards\nKoszykarze Brooklyn Nets\nKoszykarze Beijing Ducks\nUrodzeni w 1987\nLudzie urodzeni w Baton Rouge',
+    'question': 'Gdzie Thornton przyszedł na świat?',
+    'answers': {
+        'answer_start': array([46]),
+        'text': array(['Baton Rouge'], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Leonowo – dawny folwark. Tereny, na których był położony leżą obecnie na Białorusi, w obwodzie mińskim, w rejonie miadzielskim, w sielsowiecie Krzywicze.\n\nHistoria \nW czasach zaborów folwark prywatny w powiecie wilejskim, w guberni wileńskiej Imperium Rosyjskiego. W 1866 roku liczył 18 mieszkańców w 1 domu.\n\nW latach 1921–1945 folwark leżał w Polsce, w województwie wileńskim, w powiecie wilejskim, w gminie Krzywicze.\n\nWedług Powszechnego Spisu Ludności z 1921 roku zamieszkiwały tu 24 osoby, 17 było wyznania rzymskokatolickiego a 7 mahometańskiego. Jednocześnie 17 mieszkańców zadeklarowało polską a 7 białoruską przynależność narodową. Były tu 3 budynki mieszkalne. W 1931 w 2 domach zamieszkiwało 17 osób.\n\nWierni należeli do parafii rzymskokatolickiej i prawosławnej w Krzywiczach. Miejscowość podlegała pod Sąd Grodzki w Krzywicze i Okręgowy w Wilnie; właściwy urząd pocztowy mieścił się w Krzywiczach.\n\nW wyniku napaści ZSRR na Polskę we wrześniu 1939 miejscowość znalazła się pod okupacją sowiecką. 2 listopada została włączona do Białoruskiej SRR. Od czerwca 1941 roku pod okupacją niemiecką. W 1944 miejscowość została ponownie zajęta przez wojska sowieckie i włączona do Białoruskiej SRR.\n\nUwagi\n\nPrzypisy\n\nLinki zewnętrzne \n\n \n\nRejon miadzielski\nOpuszczone miejscowości na Białorusi\nMiejscowości województwa wileńskiego (II Rzeczpospolita)",
+    "question": "Jaka była liczba ludności Leonowa w 1921 roku?",
+    "answers": {
+        "answer_start": array([486]),
+        "text": array(["24"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Carlos Manuel Brito Leal de Queiroz (wym. ; ur. 1 marca 1953 w Nampuli w Mozambiku) – portugalski trener piłkarski i piłkarz.\n\nKariera szkoleniowa \nBył bramkarzem miejscowego klubu Nampuli. W 1976 z powodu kontuzji musiał zakończyć piłkarską karierę. Pracę szkoleniową rozpoczął w Portugalii, z reprezentacją młodzieżową, z którą dwukrotnie – w 1989 i 1991 – zdobył tytuł mistrza świata. Jest twórcą największych sukcesów w historii młodzieżowej piłki portugalskiej i wychowawcą „Złotego pokolenia” portugalskich piłkarzy, którego najwybitniejsi przedstawiciele – Luís Figo, Rui Costa, Jorge Costa i Fernando Couto – stanowili później o sile dorosłej kadry.\n\nW 1990 został selekcjonerem reprezentacji A, ale nie udało mu się z nią awansować do Mundialu 1994. Do światowego czempionatu wprowadził za to Republikę Południowej Afryki, lecz został zwolniony na kilka miesięcy przed turniejem. Ponadto szkolił zespoły w Stanach Zjednoczonych, Japonii i Zjednoczonych Emiratach Arabskich; jest jednym z nielicznych trenerów, którzy pracowali na czterech różnych kontynentach.\n\nW 2003 dostał szansę od Realu Madryt, ale sezon spędzony w stolicy Hiszpanii – IV miejsce w Primera División i szybkie odpadnięcie z Ligi Mistrzów – był jednym z gorszych w całej historii klubu. W 2004 ponownie (wcześniej w latach 2002–2003) został asystentem Aleksa Fergusona w Manchesterze United. W tym czasie klub zdobył m.in. Puchar Mistrzów i dwa tytuły mistrza Anglii. Zdaniem wielu obserwatorów był szykowany na następcę Fergusona, jednak w lipcu 2008 zdecydował się przyjąć propozycję szefów Portugalskiego Związku Piłki Nożnej i po raz drugi w karierze poprowadził reprezentację Portugalii.\n\nBrał z nią udział w kwalifikacjach do Mundialu 2010. W grupie eliminacyjnej Portugalia zajęła drugie miejsce, za Danią. Do mistrzostw awansowała dzięki wygranej w barażach z Bośnią i Hercegowiną. Na samym turnieju jego podopieczni, wśród których znajdowali się m.in. Cristiano Ronaldo, Deco, Paulo Ferreira i Ricardo Carvalho, doszli do drugiej rundy, gdzie przegrali 0:1 z przyszłymi mistrzami świata Hiszpanami. W rozgrywkach grupowych wygrali z Koreą Północną i Wybrzeżem Kości Słoniowej oraz zremisowali z Brazylią.\n\nPo mistrzostwach Queiroz został zawieszony na pół roku za obrażenie kontrolerów antydopingowych. W tym czasie Portugalczycy (prowadzeni na boisku przez Agostinho Oliveirę) rozpoczęli eliminacje do Euro 2012; po dwu pierwszych meczach mieli na koncie tylko jeden punkt, po remisie z Cyprem (4:4) i porażce z Norwegią (0:1). 9 września, dwa dni po tym ostatnim spotkaniu, portugalska federacja postanowiła rozwiązać kontrakt z trenerem.\n\n4 kwietnia 2011 został selekcjonerem reprezentacji Iranu. Dwa lata później świętował z nią awans do Mundialu 2014.\n\n8 września 2021 roku został trenerem reprezentacji Egiptu.\n\nSukcesy szkoleniowe \n mistrzostwo świata U-20 1989 i 1991 z młodzieżową reprezentacją Portugalii\n wicemistrzostwo Portugalii 1996 ze Sportingiem\n awans do Mundialu 2002 z reprezentacją RPA\n awans do Mundialu 2010 i start w tym turnieju (1/8 finału) z reprezentacją Portugalii\n awans do Mundialu 2014 z reprezentacją Iranu\n\nOdznaczenia \n  Komandor Orderu Infanta Henryka (1989, Portugalia)\n\nZobacz też \n Złote pokolenie piłkarzy portugalskich\n\nPortugalscy trenerzy piłkarscy\nSelekcjonerzy reprezentacji Portugalii w piłce nożnej mężczyzn\nSelekcjonerzy reprezentacji Zjednoczonych Emiratów Arabskich w piłce nożnej mężczyzn\nSelekcjonerzy reprezentacji Południowej Afryki w piłce nożnej mężczyzn\nSelekcjonerzy reprezentacji Iranu w piłce nożnej mężczyzn\nSelekcjonerzy reprezentacji Kolumbii w piłce nożnej mężczyzn\nSelekcjonerzy reprezentacji Egiptu w piłce nożnej mężczyzn\nSelekcjonerzy reprezentacji Kataru w piłce nożnej mężczyzn\nTrenerzy piłkarzy Realu Madryt\nTrenerzy piłkarzy Sportingu CP\nTrenerzy piłkarzy Nagoya Grampus\nTrenerzy piłkarzy New York Red Bulls\nOdznaczeni Orderem Infanta Henryka\nLudzie urodzeni w Nampuli\nUrodzeni w 1953",
+    "question": "Kiedy Carlos Queiroz był selekcjonerem reprezentacji Portugalii na Mistrzostwach Świata?",
+    "answers": {
+        "answer_start": array([1720]),
+        "text": array(["2010"], dtype=object)
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 4
+- Prefix prompt:
+  ```
+  Poniżej znajdują się teksty z towarzyszącymi pytaniami i
+  odpowiedziami.
+  ```
+- Base prompt template:
+  ```
+  Tekst: {text}
+  Pytanie: {question}
+  Odpowiedź w maksymalnie 3 słowach: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Tekst: {text}
+
+  Odpowiedz na następujące pytanie dotyczące powyższego tekstu w maksymalnie 3 słowach.
+
+  Pytanie: {question}
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset multi-wiki-qa-pl
+```
+
 
 ## Knowledge
 
 ### LLMzSzŁ
 
-This dataset was created based on Polish national exams extracted from the archives of the Polish Central Examination Board. LLMzSzŁ (LLMs Behind the School Desk) represents the first comprehensive benchmark for the Polish language at this scale. The dataset features both academic and professional tests covering 4 types of exams from 154 different domains. The dataset was created to evaluate the ability of language models to transfer knowledge between languages and to assess their performance on Polish educational content.
+This dataset was published in [this paper](https://doi.org/10.48550/arXiv.2501.02266)
+and is based on Polish national exams extracted from the archives of the Polish Central
+Examination Board. LLMzSzŁ (LLMs Behind the School Desk) represents the first
+comprehensive benchmark for the Polish language at this scale. The dataset features both
+academic and professional tests covering 4 types of exams from 154 different domains.
+The dataset was created to evaluate the ability of language models to transfer knowledge
+between languages and to assess their performance on Polish educational content.
 
-The original dataset consisted of almost 19,000 closed-ended questions in a single test split. We use a 1,024 / 256 / 2,048 split for training, validation and testing, respectively (so 3,328 samples used in total).
+The original dataset consisted of almost 19,000 closed-ended questions in a single test
+split. We use a 1,024 / 256 / 2,048 split for training, validation and testing,
+respectively (so 3,328 samples used in total).
 
 Here are a few examples from the training split:
 
@@ -308,13 +409,23 @@ When evaluating generative models, we use the following setup (see the
 - Base prompt template:
   ```
   Pytanie: {text}
+  Opcje:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
   Odpowiedź: {label}
   ```
 - Instruction-tuned prompt template:
   ```
   Pytanie: {text}
+  Opcje:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
 
-  Odpowiedz na powyższe pytanie, odpowiadając {labels_str}, i nic więcej.
+  Odpowiedz na powyższe pytanie, odpowiadając 'a', 'b', 'c' lub 'd', i nic więcej.
   ```
 
 You can evaluate this dataset directly as follows:
@@ -326,13 +437,160 @@ $ euroeval --model <model-id> --dataset llmzszl
 
 ## Common-sense Reasoning
 
-## Summarization
+### Winogrande-pl
+
+This dataset was published in [this paper](https://doi.org/10.48550/arXiv.2506.19468)
+and is a translated and filtered version of the English [Winogrande
+dataset](https://doi.org/10.1145/3474381).
+
+The original full dataset consists of 47 / 1,210 samples for training and testing, and
+we use the same splits.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "text": "Gęsi wolą gniazdować na polach niż w lasach, ponieważ na _ drapieżniki są bardzo widoczne. Do kogo odnosi się puste miejsce _?\nOpcje:\na. Opcja A: pola\nb. Opcja B: lasy",
+  "label": "a"
+}
+```
+
+```json
+{
+  "text": "Kyle czuł się bardziej komfortowo, mówiąc przed dużymi grupami niż Nick, ponieważ _ brał udział w kursach przemówień publicznych na studiach. Do kogo odnosi się puste miejsce _?\nOpcje:\na. Opcja A: Kyle\nb. Opcja B: Nick",
+  "label": "a"
+}
+```
+
+```json
+{
+  "text": "Nie mogłem kontrolować wilgoci tak jak kontrolowałem deszcz, ponieważ _ wchodziła w jednym miejscu. Do kogo odnosi się puste miejsce _?\nOpcje:\na. Opcja A: wilgoci\nb. Opcja B: deszcz",
+  "label": "b"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 5
+- Prefix prompt:
+  ```
+  Poniżej znajdują się pytania wielokrotnego wyboru (z odpowiedziami).
+  ```
+- Base prompt template:
+  ```
+  Pytanie: {text}
+  Opcje:
+  a. {option_a}
+  b. {option_b}
+  Odpowiedź: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Pytanie: {text}
+  Opcje:
+  a. {option_a}
+  b. {option_b}
+
+  Odpowiedz na powyższe pytanie, odpowiadając 'a' lub 'b', i nic więcej.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset winogrande-pl
+```
+
+
+### Unofficial: GoldenSwag-pl
+
+This dataset is a filtered and machine translated version of the English [HellaSwag
+dataset](https://aclanthology.org/P19-1472/), featuring both video descriptions from
+ActivityNet as well as how-to articles from WikiHow. The machine translated version was
+published in [this paper](https://doi.org/10.48550/arXiv.2410.08928) and was done using
+DeepL, and the filtering was published in [this
+paper](https://doi.org/10.48550/arXiv.2504.07825), which resulted in higher quality
+samples.
+
+The original full dataset consists of 1530 / 1530 samples for training and validation,
+respectively. However, they are exactly equal. We use a split of 660 / 256 / 2,048
+samples for training, validation, and testing, respectively.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "text": "Jak usunąć samoopalacz ze skóry? Nałóż oliwkę dla dzieci. W większości przypadków wilgoć pomaga zachować kolor opalenizny. Jednak oliwka dla dzieci ma odwrotne działanie i rozluźnia komórki skóry zabarwione samoopalaczem.\nOpcje:\na. Stosowanie oliwki dla dzieci może złagodzić lub całkowicie usunąć samoopalacz bez szkody dla skóry. Namocz skórę w oliwce dla niemowląt i pozostaw na dziesięć minut.\nb. Nakładaj oliwkę dla niemowląt po trochu i ugniataj ją, aby rozluźnić suche plamy. Możesz użyć niewielkiej ilości oliwki dla niemowląt na raz i użyć tylko odrobiny olejku na skórze bez słońca.\nc. Użyj miękkiej bawełnianej ściereczki lub gąbki, aby delikatnie wchłonąć trochę płynu. Następnie możesz nałożyć miękki bawełniany ręcznik na głowę i przykryć twarz.\nd. Spróbuj użyć niewielkiej ilości oliwki dla niemowląt 3 razy w tygodniu i delikatnie zetrzyj martwe komórki naskórka opuszkami palców. Jak wspomniano wcześniej, nie należy myć, nawilżać ani usuwać kremu do opalania bez słońca, ponieważ może to uniemożliwić przyleganie samoopalacza do skóry.",
+  "label": "a"
+}
+```
+
+```json
+{
+  "text": "Jak śledzić swoją dietę na fitbit. Załóż konto fitbit, jeśli jeszcze go nie masz. Kliknij łącze \"zaloguj się\" w prawym górnym rogu strony i wprowadź dane logowania do konta, aby się zalogować. Zaloguj się do swojego konta fitbit na stronie www.fitbit.com lub w aplikacji.\nOpcje:\na. Zostaniesz poproszony o podanie swoich danych osobowych (imię i nazwisko, numer telefonu, adres e-mail itp. ) oraz hasła, a następnie możesz ustawić hasło.\nb. To tutaj będziesz śledzić swoje dzienne spożycie kalorii. Pod pulpitem nawigacyjnym konta kliknij \" dziennik.\nc. Możesz pominąć ten krok, jeśli chcesz zalogować się z aplikacji apple.com myfitbit na swoim iPhonie lub iPadzie. Jeśli masz już konto na tym samym iPhonie lub iPadzie, nie musisz się logować.\nd. Wybierz, określ i wprowadź swoje dane żywieniowe. W prawym górnym rogu ekranu pojawi się lista wszystkich produktów o równej wadze.",
+  "label": "b"
+}
+```
+
+```json
+{
+  "text": "Jak mrozić warzywa ogrodowe. Wybieraj młode, świeżo zebrane warzywa. Warzywa ogrodowe, które leżały przez kilka dni, stracą część swojej świeżości, a zamrażanie może spowodować utratę ich dodatkowego smaku. Aby zapewnić, że warzywa pozostaną świeże tak długo, jak to możliwe, wybieraj warzywa, które są ledwo dojrzałe lub lekko niedojrzałe.\nOpcje:\na. Sprawdź, czy warzywa są w sezonie. Owoce, które są już dojrzałe lub dojrzałe, będą lepiej przechowywać się w zamrażarce, a produkty, które jeszcze nie wyschły, będą trwać dłużej, jeśli zamrażasz produkty bez ich odcedzania.\nb. Większe warzywa mogą dodać dodatkowego smaku i objętości poprzez szybsze wysychanie, ale nadal będą trwać dłużej i będą mniej przetworzone. Staraj się wybierać warzywa o długości około 10 cm (4 cale).\nc. Unikaj przejrzałych warzyw, które mogą się zepsuć nawet po zamrożeniu. Zbieraj warzywa wcześnie rano i natychmiast rozpocznij proces zamrażania, aby uzyskać najlepsze rezultaty.\nd. Jeśli nie jesteś fanem brokułów i ziemniaków, wybierz warzywa, które można zjeść bez zmiany koloru na pomarańczowy. Zdecyduj, jak mokre lub suche mają być warzywa.",
+  "label": "c"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 5
+- Prefix prompt:
+  ```
+  Poniżej znajdują się pytania wielokrotnego wyboru (z odpowiedziami).
+  ```
+- Base prompt template:
+  ```
+  Pytanie: {text}
+  Opcje:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+  Odpowiedź: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Pytanie: {text}
+  Opcje:
+  a. {option_a}
+  b. {option_b}
+  c. {option_c}
+  d. {option_d}
+
+  Odpowiedz na powyższe pytanie, odpowiadając 'a', 'b', 'c' lub 'd', i nic więcej.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset goldenswag-pl
+```
+
+
+## Summarisation
 
 ### PSC
 
-The Polish Summaries Corpus (PSC) was published in [this paper](https://aclanthology.org/L14-1145/) and is a resource created for automated single-document summarization of Polish. The corpus contains manual summaries of news articles, with multiple independently created summaries for single texts to overcome annotator bias. It includes both abstract free-word summaries and extraction-based summaries created by selecting text spans from the original documents.
+The Polish Summaries Corpus (PSC) was published in [this
+paper](https://aclanthology.org/L14-1145/) and is a resource created for automated
+single-document summarization of Polish. The corpus contains manual summaries of news
+articles, with multiple independently created summaries for single texts to overcome
+annotator bias. It includes both abstract free-word summaries and extraction-based
+summaries created by selecting text spans from the original documents.
 
-The original dataset consists only of a training split. We use 1,024 / 256 / 2,048 samples for our training, validation and test splits, respectively. All splits are subsets of the original training data, with the validation and test splits sampled from the original training set.
+The original dataset consists only of a training split. We use 1,024 / 256 / 2,048
+samples for our training, validation and test splits, respectively. All splits are
+subsets of the original training data, with the validation and test splits sampled from
+the original training set.
 
 Here are a few examples from the training split:
 
