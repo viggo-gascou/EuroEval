@@ -44,7 +44,11 @@ from ..exceptions import (
     NeedsEnvironmentVariable,
     NeedsExtraInstalled,
 )
-from ..generation_utils import apply_prompt, extract_few_shot_examples
+from ..generation_utils import (
+    apply_prompt,
+    extract_few_shot_examples,
+    raise_if_wrong_params,
+)
 from ..languages import get_all_languages
 from ..task_group_utils import (
     question_answering,
@@ -52,7 +56,7 @@ from ..task_group_utils import (
     text_to_text,
     token_classification,
 )
-from ..tokenization_utils import (
+from ..tokenisation_utils import (
     apply_chat_template,
     get_bos_token,
     get_end_of_chat_token_ids,
@@ -69,6 +73,7 @@ from ..utils import (
     get_hf_token,
     get_min_cuda_compute_capability,
     log_once,
+    split_model_id,
 )
 from .hf import HuggingFaceEncoderModel, get_model_repo_info, load_hf_model_config
 
@@ -97,6 +102,7 @@ class VLLMModel(HuggingFaceEncoderModel):
     fresh_model = False
     batching_preference = BatchingPreference.ALL_AT_ONCE
     high_priority = True
+    allowed_params = {re.compile(r".*"): ["thinking", "no-thinking"]}
 
     def __init__(
         self,
@@ -120,23 +126,15 @@ class VLLMModel(HuggingFaceEncoderModel):
         if importlib.util.find_spec("vllm") is None:
             raise NeedsExtraInstalled(extra="generative")
 
+        raise_if_wrong_params(
+            model_config=model_config, allowed_params=self.allowed_params
+        )
+
         model, tokeniser = load_model_and_tokeniser(
             model_config=model_config, benchmark_config=benchmark_config
         )
         self._model: "LLM" = model
         self._tokeniser: "PreTrainedTokenizer" = tokeniser
-        self.end_of_reasoning_token = get_end_of_reasoning_token(
-            model=self._model, tokeniser=self._tokeniser, model_id=model_config.model_id
-        )
-        self.end_of_chat_token_ids = get_end_of_chat_token_ids(
-            tokeniser=self._tokeniser
-        )
-        self.custom_stop_tokens = get_custom_stop_tokens(
-            model=self._model,
-            tokeniser=self._tokeniser,
-            model_id=model_config.model_id,
-            is_reasoning_model=self.end_of_reasoning_token is not None,
-        )
 
         # We specify `HuggingFaceEncoderModel` here instead of `VLLMModel`, as we want
         # to call the `__init__` method of the `BenchmarkModule` class.
@@ -147,15 +145,27 @@ class VLLMModel(HuggingFaceEncoderModel):
             log_metadata=log_metadata,
         )
 
+        self.end_of_reasoning_token = get_end_of_reasoning_token(
+            model=self._model, tokeniser=self._tokeniser, model_id=model_config.model_id
+        )
+        self.end_of_chat_token_ids = get_end_of_chat_token_ids(
+            tokeniser=self._tokeniser, generative_type=self.generative_type
+        )
+        self.custom_stop_tokens = get_custom_stop_tokens(
+            model=self._model,
+            tokeniser=self._tokeniser,
+            model_id=model_config.model_id,
+            generative_type=self.generative_type,
+        )
+
         self.buffer |= dict(
-            instruction_model=has_chat_template(tokeniser=self._tokeniser),
             first_label_token_mapping=get_first_label_token_mapping(
                 dataset_config=self.dataset_config,
                 model_config=self.model_config,
                 tokeniser=self._tokeniser,
                 generative_type=self.generative_type,
                 log_metadata=self.log_metadata,
-            ),
+            )
         )
         if self.model_config.adapter_base_model_id is not None:
             adapter_path = snapshot_download(
@@ -195,7 +205,14 @@ class VLLMModel(HuggingFaceEncoderModel):
             return None
         elif self.benchmark_config.generative_type is not None:
             type_ = self.benchmark_config.generative_type
-        elif self.end_of_reasoning_token is not None:
+        elif self.model_config.param in {"thinking"}:
+            type_ = GenerativeType.REASONING
+        elif self.model_config.param in {"no-thinking"}:
+            type_ = GenerativeType.INSTRUCTION_TUNED
+        elif (
+            hasattr(self, "end_of_reasoning_token")
+            and self.end_of_reasoning_token is not None
+        ):
             type_ = GenerativeType.REASONING
         elif (
             has_chat_template(tokeniser=self._tokeniser)
@@ -298,7 +315,7 @@ class VLLMModel(HuggingFaceEncoderModel):
                 few_shot_examples=few_shot_examples,
                 model_config=self.model_config,
                 dataset_config=self.dataset_config,
-                instruction_model=self.buffer["instruction_model"],
+                generative_type=self.generative_type,
                 always_populate_text_field=True,
                 tokeniser=self._tokeniser,
             ),
@@ -326,7 +343,7 @@ class VLLMModel(HuggingFaceEncoderModel):
         """
         # Get stopping tokens
         stop_tokens: list[str] = self.custom_stop_tokens.copy()
-        if self.buffer["instruction_model"] is False:
+        if self.generative_type == GenerativeType.BASE:
             stop_tokens.append("\n\n")
         if self._tokeniser.pad_token_id is not None:
             assert isinstance(self._tokeniser.pad_token, str), (
@@ -443,9 +460,7 @@ class VLLMModel(HuggingFaceEncoderModel):
         labels_to_be_generated = list(self.dataset_config.prompt_label_mapping.values())
         if len(labels_to_be_generated) == 0:
             labels_to_be_generated = ["negative", "positive"]
-        if not self.buffer.get(
-            "instruction_model", False
-        ) and should_prompts_be_stripped(
+        if self.generative_type == GenerativeType.BASE and should_prompts_be_stripped(
             labels_to_be_generated=labels_to_be_generated, tokeniser=self._tokeniser
         ):
             log_once(
@@ -603,9 +618,10 @@ class VLLMModel(HuggingFaceEncoderModel):
         if using_api:
             return False
 
-        model_id, revision = (
-            model_id.split("@") if "@" in model_id else (model_id, "main")
-        )
+        model_id_components = split_model_id(model_id=model_id)
+        model_id = model_id_components.model_id
+        revision = model_id_components.revision
+
         model_info = get_model_repo_info(
             model_id=model_id, revision=revision, benchmark_config=benchmark_config
         )
@@ -629,11 +645,11 @@ class VLLMModel(HuggingFaceEncoderModel):
         Returns:
             The model configuration.
         """
-        model_id, revision = (
-            model_id.split("@") if "@" in model_id else (model_id, "main")
-        )
+        model_id_components = split_model_id(model_id=model_id)
         model_info = get_model_repo_info(
-            model_id=model_id, revision=revision, benchmark_config=benchmark_config
+            model_id=model_id_components.model_id,
+            revision=model_id_components.revision,
+            benchmark_config=benchmark_config,
         )
         if model_info is None:
             raise InvalidModel(f"The model {model_id!r} could not be found.")
@@ -642,8 +658,9 @@ class VLLMModel(HuggingFaceEncoderModel):
         language_codes = list(language_mapping.keys())
 
         model_config = ModelConfig(
-            model_id=model_id,
-            revision=revision,
+            model_id=model_id_components.model_id,
+            revision=model_id_components.revision,
+            param=model_id_components.param,
             task=model_info.pipeline_tag,
             languages=[
                 language_mapping[tag]
@@ -998,7 +1015,11 @@ def get_end_of_reasoning_token(
     prompt = "What is your name?"
     if has_chat_template(tokeniser=tokeniser):
         templated_prompt = apply_chat_template(
-            conversation=[dict(role="user", content=prompt)], tokeniser=tokeniser
+            conversation=[dict(role="user", content=prompt)],
+            tokeniser=tokeniser,
+            tokenise=False,
+            add_generation_prompt=True,
+            enable_thinking=True,
         )
         assert isinstance(templated_prompt, str)
         prompt = templated_prompt
@@ -1076,7 +1097,7 @@ def get_custom_stop_tokens(
     model: "LLM",
     tokeniser: "PreTrainedTokenizer",
     model_id: str,
-    is_reasoning_model: bool,
+    generative_type: GenerativeType | None,
 ) -> list[str]:
     """Get the stop tokens for a generative model.
 
@@ -1087,9 +1108,8 @@ def get_custom_stop_tokens(
             The tokeniser.
         model_id:
             The model ID.
-        is_reasoning_model:
-            Whether the model is a reasoning model. This is used to determine the number
-            of generated tokens to allow before stopping the generation.
+        generative_type:
+            The generative type of the model.
 
     Returns:
         A list of stop tokens.
@@ -1099,12 +1119,18 @@ def get_custom_stop_tokens(
     prompt = "Hello"
     if has_chat_template(tokeniser=tokeniser):
         templated_prompt = apply_chat_template(
-            conversation=[dict(role="user", content=prompt)], tokeniser=tokeniser
+            conversation=[dict(role="user", content=prompt)],
+            tokeniser=tokeniser,
+            tokenise=False,
+            add_generation_prompt=True,
+            enable_thinking=generative_type == GenerativeType.REASONING,
         )
         assert isinstance(templated_prompt, str)
         prompt = templated_prompt
 
-    max_tokens = REASONING_MAX_TOKENS if is_reasoning_model else 10
+    max_tokens = (
+        REASONING_MAX_TOKENS if generative_type == GenerativeType.REASONING else 10
+    )
     completion = (
         model.generate(
             prompts=[prompt],

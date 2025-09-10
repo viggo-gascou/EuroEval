@@ -14,6 +14,7 @@ from huggingface_hub import HfApi
 from huggingface_hub import whoami as hf_whoami
 from huggingface_hub.errors import (
     GatedRepoError,
+    HfHubHTTPError,
     HFValidationError,
     LocalTokenNotFoundError,
     RepositoryNotFoundError,
@@ -56,13 +57,14 @@ from ..exceptions import (
     NeedsEnvironmentVariable,
     NeedsExtraInstalled,
 )
+from ..generation_utils import raise_if_wrong_params
 from ..languages import get_all_languages
 from ..task_group_utils import (
     multiple_choice_classification,
     question_answering,
     token_classification,
 )
-from ..tokenization_utils import get_bos_token, get_eos_token
+from ..tokenisation_utils import get_bos_token, get_eos_token
 from ..utils import (
     block_terminal_output,
     create_model_cache_dir,
@@ -70,6 +72,7 @@ from ..utils import (
     get_hf_token,
     internet_connection_available,
     log_once,
+    split_model_id,
 )
 from .base import BenchmarkModule
 
@@ -110,6 +113,10 @@ class HuggingFaceEncoderModel(BenchmarkModule):
             log_metadata:
                 Whether to log the model metadata.
         """
+        raise_if_wrong_params(
+            model_config=model_config, allowed_params=self.allowed_params
+        )
+
         model, tokeniser = load_model_and_tokeniser(
             model_config=model_config,
             dataset_config=dataset_config,
@@ -245,15 +252,6 @@ class HuggingFaceEncoderModel(BenchmarkModule):
         # that are less than 128
         all_max_lengths = [
             max_length for max_length in all_max_lengths if max_length >= 128
-        ]
-
-        # We remove the upper cap of maximum context length for the model, as it is
-        # highly unlikely that this is the model's actual maximum context length - we
-        # would rather not report a value than report an incorrect one.
-        all_max_lengths = [
-            max_length
-            for max_length in all_max_lengths
-            if max_length != MAX_CONTEXT_LENGTH
         ]
 
         if len(list(all_max_lengths)) > 0:
@@ -483,11 +481,11 @@ class HuggingFaceEncoderModel(BenchmarkModule):
             Whether the model exists, or an error describing why we cannot check
             whether the model exists.
         """
-        model_id, revision = (
-            model_id.split("@") if "@" in model_id else (model_id, "main")
-        )
+        model_id_components = split_model_id(model_id=model_id)
         model_info = get_model_repo_info(
-            model_id=model_id, revision=revision, benchmark_config=benchmark_config
+            model_id=model_id_components.model_id,
+            revision=model_id_components.revision,
+            benchmark_config=benchmark_config,
         )
         return (
             model_info is not None
@@ -509,11 +507,11 @@ class HuggingFaceEncoderModel(BenchmarkModule):
         Returns:
             The model configuration.
         """
-        model_id, revision = (
-            model_id.split("@") if "@" in model_id else (model_id, "main")
-        )
+        model_id_components = split_model_id(model_id=model_id)
         model_info = get_model_repo_info(
-            model_id=model_id, revision=revision, benchmark_config=benchmark_config
+            model_id=model_id_components.model_id,
+            revision=model_id_components.revision,
+            benchmark_config=benchmark_config,
         )
         if model_info is None:
             raise InvalidModel(f"The model {model_id!r} could not be found.")
@@ -522,8 +520,9 @@ class HuggingFaceEncoderModel(BenchmarkModule):
         language_codes = list(language_mapping.keys())
 
         model_config = ModelConfig(
-            model_id=model_id,
-            revision=revision,
+            model_id=model_id_components.model_id,
+            revision=model_id_components.revision,
+            param=model_id_components.param,
             task=model_info.pipeline_tag,
             languages=[
                 language_mapping[tag]
@@ -710,7 +709,6 @@ def get_model_repo_info(
     """
     token = get_hf_token(api_key=benchmark_config.api_key)
     hf_api = HfApi(token=token)
-    model_id, revision = model_id.split("@") if "@" in model_id else (model_id, "main")
 
     # Get information on the model.
     # The first case is when the model is a local model, in which case we create a dummy
@@ -735,6 +733,13 @@ def get_model_repo_info(
                     repo_id=model_id, revision=revision, token=token
                 )
                 break
+            except HfHubHTTPError as e:
+                if "unauthorized" in str(e).lower():
+                    raise InvalidModel(
+                        "It seems like your specified Hugging Face API key is invalid. "
+                        "Please double-check your API key."
+                    ) from e
+                raise InvalidModel(str(e)) from e
             except (GatedRepoError, LocalTokenNotFoundError) as e:
                 try:
                     hf_whoami(token=token)
