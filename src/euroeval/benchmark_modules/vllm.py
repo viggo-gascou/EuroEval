@@ -72,7 +72,9 @@ from ..utils import (
     create_model_cache_dir,
     get_hf_token,
     get_min_cuda_compute_capability,
+    internet_connection_available,
     log_once,
+    resolve_model_path,
     split_model_id,
 )
 from .hf import HuggingFaceEncoderModel, get_model_repo_info, load_hf_model_config
@@ -730,6 +732,7 @@ def load_model_and_tokeniser(
         label2id=dict(),
         revision=revision,
         model_cache_dir=model_config.model_cache_dir,
+        is_offline=not internet_connection_available(),
         api_key=benchmark_config.api_key,
         trust_remote_code=benchmark_config.trust_remote_code,
         run_with_cli=benchmark_config.run_with_cli,
@@ -830,42 +833,44 @@ def load_model_and_tokeniser(
         model_max_length=true_max_model_len,
         model_cache_dir=model_config.model_cache_dir,
         token=get_hf_token(api_key=benchmark_config.api_key),
+        is_offline=not internet_connection_available(),
     )
 
     clear_vllm()
 
+    vllm_kwargs = {
+        "model": model_id,
+        "tokenizer": model_id,
+        "gpu_memory_utilization": benchmark_config.gpu_memory_utilization,
+        "download_dir": download_dir,
+        "trust_remote_code": benchmark_config.trust_remote_code,
+        "revision": revision,
+        "enforce_eager": True,
+        "max_model_len": min(true_max_model_len, MAX_CONTEXT_LENGTH),
+        "seed": 4242,
+        "distributed_executor_backend": (
+            "ray" if torch.cuda.device_count() > 1 else "mp"
+        ),
+        "tensor_parallel_size": max(torch.cuda.device_count(), 1),
+        "disable_custom_all_reduce": True,
+        "quantization": quantization,
+        "dtype": dtype,
+        # TEMP: Prefix caching isn't supported with sliding window in vLLM yet,
+        # so we disable it for now
+        "enable_prefix_caching": False,
+        "enable_lora": model_config.adapter_base_model_id is not None,
+        "max_lora_rank": 256,
+    }
+
+    # if we do not have an internet connection we need to give the path to the folder
+    # that contains the model weights and config files, otherwise vLLM will try to
+    # download them regardless if they are already present in the download_dir
+    if not internet_connection_available():
+        vllm_kwargs["model"] = resolve_model_path(download_dir)
+        vllm_kwargs["tokenizer"] = vllm_kwargs["model"]
+
     try:
-        model = LLM(
-            model=model_id,
-            tokenizer=model_id,
-            gpu_memory_utilization=benchmark_config.gpu_memory_utilization,
-            max_model_len=min(true_max_model_len, MAX_CONTEXT_LENGTH),
-            download_dir=download_dir,
-            trust_remote_code=benchmark_config.trust_remote_code,
-            revision=revision,
-            seed=4242,
-            distributed_executor_backend="mp",
-            tensor_parallel_size=torch.cuda.device_count(),
-            disable_custom_all_reduce=True,
-            quantization=quantization,
-            dtype=dtype,
-            enforce_eager=True,
-            # TEMP: Prefix caching isn't supported with sliding window in vLLM yet,
-            # so we disable it for now
-            enable_prefix_caching=False,
-            enable_lora=model_config.adapter_base_model_id is not None,
-            max_lora_rank=256,
-            # Special arguments in case we are dealing with a Mistral model
-            tokenizer_mode="mistral"
-            if isinstance(tokeniser, MistralCommonTokenizer)
-            else "auto",
-            config_format="mistral"
-            if isinstance(tokeniser, MistralCommonTokenizer)
-            else "auto",
-            load_format="mistral"
-            if isinstance(tokeniser, MistralCommonTokenizer)
-            else "auto",
-        )
+        model = LLM(**vllm_kwargs)
     except (RuntimeError, ValueError, OSError) as e:
         if "awaiting a review from the repo authors" in str(e):
             raise InvalidModel(
@@ -894,6 +899,7 @@ def load_tokeniser(
     trust_remote_code: bool,
     model_max_length: int,
     model_cache_dir: str,
+    is_offline: bool,
     token: str | bool,
 ) -> "PreTrainedTokenizer":
     """Load the tokeniser.
@@ -912,6 +918,8 @@ def load_tokeniser(
             The maximum length of the model.
         model_cache_dir:
             The cache directory for the model.
+        is_offline:
+            Whether or not we have an internet connection available.
         token:
             The Hugging Face API token.
 
@@ -925,6 +933,7 @@ def load_tokeniser(
         cache_dir=model_cache_dir,
         token=token,
         trust_remote_code=trust_remote_code,
+        local_files_only=is_offline,
     )
     num_retries = 5
     for _ in range(num_retries):
@@ -937,8 +946,10 @@ def load_tokeniser(
                 padding_side="left",
                 truncation_side="left",
                 model_max_length=model_max_length,
+                cache_dir=model_cache_dir,
                 config=config,
                 token=token,
+                local_files_only=is_offline,
             )
             break
         except (json.JSONDecodeError, OSError, TypeError) as e:
