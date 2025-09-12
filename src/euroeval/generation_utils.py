@@ -202,7 +202,7 @@ def apply_prompt(
     """
     # Sanity check
     if (
-        generative_type == GenerativeType.INSTRUCTION_TUNED
+        generative_type in {GenerativeType.INSTRUCTION_TUNED, GenerativeType.REASONING}
         and always_populate_text_field
         and tokeniser is None
     ):
@@ -229,7 +229,10 @@ def apply_prompt(
         )
         label_mapping = dataset_config.prompt_label_mapping
         label = label_mapping.get(label, label)
-        if generative_type == GenerativeType.INSTRUCTION_TUNED:
+        if generative_type in {
+            GenerativeType.INSTRUCTION_TUNED,
+            GenerativeType.REASONING,
+        }:
             prompt = dataset_config.instruction_prompt.format(**kwargs)
             return prompt, label
         else:
@@ -355,7 +358,7 @@ def apply_prompt(
                 f"Unsupported task group: {dataset_config.task.task_group}."
             )
 
-    if generative_type == GenerativeType.INSTRUCTION_TUNED:
+    if generative_type in {GenerativeType.INSTRUCTION_TUNED, GenerativeType.REASONING}:
         few_shot_messages = [
             dict(role=role, content=content)
             for prompt, label in few_shot_sections
@@ -408,7 +411,10 @@ def apply_prompt(
     else:
         prompt_prefix = ""
         if dataset_config.prompt_prefix:
-            prompt_prefix = dataset_config.prompt_prefix + "\n\n"
+            labels_str = dataset_config.get_labels_str()
+            prompt_prefix = (
+                dataset_config.prompt_prefix.format(labels_str=labels_str) + "\n\n"
+            )
 
         few_shot_prompt = "\n\n".join([prompt for prompt, _ in few_shot_sections])
         if few_shot_prompt:
