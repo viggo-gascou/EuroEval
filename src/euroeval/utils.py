@@ -8,6 +8,7 @@ import logging
 import os
 import random
 import re
+import socket
 import sys
 import typing as t
 import warnings
@@ -194,6 +195,7 @@ def get_min_cuda_compute_capability() -> float | None:
     return float(f"{major}.{minor}")
 
 
+@cache
 def internet_connection_available() -> bool:
     """Checks if internet connection is available by pinging google.com.
 
@@ -208,7 +210,7 @@ def internet_connection_available() -> bool:
     # we catch all exceptions and check if the name matches any known errors
     except Exception as e:
         pytest_socket_errors = ["SocketConnectBlockedError", "SocketBlockedError"]
-        if type(e).__name__ in pytest_socket_errors or e is OSError:
+        if type(e).__name__ in pytest_socket_errors or isinstance(e, OSError):
             return False
         else:
             raise e
