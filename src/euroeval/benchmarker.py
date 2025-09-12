@@ -176,10 +176,19 @@ class Benchmarker:
 
         Raises:
             ValueError:
-                If both `task` and `dataset` are specified.
+                If both `task` and `dataset` are specified, or if `download_only`
+                is True and we have no internet connection.
         """
         if task is not None and dataset is not None:
             raise ValueError("Only one of `task` and `dataset` can be specified.")
+
+        if not internet_connection_available() and download_only:
+            msg = "It appears you do not have an internet connection, but "
+            if run_with_cli:
+                msg += "the --download-only flag was set."
+            else:
+                msg += "the argument `download_only` was set to True."
+            raise ValueError(msg)
 
         # Bail early if hf_transfer is enabled but not installed.
         if HF_HUB_ENABLE_HF_TRANSFER and get_package_version("hf_transfer") is None:
