@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [v16.1.1] - 2025-09-12
+### Fixed
+- Fixed an issue from v16.1.0, where reasoning models were not using the tokeniser's
+  chat template.
+- Fixed an issue with some of the prompts for base decoders, that the list of possible
+  labels for sequence classification tasks was not included in the prompt.
+
+
 ## [v16.1.0] - 2025-09-11
 ### Added
 - Added support for Polish 🇵🇱! This includes the reading comprehension dataset PoQuAD,
