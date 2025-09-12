@@ -69,7 +69,10 @@ def resolve_model_path(download_dir: str) -> str:
     # Hf hub `cache_dir` puts the files in models--`model_id_path`/snapshots
     model_path = model_path / f"models--{model_id_path}" / "snapshots"
     if not model_path.exists():
-        raise InvalidModel(f"No model files found at {model_path}")
+        raise InvalidModel(
+            f"Attempted to load models from the {model_path} directory, "
+            "but it does not exist."
+        )
 
     # Get all files in the model path
     found_files = [

@@ -455,7 +455,7 @@ class Benchmarker:
             if model_config.adapter_base_model_id:
                 open_issue_msg = (
                     "If offline support is important to you, please "
-                    "consider opening an issue on GitHub."
+                    "consider opening an issue at https://github.com/EuroEval/EuroEval/issues."
                 )
                 if not internet_connection_available():
                     raise InvalidModel(
