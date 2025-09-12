@@ -16,7 +16,7 @@ from torch.distributed import destroy_process_group
 
 from .benchmark_config_factory import build_benchmark_config
 from .constants import GENERATIVE_PIPELINE_TAGS
-from .data_loading import load_data
+from .data_loading import load_data, load_raw_data
 from .data_models import BenchmarkConfigParams, BenchmarkResult
 from .dataset_configs import get_all_dataset_configs
 from .enums import Device, GenerativeType, ModelType
@@ -28,7 +28,12 @@ from .model_loading import load_model
 from .scores import log_scores
 from .speed_benchmark import benchmark_speed
 from .tasks import SPEED
-from .utils import enforce_reproducibility, get_package_version, log_once
+from .utils import (
+    enforce_reproducibility,
+    get_package_version,
+    internet_connection_available,
+    log_once,
+)
 
 if t.TYPE_CHECKING:
     from .benchmark_modules import BenchmarkModule
@@ -83,6 +88,7 @@ class Benchmarker:
         debug: bool = False,
         run_with_cli: bool = False,
         requires_safetensors: bool = False,
+        download_only: bool = False,
     ) -> None:
         """Initialise the benchmarker.
 
