@@ -18,6 +18,7 @@ from euroeval.tasks import SENT, SPEED, get_all_tasks
 def pytest_configure() -> None:
     """Set a global flag when `pytest` is being run."""
     setattr(sys, "_called_from_test", True)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Ensure only one GPU is used in tests
 
 
 def pytest_unconfigure() -> None:
@@ -88,10 +89,10 @@ def benchmark_config(
         api_base=None,
         api_version=None,
         gpu_memory_utilization=0.9,
+        generative_type=None,
         debug=False,
         run_with_cli=True,
-        only_allow_safetensors=False,
-        download_only=False,
+        requires_safetensors=False,
     )
 
 
@@ -151,24 +152,6 @@ def openai_model_id() -> Generator[str, None, None]:
 
 
 @pytest.fixture(scope="session")
-def anthropic_model_id() -> Generator[str, None, None]:
-    """Yields an Anthropic model ID used in tests."""
-    yield "claude-3-5-haiku-20241022"
-
-
-@pytest.fixture(scope="session")
-def gemini_model_id() -> Generator[str, None, None]:
-    """Yields a Gemini model ID used in tests."""
-    yield "gemini/gemini-2.0-flash"
-
-
-@pytest.fixture(scope="session")
-def grok_model_id() -> Generator[str, None, None]:
-    """Yields a Grok model ID used in tests."""
-    yield "grok-2-1212"
-
-
-@pytest.fixture(scope="session")
 def ollama_model_id() -> Generator[str, None, None]:
     """Yields an Ollama model ID used in tests."""
     yield "ollama_chat/smollm2:135m"
@@ -180,6 +163,7 @@ def model_config() -> Generator[ModelConfig, None, None]:
     yield ModelConfig(
         model_id="model_id",
         revision="revision",
+        param=None,
         task="task",
         languages=[DA],
         merge=False,

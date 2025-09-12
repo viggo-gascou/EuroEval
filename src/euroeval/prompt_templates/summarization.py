@@ -1,10 +1,33 @@
 """Templates for the Summarization task."""
 
+import typing as t
+
 from ..data_models import PromptConfig
-from ..languages import DA, DE, EN, ES, FI, FR, IS, IT, NB, NL, NN, NO, PT, SV
+from ..languages import (
+    DA,
+    DE,
+    EN,
+    ES,
+    ET,
+    FI,
+    FR,
+    IS,
+    IT,
+    LV,
+    NB,
+    NL,
+    NN,
+    NO,
+    PL,
+    PT,
+    SV,
+)
+
+if t.TYPE_CHECKING:
+    from ..data_models import Language
 
 # TODO: Missing Faroese
-SUMM_TEMPLATES = {
+SUMM_TEMPLATES: dict["Language", PromptConfig] = {
     DA: PromptConfig(
         default_prompt_prefix="Følgende er dokumenter med tilhørende resuméer.",
         default_prompt_template="Dokument: {text}\nResumé: {target_text}",
@@ -32,8 +55,14 @@ SUMM_TEMPLATES = {
         default_prompt_prefix="A continuación se presentan documentos con resúmenes "
         "adjuntos.",
         default_prompt_template="Documento: {text}\nResumen: {target_text}",
-        default_instruction_prompt="Documento: {text}\n\nEscriba un resumen del "
-        "documento anterior.",
+        default_instruction_prompt="Documento: {text}\n\n",
+        default_prompt_label_mapping=dict(),
+    ),
+    ET: PromptConfig(
+        default_prompt_prefix="Allpool on dokumendid koos kokkuvõtetega.",
+        default_prompt_template="Dokument: {text}\nKokkuvõte: {target_text}",
+        default_instruction_prompt="Dokument: {text}\n\nKoosta ülaltoodud dokumendi "
+        "kokkuvõte.",
         default_prompt_label_mapping=dict(),
     ),
     PT: PromptConfig(
@@ -56,6 +85,15 @@ SUMM_TEMPLATES = {
         default_prompt_template="Document: {text}\nRésumé: {target_text}",
         default_instruction_prompt="Document: {text}\n\nRédigez un résumé du "
         "document ci-dessus.",
+        default_prompt_label_mapping=dict(),
+    ),
+    LV: PromptConfig(
+        default_prompt_prefix="Tālāk ir dokumenti ar pievienotām kopsavilkumiem.",
+        default_prompt_template="Dokuments: {text}\nKopsavilkums: {target_text}",
+        default_instruction_prompt=(
+            "Dokuments: {text}\n\n"
+            "Uzrakstiet kopsavilkumu par iepriekš minēto dokumentu."
+        ),
         default_prompt_label_mapping=dict(),
     ),
     IS: PromptConfig(
@@ -100,6 +138,14 @@ SUMM_TEMPLATES = {
         default_prompt_template="Dokument: {text}\nSammendrag: {target_text}",
         default_instruction_prompt="Dokument: {text}\n\nSkriv et sammendrag av "
         "dokumentet ovenfor.",
+        default_prompt_label_mapping=dict(),
+    ),
+    PL: PromptConfig(
+        default_prompt_prefix="Poniżej znajdują się artykuły z towarzyszącymi "
+        "streszczeniami.",
+        default_prompt_template="Artykuł: {text}\nStreszczenie: {target_text}",
+        default_instruction_prompt="Artykuł: {text}\n\nNapisz streszczenie "
+        "powyższego artykułu.",
         default_prompt_label_mapping=dict(),
     ),
     SV: PromptConfig(

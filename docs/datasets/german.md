@@ -284,6 +284,79 @@ $ euroeval --model <model-id> --dataset germanquad
 ```
 
 
+### Unofficial: XQuAD-de
+
+This dataset was published in [this paper](https://aclanthology.org/2020.acl-main.421/)
+and contains 1190 question-answer pairs from [SQuAD
+v1.1](https://rajpurkar.github.io/SQuAD-explorer/) translated into ten languages by
+professional translators.
+
+The dataset is split intro 550 / 128 / 512 question-answer pairs for training,
+validation, and testing, respectively.
+
+Here are a few examples from the training split:
+
+```json
+{
+    "context": "Irgendwann vor etwa einer Milliarde Jahren drang ein freilebendes Cyanobakterium in eine frühe eukaryotische Zelle ein, entweder als Nahrung oder als interner Parasit, schaffte es aber, aus der phagozytischen Vakuole zu entkommen, in der es enthalten war. Die innersten Lipiddoppelschicht-Membranen, die alle Chloroplasten umgeben, entsprechen der äußeren und inneren Membran der gramnegativen Zellwand des anzestralen Cyanobakteriums und nicht der phagosomalen Membran des Wirts, die wahrscheinlich verloren ging. Der neue Zellenbewohner wurde schnell zu einem Vorteil, indem er dem eukaryotischen Wirt, welcher ihm erlaubte, in ihm zu leben, Nahrung zur Verfügung stellte. Mit der Zeit wurde das Cyanobakterium assimiliert und viele seiner Gene gingen verloren oder in den Nukleus des Wirts übertragen. Einige seiner Proteine wurden dann im Zellplasma der Wirtzelle synthetisiert und zurück in den Chloroplasten (das ehemalige Cyanobakterium) importiert.",
+    "question": "In welche Art von Zell drangen vor langer Zeit Cynaobakterien ein?",
+    "answers": {
+        "answer_start": array([95], dtype=int32),
+        "text": array(["eukaryotische"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Im tibetischen Buddhismus werden die Dharma-Lehrer/innen gewöhnlich als Lama bezeichnet. Ein Lama, der sich durch Phowa und Siddhi bewusst zur Wiedergeburt, häufig mehrere Male, entschlossen hat, um sein Bodhisattva-Gelübte fortsetzen zu können, wird Tulku genannt.",
+    "question": "Zu wie vielen Wiedergeburten hat sich ein Lama bereiterklärt?",
+    "answers": {
+        "answer_start": array([164], dtype=int32),
+        "text": array(["mehrere Male"], dtype=object)
+    }
+}
+```
+```json
+{
+    "context": "Trotz ihrer weichen, gallertartigen Körper wurden Fossilien in Lagerstätten gefunden, die bis ins frühe Kambrium vor etwa 515 Millionen Jahren zurückreichen und von denen man annimmt, dass sie Rippenquallen darstellen. Die Fossilien verfügen nicht über Tentakel, haben aber viel mehr Kammreihen als moderne Formen. Die Position der Rippenquallen im evolutionären Stammbaum der Tiere ist seit langem umstritten. Die heutigen Mehrheitsmeinung, die auf der molekularen Phylogenese basiert, geht davon aus, dass Nesseltiere und Bilateria enger miteinander verwandt sind als die Rippenquallen selbst. Eine kürzlich durchgeführte Analyse der molekularen Phylogenese kam zu dem Schluss, dass der gemeinsame Vorfahre aller modernen Rippenquallen cydippida-ähnlich war und alle modernen Gruppen erst relativ spät auftauchten, wahrscheinlich nach der Kreide-Paläogen-Grenze vor 66 Millionen Jahren. Die seit den 1980er Jahren ansammelnden Beweise deuten darauf hin, dass „Cydippida“ nicht monophyletisch sind. Mit anderen Worten, sie beinhalten nicht alle Nachkommen, sondern nur die Nachkommen eines einzigen gemeinsamen Vorfahren. Dies wird angenommen, da alle anderen traditionellen Gruppen von Rippenquallen Nachkommen verschiedener Cydippida sind.",
+    "question": "Was fehlte den Rippenquallen-Fossilien, über das heutige Rippenquallen verfügen?",
+    "answers": {
+        "answer_start": array([253], dtype=int32),
+        "text": array(["Tentakel"], dtype=object)
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 4
+- Prefix prompt:
+  ```
+  Im Folgenden finden Sie Texte mit den dazugehörigen Fragen und Antworten.
+  ```
+- Base prompt template:
+  ```
+  Text: {text}
+  Fragen: {question}
+  Fragen Antwort in maximal 3 Wörtern: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Text: {text}
+
+  Beantworten Sie die folgende Frage zum obigen Text in höchstens 3 Wörtern.
+
+  Frage: {question}
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset xquad-de
+```
+
+
 ### Unofficial: BeleBele-de
 
 This dataset was published in [this paper](https://aclanthology.org/2024.acl-long.44/)
@@ -348,8 +421,9 @@ $ euroeval --model <model-id> --dataset belebele-de
 
 ### Unofficial: MultiWikiQA-de
 
-This dataset will be published in an upcoming paper, and contains German Wikipedia
-articles with generated questions and answers, using the LLM Gemini-1.5-pro.
+This dataset was published in [this paper](https://doi.org/10.48550/arXiv.2509.04111)
+and contains Wikipedia articles with LLM-generated questions and answers in 300+
+languages.
 
 The original full dataset consists of 5,000 samples in a single split. We use a 1,024 /
 256 / 2,048 split for training, validation and testing, respectively, sampled randomly.
@@ -414,6 +488,7 @@ You can evaluate this dataset directly as follows:
 
 ```bash
 $ euroeval --model <model-id> --dataset multi-wiki-qa-de
+```
 
 
 ## Knowledge
@@ -675,8 +750,69 @@ You can evaluate this dataset directly as follows:
 $ euroeval --model <model-id> --dataset goldenswag-de
 ```
 
+### Unofficial: Winogrande-de
 
-## Summarization
+This dataset was published in [this paper](https://doi.org/10.48550/arXiv.2506.19468)
+and is a translated and filtered version of the English [Winogrande
+dataset](https://doi.org/10.1145/3474381).
+
+The original full dataset consists of 47 / 1,210 samples for training and testing, and
+we use the same splits.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "text": "Einmal in Polen genoss Dennis die Reise mehr als Jason, weil _ ein tieferes Verständnis der polnischen Sprache hatte. Worauf bezieht sich der leere _?\nAntwortmöglichkeiten:\na. Dennis\nb. Jason",
+  "label": "a"
+}
+```
+
+```json
+{
+  "text": "Johns Zertifizierung war weniger wichtig als Jims Abschluss, weil die _ von einer unbedeutenden Universität war. Worauf bezieht sich der leere _?\nAntwortmöglichkeiten:\na. Zertifizierung\nb. Abschluss",
+  "label": "a"
+}
+```
+
+```json
+{
+  "text": "Um Verhaltensverzerrungen zu überwinden, müssen wir uns mehr darauf konzentrieren, die bewussten Handlungen zu ändern, anstatt die unbewussten Handlungen, weil die _ Handlungen freiwillig sind. Worauf bezieht sich der leere _?\nAntwortmöglichkeiten:\na. unbewusst\nb. bewusst",
+  "label": "b"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 5
+- Prefix prompt:
+  ```
+  Die folgenden Fragen sind Multiple-Choice-Fragen (mit Antworten).
+  ```
+- Base prompt template:
+  ```
+  Frage: {text}
+  Antwort: {label}
+  ```
+- Instruction-tuned prompt template:
+  ```
+  Frage: {text}
+  Antwortmöglichkeiten:
+  a. {option_a}
+  b. {option_b}
+
+  Beantworten Sie die obige Frage mit 'a' oder 'b', und nichts anderes.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+$ euroeval --model <model-id> --dataset winogrande-de
+```
+
+
+## Summarisation
 
 ### MLSum-de
 

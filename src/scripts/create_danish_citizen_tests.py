@@ -11,15 +11,16 @@
 
 """Create the Danish Citizen Tests dataset and upload it to the HF Hub."""
 
-import os
 import warnings
 
 import pandas as pd
+from constants import CHOICES_MAPPING
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from dotenv import load_dotenv
 from huggingface_hub import HfApi
 from pandas.errors import SettingWithCopyWarning
-from requests import HTTPError
+
+from euroeval.utils import get_hf_token
 
 load_dotenv()
 
@@ -34,7 +35,7 @@ def main() -> None:
 
     # Download the dataset
     dataset = load_dataset(
-        path=repo_id, split="train", token=os.getenv("HUGGINGFACE_API_KEY")
+        path=repo_id, split="train", token=get_hf_token(api_key=None)
     )
     assert isinstance(dataset, Dataset)
 
@@ -50,7 +51,7 @@ def main() -> None:
     for _, row in df.iterrows():
         text = (
             clean_text(text=row.instruction)
-            + "\nSvarmuligheder:\n"
+            + f"\n{CHOICES_MAPPING['da']}:\n"
             + "\n".join(
                 [
                     f"{letter}. {clean_text(text=option)}"
@@ -120,11 +121,7 @@ def main() -> None:
     dataset_id = "EuroEval/danish-citizen-tests-updated"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(dataset_id, private=True)

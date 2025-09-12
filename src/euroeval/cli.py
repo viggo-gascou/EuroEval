@@ -4,7 +4,7 @@ import click
 
 from .benchmarker import Benchmarker
 from .dataset_configs import get_all_dataset_configs
-from .enums import Device
+from .enums import Device, GenerativeType
 from .languages import get_all_languages
 from .tasks import get_all_tasks
 
@@ -203,16 +203,18 @@ from .tasks import get_all_tasks
     "relevant if the model is generative.",
 )
 @click.option(
-    "--only-allow-safetensors",
+    "--requires-safetensors",
     is_flag=True,
     help="Only allow loading models that have safetensors weights available",
     default=False,
 )
 @click.option(
-    "--download-only",
-    is_flag=True,
-    help="Only download the requested model weights and datasets, and exit.",
-    default=False,
+    "--generative-type",
+    type=click.Choice(["base", "instruction_tuned", "reasoning"]),
+    default=None,
+    show_default=True,
+    help="The type of generative model. Only relevant if the model is generative. If "
+    "not specified, the type will be inferred automatically.",
 )
 def benchmark(
     model: tuple[str],
@@ -239,8 +241,8 @@ def benchmark(
     api_version: str | None,
     gpu_memory_utilization: float,
     debug: bool,
-    only_allow_safetensors: bool,
-    download_only: bool,
+    requires_safetensors: bool,
+    generative_type: str | None,
 ) -> None:
     """Benchmark pretrained language models on language tasks."""
     models = list(model)
@@ -251,6 +253,9 @@ def benchmark(
     tasks = None if len(task) == 0 else list(task)
     batch_size_int = int(batch_size)
     device = Device[device.upper()] if device is not None else None
+    generative_type_obj = (
+        GenerativeType[generative_type.upper()] if generative_type else None
+    )
 
     benchmarker = Benchmarker(
         language=languages,
@@ -275,10 +280,10 @@ def benchmark(
         api_base=api_base,
         api_version=api_version,
         gpu_memory_utilization=gpu_memory_utilization,
+        generative_type=generative_type_obj,
         debug=debug,
         run_with_cli=True,
-        only_allow_safetensors=only_allow_safetensors,
-        download_only=download_only,
+        requires_safetensors=requires_safetensors,
     )
 
     # Perform the benchmark evaluation

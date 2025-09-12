@@ -15,11 +15,11 @@ from huggingface_hub.constants import HF_HUB_ENABLE_HF_TRANSFER
 from torch.distributed import destroy_process_group
 
 from .benchmark_config_factory import build_benchmark_config
-from .constants import GENERATIVE_DATASET_TASK_GROUPS, GENERATIVE_PIPELINE_TAGS
-from .data_loading import load_data, load_raw_data
+from .constants import GENERATIVE_PIPELINE_TAGS
+from .data_loading import load_data
 from .data_models import BenchmarkConfigParams, BenchmarkResult
 from .dataset_configs import get_all_dataset_configs
-from .enums import Device, ModelType
+from .enums import Device, GenerativeType, ModelType
 from .exceptions import HuggingFaceHubDown, InvalidBenchmark, InvalidModel
 from .finetuning import finetune
 from .generation import generate
@@ -79,10 +79,10 @@ class Benchmarker:
         api_base: str | None = None,
         api_version: str | None = None,
         gpu_memory_utilization: float = 0.9,
+        generative_type: GenerativeType | None = None,
         debug: bool = False,
         run_with_cli: bool = False,
-        only_allow_safetensors: bool = False,
-        download_only: bool = False,
+        requires_safetensors: bool = False,
     ) -> None:
         """Initialise the benchmarker.
 
@@ -152,12 +152,16 @@ class Benchmarker:
                 is generative. A larger value will result in faster evaluation, but at
                 the risk of running out of GPU memory. Only reduce this if you are
                 running out of GPU memory. Defaults to 0.9.
+            generative_type:
+                The type of generative model to benchmark. Only relevant if the model is
+                generative. If not specified, then the type will be inferred based on
+                the tags of the model. Defaults to None.
             debug:
                 Whether to output debug information. Defaults to False.
             run_with_cli:
                 Whether the benchmarker is being run from the command-line interface.
                 Defaults to False.
-            only_allow_safetensors:
+            requires_safetensors:
                 Whether to only allow models that use the safetensors format. Defaults
                 to False.
             download_only:
@@ -203,14 +207,14 @@ class Benchmarker:
             api_base=api_base,
             api_version=api_version,
             gpu_memory_utilization=gpu_memory_utilization,
+            generative_type=generative_type,
             debug=debug,
             run_with_cli=run_with_cli,
-            only_allow_safetensors=only_allow_safetensors,
-            download_only=download_only,
+            requires_safetensors=requires_safetensors,
         )
 
         self.benchmark_config = build_benchmark_config(
-            first_time=True, **self.benchmark_config_default_params.model_dump()
+            **self.benchmark_config_default_params.model_dump()
         )
 
         # Initialise variable storing model lists, so we only have to fetch it once
@@ -290,8 +294,7 @@ class Benchmarker:
         evaluate_test_split: bool | None = None,
         few_shot: bool | None = None,
         num_iterations: int | None = None,
-        only_allow_safetensors: bool | None = None,
-        download_only: bool | None = None,
+        requires_safetensors: bool | None = None,
     ) -> list[BenchmarkResult]:
         """Benchmarks models on datasets.
 
@@ -369,7 +372,7 @@ class Benchmarker:
                 to be used for power users, and scores will not be allowed on the
                 leaderboards if this is changed. Defaults to the value specified when
                 initialising the benchmarker.
-            only_allow_safetensors:
+            requires_safetensors:
                 Whether to only allow models that use the safetensors format. Defaults
                 to the value specified when initialising the benchmarker.
             download_only:
@@ -406,8 +409,7 @@ class Benchmarker:
             evaluate_test_split=evaluate_test_split,
             few_shot=few_shot,
             num_iterations=num_iterations,
-            only_allow_safetensors=only_allow_safetensors,
-            download_only=download_only,
+            requires_safetensors=requires_safetensors,
         )
 
         adjust_logging_level(verbose=benchmark_config.verbose)
@@ -436,26 +438,34 @@ class Benchmarker:
                 continue
 
             loaded_model: BenchmarkModule | None = None
+            benchmark_params_to_revert: dict[str, t.Any] = dict()
             for dataset_config in dataset_configs:
-                # Skip if the model is an encoder model and the task is generative
-                task_is_generative = (
-                    dataset_config.task.task_group in GENERATIVE_DATASET_TASK_GROUPS
-                )
-                if model_config.model_type == ModelType.ENCODER and task_is_generative:
-                    logger.debug(
-                        f"Skipping benchmarking {model_id} on "
-                        f"{dataset_config.pretty_name}, as it is an encoder model and "
-                        "the task is generative."
-                    )
-                    continue
+                # Revert any changes to the benchmark configuration made for the
+                # previous dataset
+                for param, value in benchmark_params_to_revert.items():
+                    setattr(benchmark_config, param, value)
+                benchmark_params_to_revert = dict()
 
-                if benchmark_config.download_only:
-                    self._download(
-                        model_config=model_config,
-                        dataset_config=dataset_config,
-                        benchmark_config=benchmark_config,
+                # Update the benchmark config if the dataset requires it
+                if (
+                    "val" not in dataset_config.splits
+                    and not benchmark_config.evaluate_test_split
+                ):
+                    logger.debug(
+                        "The dataset does not have a validation split, so even though "
+                        "you requested evaluating the validation split (the default), "
+                        "we will evaluate on the test split."
                     )
-                    continue
+                    benchmark_params_to_revert["evaluate_test_split"] = False
+                    benchmark_config.evaluate_test_split = True
+                if dataset_config.task.requires_zero_shot and benchmark_config.few_shot:
+                    logger.debug(
+                        "The task requires zero-shot evaluation, so even though you "
+                        "requested few-shot evaluation (the default), we will evaluate "
+                        "zero-shot."
+                    )
+                    benchmark_params_to_revert["few_shot"] = True
+                    benchmark_config.few_shot = False
 
                 # Skip if we have already benchmarked this model on this dataset and
                 # we are not forcing the benchmark
@@ -472,6 +482,17 @@ class Benchmarker:
                         "benchmarked."
                     )
                     num_finished_benchmarks += 1
+                    continue
+
+                # Skip if the model type should not be benchmarked on this dataset
+                model_type = model_config.model_type
+                allowed_model_types = dataset_config.allowed_model_types
+                if model_type not in allowed_model_types:
+                    logger.debug(
+                        f"Skipping benchmarking {model_id} on "
+                        f"{dataset_config.pretty_name}, as it is of type {model_type}, "
+                        f"and the only allowed model types are {allowed_model_types}."
+                    )
                     continue
 
                 # We do not re-initialise generative models as their architecture is not
@@ -589,8 +610,7 @@ class Benchmarker:
         api_version: str | None | None = None,
         debug: bool | None = None,
         run_with_cli: bool | None = None,
-        only_allow_safetensors: bool | None = None,
-        download_only: bool | None = None,
+        requires_safetensors: bool | None = None,
     ) -> "BenchmarkConfig":
         """Get an updated benchmark configuration.
 
@@ -664,7 +684,7 @@ class Benchmarker:
             run_with_cli:
                 Whether the benchmarker is being run from the command-line interface.
                 If None, then this value will not be updated.
-            only_allow_safetensors:
+            requires_safetensors:
                 Whether to only allow models that use the safetensors format. If None,
                 then this value will not be updated.
             download_only:
@@ -724,10 +744,8 @@ class Benchmarker:
             benchmark_config_params.debug = debug
         if run_with_cli is not None:
             benchmark_config_params.run_with_cli = run_with_cli
-        if only_allow_safetensors is not None:
-            benchmark_config_params.only_allow_safetensors = only_allow_safetensors
-        if download_only is not None:
-            benchmark_config_params.download_only = download_only
+        if requires_safetensors is not None:
+            benchmark_config_params.requires_safetensors = requires_safetensors
 
         return build_benchmark_config(**benchmark_config_params.model_dump())
 
@@ -837,6 +855,7 @@ class Benchmarker:
                     scores=scores,
                     model_id=model_config.model_id,
                     model_revision=model_config.revision,
+                    model_param=model_config.param,
                 )
 
                 record = BenchmarkResult(
@@ -917,7 +936,7 @@ class Benchmarker:
         evaluate_test_split: bool | None = None,
         few_shot: bool | None = None,
         num_iterations: int | None = None,
-        only_allow_safetensors: bool | None = None,
+        requires_safetensors: bool | None = None,
     ) -> list[BenchmarkResult]:
         """Benchmarks models on datasets.
 
@@ -995,7 +1014,7 @@ class Benchmarker:
                 to be used for power users, and scores will not be allowed on the
                 leaderboards if this is changed. Defaults to the value specified when
                 initialising the benchmarker.
-            only_allow_safetensors:
+            requires_safetensors:
                 Whether to only allow models that use the safetensors format. Defaults
                 to the value specified when initialising the benchmarker.
 
@@ -1031,7 +1050,7 @@ class Benchmarker:
             evaluate_test_split=evaluate_test_split,
             few_shot=few_shot,
             num_iterations=num_iterations,
-            only_allow_safetensors=only_allow_safetensors,
+            requires_safetensors=requires_safetensors,
         )
 
 
@@ -1141,6 +1160,8 @@ def initial_logging(
     model_id = model_config.model_id
     if model_config.revision and model_config.revision != "main":
         model_id += f"@{model_config.revision}"
+    if model_config.param is not None:
+        model_id += f"#{model_config.param}"
 
     split_type = "validation" if not benchmark_config.evaluate_test_split else "test"
     if model_config.task in GENERATIVE_PIPELINE_TAGS:

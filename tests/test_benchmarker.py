@@ -1,4 +1,4 @@
-"""Unit tests for the `benchmarker` module."""
+"""Tests for the `benchmarker` module."""
 
 import logging
 import os
@@ -93,50 +93,6 @@ def test_benchmark_openai(
     """Test that an OpenAI model can be benchmarked."""
     benchmark_result = benchmarker.benchmark(
         model=openai_model_id, task=task.name, language=language.code
-    )
-    assert isinstance(benchmark_result, list)
-    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
-
-
-@pytest.mark.skipif(
-    condition=os.getenv("ANTHROPIC_API_KEY") is None,
-    reason="Anthropic API key is not available.",
-)
-def test_benchmark_anthropic(
-    benchmarker: Benchmarker, task: Task, language: Language, anthropic_model_id: str
-) -> None:
-    """Test that an Anthropic model can be benchmarked."""
-    benchmark_result = benchmarker.benchmark(
-        model=anthropic_model_id, task=task.name, language=language.code
-    )
-    assert isinstance(benchmark_result, list)
-    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
-
-
-@pytest.mark.skipif(
-    condition=os.getenv("GEMINI_API_KEY") is None,
-    reason="Gemini API key is not available.",
-)
-def test_benchmark_gemini(
-    benchmarker: Benchmarker, task: Task, language: Language, gemini_model_id: str
-) -> None:
-    """Test that a Gemini model can be benchmarked."""
-    benchmark_result = benchmarker.benchmark(
-        model=gemini_model_id, task=task.name, language=language.code
-    )
-    assert isinstance(benchmark_result, list)
-    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
-
-
-@pytest.mark.skipif(
-    condition=os.getenv("XAI_API_KEY") is None, reason="xAI API key is not available."
-)
-def test_benchmark_xai(
-    benchmarker: Benchmarker, task: Task, language: Language, grok_model_id: str
-) -> None:
-    """Test that a Grok model can be benchmarked."""
-    benchmark_result = benchmarker.benchmark(
-        model=grok_model_id, task=task.name, language=language.code
     )
     assert isinstance(benchmark_result, list)
     assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)

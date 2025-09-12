@@ -1,8 +1,9 @@
 """All Italian dataset configurations used in EuroEval."""
 
 from ..data_models import DatasetConfig
+from ..enums import ModelType
 from ..languages import IT
-from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
+from ..tasks import COMMON_SENSE, EUROPEAN_VALUES, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
 ### Official datasets ###
 
@@ -67,6 +68,17 @@ HELLASWAG_IT_CONFIG = DatasetConfig(
     languages=[IT],
 )
 
+EUROPEAN_VALUES_IT_CONFIG = DatasetConfig(
+    name="european-values-it",
+    pretty_name="the Italian version of the European values evaluation dataset",
+    huggingface_id="EuroEval/european-values-it",
+    task=EUROPEAN_VALUES,
+    languages=[IT],
+    splits=["test"],
+    bootstrap_samples=False,
+    _instruction_prompt="{text}",
+)
+
 
 ### Unofficial datasets ###
 
@@ -107,5 +119,44 @@ GOLDENSWAG_IT_CONFIG = DatasetConfig(
     huggingface_id="EuroEval/goldenswag-it-mini",
     task=COMMON_SENSE,
     languages=[IT],
+    unofficial=True,
+)
+
+WINOGRANDE_IT_CONFIG = DatasetConfig(
+    name="winogrande-it",
+    pretty_name="the Italian common-sense reasoning dataset Winogrande-it, translated "
+    "from the English Winogrande dataset",
+    huggingface_id="EuroEval/winogrande-it",
+    task=COMMON_SENSE,
+    languages=[IT],
+    splits=["train", "test"],
+    _labels=["a", "b"],
+    _allowed_model_types=[ModelType.GENERATIVE],
+    unofficial=True,
+)
+
+EUROPEAN_VALUES_SITUATIONAL_IT_CONFIG = DatasetConfig(
+    name="european-values-situational-it",
+    pretty_name="the Italian version of the European values evaluation dataset, "
+    "where the questions are phrased in a situational way",
+    huggingface_id="EuroEval/european-values-situational-it",
+    task=EUROPEAN_VALUES,
+    languages=[IT],
+    splits=["test"],
+    bootstrap_samples=False,
+    _instruction_prompt="{text}",
+    unofficial=True,
+)
+
+EUROPEAN_VALUES_COMPLETIONS_IT_CONFIG = DatasetConfig(
+    name="european-values-completions-it",
+    pretty_name="the Italian version of the European values evaluation dataset, where "
+    "the questions are phrased as sentence completions",
+    huggingface_id="EuroEval/european-values-completions-it",
+    task=EUROPEAN_VALUES,
+    languages=[IT],
+    splits=["test"],
+    bootstrap_samples=False,
+    _instruction_prompt="{text}",
     unofficial=True,
 )

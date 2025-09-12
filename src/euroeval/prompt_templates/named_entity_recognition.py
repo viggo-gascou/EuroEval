@@ -1,9 +1,34 @@
 """Templates for the Named Entity Recognition task."""
 
-from ..data_models import PromptConfig
-from ..languages import DA, DE, EN, ES, FI, FO, FR, IS, IT, NB, NL, NN, NO, PT, SV
+import typing as t
 
-NER_TEMPLATES = {
+from ..data_models import PromptConfig
+from ..languages import (
+    DA,
+    DE,
+    EN,
+    ES,
+    ET,
+    FI,
+    FO,
+    FR,
+    IS,
+    IT,
+    LV,
+    NB,
+    NL,
+    NN,
+    NO,
+    PL,
+    PT,
+    SV,
+)
+
+if t.TYPE_CHECKING:
+    from ..data_models import Language
+
+
+NER_TEMPLATES: dict["Language", PromptConfig] = {
     DA: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "person",
@@ -79,6 +104,25 @@ NER_TEMPLATES = {
         "nombradas en la oración. Debes producir esto como un diccionario JSON con las "
         "claves {labels_str}. Los valores deben ser listas de las "
         "entidades nombradas de ese tipo, exactamente como aparecen en la oración.",
+    ),
+    ET: PromptConfig(
+        default_prompt_label_mapping={
+            "b-per": "inimene",
+            "i-per": "inimene",
+            "b-loc": "asukoht",
+            "i-loc": "asukoht",
+            "b-org": "organisatsioon",
+            "i-org": "organisatsioon",
+            "b-misc": "muu",
+            "i-misc": "muu",
+        },
+        default_prompt_prefix="Allpool on laused ja JSON-sõnastikud, mis sisaldavad "
+        "antud lauses esinevaid nimetatud üksuseid.",
+        default_prompt_template="Lause: {text}\nNimetatud üksused: {label}",
+        default_instruction_prompt="Lause: {text}\n\nTuvasta lauses "
+        "nimetatud üksused. Väljund peaks olema JSON-sõnastik, "
+        "mille võtmed on {labels_str}. Väärtused peaksid olema kindlat tüüpi nimetatud "
+        "üksuste loendid, täpselt nii nagu need lauses esinevad.",
     ),
     PT: PromptConfig(
         default_prompt_label_mapping={
@@ -197,6 +241,26 @@ NER_TEMPLATES = {
         "{labels_str}. I valori devono essere elenchi di entità "
         "nominate di quel tipo, esattamente come appaiono nella frase.",
     ),
+    LV: PromptConfig(
+        default_prompt_label_mapping={
+            "b-per": "persona",
+            "i-per": "persona",
+            "b-loc": "vieta",
+            "i-loc": "vieta",
+            "b-org": "organizācija",
+            "i-org": "organizācija",
+            "b-misc": "dažādi",
+            "i-misc": "dažādi",
+        },
+        default_prompt_prefix="Tālāk ir teikumi un JSON vārdnīcas ar nosauktajiem "
+        "objektiem, kas parādās dotajā teikumā.",
+        default_prompt_template="Teikums: {text}\nNosauktie objekti: {label}",
+        default_instruction_prompt="Teikums: {text}\n\n"
+        "Identificējiet nosauktos objektus "
+        "teikumā. Jums jāizvada šī informācija kā JSON vārdnīcu ar atslēgām "
+        "{labels_str}. Vērtībām jābūt šī tipa nosaukto objektu sarakstiem, "
+        "tieši tā, kā tie parādās teikumā.",
+    ),
     NB: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "person",
@@ -272,6 +336,25 @@ NER_TEMPLATES = {
         "i frasen. Du bør outputte dette som en JSON-ordbok med nøklene {labels_str}."
         "Verdiene skal være lister over de navngitte enhetene "
         "av den typen, akkurat som de vises i frasen.",
+    ),
+    PL: PromptConfig(
+        default_prompt_label_mapping={
+            "b-per": "osoba",
+            "i-per": "osoba",
+            "b-loc": "lokalizacja",
+            "i-loc": "lokalizacja",
+            "b-org": "organizacja",
+            "i-org": "organizacja",
+            "b-misc": "różne",
+            "i-misc": "różne",
+        },
+        default_prompt_prefix="Poniżej znajdują się zdania i słowniki JSON z nazwanymi "
+        "jednostkami występującymi w danym zdaniu.",
+        default_prompt_template="Zdanie: {text}\nNazwane jednostki: {label}",
+        default_instruction_prompt="Zdanie: {text}\n\nZidentyfikuj nazwane jednostki "
+        "w zdaniu. Powinieneś wypisać to jako słownik JSON z kluczami "
+        "{labels_str}. Wartości powinny być listami nazwanych jednostek "
+        "tego typu, dokładnie tak jak pojawiają się w zdaniu.",
     ),
     SV: PromptConfig(
         default_prompt_label_mapping={

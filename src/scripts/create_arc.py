@@ -14,6 +14,7 @@ from collections import Counter
 
 import pandas as pd
 from constants import (
+    CHOICES_MAPPING,
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
     MAX_REPETITIONS,
@@ -22,7 +23,8 @@ from constants import (
 )
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
-from requests import HTTPError
+
+LANGUAGES = ["da", "de", "en", "es", "fr", "is", "it", "nl", "no", "pt", "sv"]
 
 
 def main() -> None:
@@ -30,25 +32,10 @@ def main() -> None:
     # Define the base download URL
     repo_id = "alexandrainst/m_arc"
 
-    # Create a mapping with the word "Choices" in different languages
-    choices_mapping = {
-        "da": "Svarmuligheder",
-        "no": "Svaralternativer",
-        "sv": "Svarsalternativ",
-        "de": "Antwortmöglichkeiten",
-        "nl": "Antwoordopties",
-        "en": "Choices",
-    }
-
-    for language in choices_mapping.keys():
-        # Download the dataset
-        try:
-            dataset = load_dataset(path=repo_id, name=language, token=True)
-        except ValueError as e:
-            if language == "no":
-                dataset = load_dataset(path=repo_id, name="nb", token=True)
-            else:
-                raise e
+    for language in LANGUAGES:
+        dataset = load_dataset(
+            path=repo_id, name=language.replace("no", "nb"), token=True
+        )
         assert isinstance(dataset, DatasetDict)
 
         def prepare_dataframe(dataset: Dataset) -> pd.DataFrame:
@@ -110,7 +97,7 @@ def main() -> None:
             # Make a `text` column with all the options in it
             df["text"] = [
                 row.instruction.replace("\n", " ").strip() + "\n"
-                f"{choices_mapping[language]}:\n"
+                f"{CHOICES_MAPPING[language]}:\n"
                 "a. " + row.option_a.replace("\n", " ").strip() + "\n"
                 "b. " + row.option_b.replace("\n", " ").strip() + "\n"
                 "c. " + row.option_c.replace("\n", " ").strip() + "\n"
@@ -167,11 +154,7 @@ def main() -> None:
             dataset_id = f"EuroEval/arc-{language}-mini"
 
         # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api = HfApi()
-            api.delete_repo(dataset_id, repo_type="dataset")
-        except HTTPError:
-            pass
+        HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
         # Push the dataset to the Hugging Face Hub
         dataset.push_to_hub(dataset_id, private=True)

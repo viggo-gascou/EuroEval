@@ -23,10 +23,9 @@ from datasets.dataset_dict import DatasetDict
 from datasets.load import load_dataset
 from datasets.splits import Split
 from huggingface_hub import HfApi
-from requests import HTTPError
 from tqdm.auto import tqdm
 
-ALL_LANGUAGES = [
+LANGUAGES = [
     "da",
     "nl",
     "en",
@@ -40,7 +39,9 @@ ALL_LANGUAGES = [
     "nn",
     "es",
     "sv",
+    "pl",
     "pt-pt",
+    "lv",
 ]
 
 
@@ -48,7 +49,7 @@ def main() -> None:
     """Create the MultiWikiQA-mini datasets and upload them to the HF Hub."""
     dataset_id = "alexandrainst/multi-wiki-qa"
 
-    for language in tqdm(ALL_LANGUAGES, desc="Generating datasets"):
+    for language in tqdm(LANGUAGES, desc="Generating datasets"):
         # Load the dataset
         dataset = load_dataset(dataset_id, name=language, token=True, split="train")
         assert isinstance(dataset, Dataset)
@@ -107,11 +108,7 @@ def main() -> None:
         mini_dataset_id = f"EuroEval/multi-wiki-qa-{language}-mini"
 
         # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api: HfApi = HfApi()
-            api.delete_repo(mini_dataset_id, repo_type="dataset")
-        except HTTPError:
-            pass
+        HfApi().delete_repo(mini_dataset_id, repo_type="dataset", missing_ok=True)
 
         # Push the dataset to the Hugging Face Hub
         dataset.push_to_hub(mini_dataset_id, private=True)

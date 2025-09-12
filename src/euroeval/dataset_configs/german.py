@@ -1,8 +1,9 @@
 """All German dataset configurations used in EuroEval."""
 
 from ..data_models import DatasetConfig
+from ..enums import ModelType
 from ..languages import DE
-from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
+from ..tasks import COMMON_SENSE, EUROPEAN_VALUES, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
 ### Official datasets ###
 
@@ -67,8 +68,28 @@ HELLASWAG_DE_CONFIG = DatasetConfig(
     languages=[DE],
 )
 
+EUROPEAN_VALUES_DE_CONFIG = DatasetConfig(
+    name="european-values-de",
+    pretty_name="the German version of the European values evaluation dataset",
+    huggingface_id="EuroEval/european-values-de",
+    task=EUROPEAN_VALUES,
+    languages=[DE],
+    splits=["test"],
+    bootstrap_samples=False,
+    _instruction_prompt="{text}",
+)
+
 
 ### Unofficial datasets ###
+
+XQUAD_DE_CONFIG = DatasetConfig(
+    name="xquad-de",
+    pretty_name="the German version of the reading comprehension dataset XQuAD",
+    huggingface_id="EuroEval/xquad-de",
+    task=RC,
+    languages=[DE],
+    unofficial=True,
+)
 
 ARC_DE_CONFIG = DatasetConfig(
     name="arc-de",
@@ -107,5 +128,44 @@ GOLDENSWAG_DE_CONFIG = DatasetConfig(
     huggingface_id="EuroEval/goldenswag-de-mini",
     task=COMMON_SENSE,
     languages=[DE],
+    unofficial=True,
+)
+
+WINOGRANDE_DE_CONFIG = DatasetConfig(
+    name="winogrande-de",
+    pretty_name="the German common-sense reasoning dataset Winogrande-de, translated "
+    "from the English Winogrande dataset",
+    huggingface_id="EuroEval/winogrande-de",
+    task=COMMON_SENSE,
+    languages=[DE],
+    splits=["train", "test"],
+    _labels=["a", "b"],
+    _allowed_model_types=[ModelType.GENERATIVE],
+    unofficial=True,
+)
+
+EUROPEAN_VALUES_SITUATIONAL_DE_CONFIG = DatasetConfig(
+    name="european-values-situational-de",
+    pretty_name="the German version of the European values evaluation dataset, where "
+    "the questions are phrased in a situational way",
+    huggingface_id="EuroEval/european-values-situational-de",
+    task=EUROPEAN_VALUES,
+    languages=[DE],
+    splits=["test"],
+    bootstrap_samples=False,
+    _instruction_prompt="{text}",
+    unofficial=True,
+)
+
+EUROPEAN_VALUES_COMPLETIONS_DE_CONFIG = DatasetConfig(
+    name="european-values-completions-de",
+    pretty_name="the German version of the European values evaluation dataset, where "
+    "the questions are phrased as sentence completions",
+    huggingface_id="EuroEval/european-values-completions-de",
+    task=EUROPEAN_VALUES,
+    languages=[DE],
+    splits=["test"],
+    bootstrap_samples=False,
+    _instruction_prompt="{text}",
     unofficial=True,
 )

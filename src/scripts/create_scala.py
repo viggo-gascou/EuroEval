@@ -26,19 +26,21 @@ from load_ud_pos import (
     load_dedt_pos,
     load_endt_pos,
     load_esdt_pos,
+    load_etdt_pos,
     load_fidt_pos,
     load_fodt_pos,
     load_frdt_pos,
     load_isdt_pos,
     load_itdt_pos,
+    load_lvdt_pos,
     load_nldt_pos,
     load_nodt_nb_pos,
     load_nodt_nn_pos,
+    load_pldt_pos,
     load_ptdt_pos,
     load_svdt_pos,
 )
 from pandas.errors import SettingWithCopyWarning
-from requests.exceptions import HTTPError
 from tqdm.auto import tqdm
 
 
@@ -60,6 +62,9 @@ def main() -> None:
         "es": load_esdt_pos,
         "fi": load_fidt_pos,
         "pt": load_ptdt_pos,
+        "lv": load_lvdt_pos,
+        "et": load_etdt_pos,
+        "pl": load_pldt_pos,
     }
 
     # Set up the progress bar and iterate over the languages
@@ -155,17 +160,9 @@ def main() -> None:
                 train=train, val=val, test=test, full_train=full_train
             )
 
-            # Create dataset ID
-            dataset_id = f"EuroEval/scala-{lang}"
-
-            # Remove the dataset from Hugging Face Hub if it already exists
-            try:
-                api = HfApi()
-                api.delete_repo(dataset_id, repo_type="dataset")
-            except HTTPError:
-                pass
-
             # Push the dataset to the Hugging Face Hub
+            dataset_id = f"EuroEval/scala-{lang}"
+            HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
             dataset.push_to_hub(dataset_id, private=True)
 
 

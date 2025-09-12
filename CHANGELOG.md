@@ -7,15 +7,115 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v16.1.0] - 2025-09-11
+### Added
+- Added support for Polish 🇵🇱! This includes the reading comprehension dataset PoQuAD,
+  the sentiment classification dataset PolEmo 2.0, the linguistic acceptability dataset
+  ScaLA-pl, the named entity recognition dataset KPWr-NER, the summarisation dataset
+  PSC, the knowledge dataset LLMzSzŁ and the common-sense reasoning dataset
+  Winogrande-pl. Also added MultiWikiQA-pl and GoldenSwag-pl as unofficial reading
+  comprehension and common-sense reasoning datasets, respectively. This was contributed
+  by @oliverkinch ✨
+- Added the Swedish knowledge dataset Skolprov. It is unofficial for now. This was
+  contributed by @oliverkinch ✨
+- Added the knowledge dataset Trivia-et for Estonian. The dataset contains 800 trivia
+  questions about Estonia. In this version we rearrange the examples in
+  240 / 60 / 500 samples for training, validation and test splits, respectively.
+  This replaces Exam-et as the official Estonian knowledge dataset. This was contributed
+  by @slowwavesleep ✨
+- Added the English and German versions of XQuAD as unofficial reading comprehension
+  datasets.
+- Added the English common-sense reasoning dataset Winogrande and its translated
+  versions of Winogrande for Danish, German, Spanish, Finnish, French, Italian, Latvian,
+  Dutch, Norwegian, Polish, Portuguese and Swedish. These are unofficial for now.
+- Added new `--generative-type` argument, which can be used to override the automatic
+  detection of the generative type (base decoder, instruction-tuned decoder, or
+  reasoning decoder) of a decoder model. This can be useful if the automatic detection
+  fails for a specific model.
+- Now supports evaluating base decoders on inference servers. This requires the
+  `--generative-type base` argument to be set, as the automatic detection will not work
+  for these models.
+
 ### Changed
-- Updated `vllm` dependency to `>=0.10.1`, which includes GPT-OSS support.
-- Updated `numpy` dependency to `>=2.0.0`, as the previous clash is not applicable
-  anymore.
-- Added support for Estonian 🇪🇪 It currently includes the gold-standard Estonian Valence
-  sentiment classification dataset. The split is given by 1,024 / 256 / 2,048 samples
-  for train / val / test, respectively. This was contributed by @slowwavesleep ✨
+- Changed the model ID syntax, where we now use `#` to indicate parameters and still use
+  `@` to indicate revision. For instance, `o3#low` indicates the `o3` model with the
+  low reasoning effort, and `tencent/Hunyuan-1.8B-Instruct@v1#no-thinking` indicates the
+  Hunyuan model from the `v1` branch and with the `enable_thinking=False` parameter set.
+  This is fully backwards compatible, in the sense that API models still support using
+  `@` for parameters as well, just like previously, but you will get a warning that this
+  syntax is deprecated.
+- Added `thinking` and `no-thinking` parameters for all open-weight models now. Of
+  course, it only makes a difference for models that supports this flag.
+- Reduced the number of tokens used for reasoning models from 32,768 to 8,192, as models
+  reaching the full 32,768 tokens were because they ended up repeating themselves,
+  making the evaluation slower without any benefit.
 
 ### Fixed
+- Some generative models consistently generated empty dictionaries when using structured
+  generation. We now catch this and retry the evaluation without structured generation.
+
+
+## [v16.0.1] - 2025-09-07
+### Fixed
+- Fixed a bug causing encoders to fail when evaluating on the Exam-et dataset.
+- Previously we would abort an evaluation completely if the model outputted a single
+  invalid output on a classification task. As individual samples rarely have a great
+  influence on the overall score, we now just assign the closest label to the sample and
+  continue the evaluation. This will be logged to the user, so that they are aware of
+  this. Some tasks are more sensitive to individual samples, such as European values,
+  where we still abort the evaluation if a single sample is invalid.
+- Fixed a bug where logprobs were not used for classification tasks when evaluating
+  generative models, due to the fact that we raised the number of generated tokens to 10
+  for such tasks. This did not affect the results, but it meant that some evaluations
+  failed.
+- Now includes FlashInfer as a dependency, as it is required by vLLM.
+- Changed the choices in European values to use letters, like the other multiple
+  choice tasks, rather than numbers. Aside from ensuring consistency, we also avoid the
+  issue where '10' and '1' often both have the same first token ('1'), causing us not to
+  be able to use logprobs to determine the answer.
+
+
+## [v16.0.0] - 2025-09-05
+### Added
+- Added support for Latvian 🇱🇻! This includes the sentiment classification dataset
+  Latvian Twitter Sentiment, the linguistic acceptability dataset ScaLA-lv, the named
+  entity recognition datasets FullStack-NER-lv and WikiANN-lv, the reading comprehension
+  dataset MultiWikiQA, the knowledge dataset MMLU-lv, the common-sense reasoning
+  dataset COPA-lv, and the summarisation dataset LSM.
+- Added support for Estonian 🇪🇪! It includes the sentiment classification dataset
+  Estonian Valence, the linguistic acceptability datasets Grammar-et and ScaLA-et, the
+  named entity recognition dataset EstNER, the reading comprehension dataset
+  MultiWikiQA-et, the summarisation dataset ERRNews, the knowledge dataset Exam-et,
+  and the common-sense reasoning dataset Winogrande-et. This was contributed by
+  @slowwavesleep ✨
+- It is now possible to evaluate how much a model adhere to European values! 🇪🇺 This
+  probes 53 questions from the European values survey, which have been chosen based on
+  an optimisation procedure that maximises agreement across the EU. We then measure how
+  well the model's answers align with the distribution of answers across the EU, using a
+  tree-based kernel density estimation. This can only be used zero-shot, and only with
+  instruction-based decoder models (including reasoning models).
+
+### Changed
+- When evaluating classification tasks, we now force the model to output one of the
+  labels. This is done directly with open models, and done via a JSON schema for API
+  models. This won't change the results for existing tasks, as logprobs are used, but
+  this was required to measure the European values.
+- Updated `vllm` dependency to `>=0.10.1`, which includes GPT-OSS support.
+- Updated `numpy` dependency to `>=2.0.0`, as the previous clash is not applicable
+- Updated `transformers` dependency to `>=4.56.0`, which includes support for more
+  models.
+- Now requires Python >=3.11, as Python 3.10 does not support structured generation with
+  a dynamic set of choices (Literal[*list_of_choices] is not supported)
+
+### Fixed
+- Enable support to evaluate Mistral models with their custom `mistral-common`
+  tokeniser, which includes all recent Mistral models. Note that we currently assume
+  that all of these models are instruction-tuned decoder models (which _is_ true
+  currently), which can lead to errors in case they publish different types of models in
+  the future.
 - Now disables the `seed` parameter if the API inference model does not support it,
   which prevented evaluating some models.
 - Now correctly detects an API inference model as non-existing, even if LiteLLM *does*
@@ -24,6 +124,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   vLLM model, during shutdown.
 - Now uses `litellm>=1.75.6`, which fixes an issue related to evaluation of GPT-5 models
   using Ollama.
+- Now always uses the `multiprocessing` backend when evaluating vLLM models, rather than
+  reverting to `ray` when using multiple GPUs, as `ray` led to evaluations of several
+  models freezing.
+- Now does not require the user to be logged in to Hugging Face to benchmark models on
+  the Hugging Face Hub, if the models are public.
+
+### Removed
+- Removed support for human evaluation, as it was not actively maintained and not used.
 
 
 ## [v15.16.0] - 2025-08-12

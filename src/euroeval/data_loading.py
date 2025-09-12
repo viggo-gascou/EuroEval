@@ -12,6 +12,7 @@ from huggingface_hub.errors import HfHubHTTPError
 from numpy.random import Generator
 
 from .exceptions import HuggingFaceHubDown, InvalidBenchmark
+from .tasks import EUROPEAN_VALUES
 from .utils import unscramble
 
 if t.TYPE_CHECKING:
@@ -48,40 +49,45 @@ def load_data(
         dataset_config=dataset_config, cache_dir=benchmark_config.cache_dir
     )
 
-    if not benchmark_config.evaluate_test_split:
+    if not benchmark_config.evaluate_test_split and "val" in dataset:
         dataset["test"] = dataset["val"]
 
     # Remove empty examples from the datasets
     for text_feature in ["tokens", "text"]:
-        if text_feature in dataset["train"].features:
-            dataset = dataset.filter(lambda x: len(x[text_feature]) > 0)
+        for split in dataset_config.splits:
+            if text_feature in dataset[split].features:
+                dataset = dataset.filter(lambda x: len(x[text_feature]) > 0)
 
-    # If we are testing then truncate the test set
-    if hasattr(sys, "_called_from_test"):
+    # If we are testing then truncate the test set, unless we need the full set for
+    # evaluation
+    if hasattr(sys, "_called_from_test") and dataset_config.task != EUROPEAN_VALUES:
         dataset["test"] = dataset["test"].select(range(1))
 
-    # Bootstrap the splits
-    bootstrapped_splits: dict[str, list["Dataset"]] = dict()
-    for split in ["train", "val", "test"]:
-        bootstrap_indices = rng.integers(
-            0,
-            len(dataset[split]),
-            size=(benchmark_config.num_iterations, len(dataset[split])),
-        )
-        bootstrapped_splits[split] = [
-            dataset[split].select(bootstrap_indices[idx])
+    # Bootstrap the splits, if applicable
+    if dataset_config.bootstrap_samples:
+        bootstrapped_splits: dict[str, list["Dataset"]] = dict()
+        for split in dataset_config.splits:
+            bootstrap_indices = rng.integers(
+                0,
+                len(dataset[split]),
+                size=(benchmark_config.num_iterations, len(dataset[split])),
+            )
+            bootstrapped_splits[split] = [
+                dataset[split].select(bootstrap_indices[idx])
+                for idx in range(benchmark_config.num_iterations)
+            ]
+        datasets = [
+            DatasetDict(
+                {
+                    split: bootstrapped_splits[split][idx]
+                    for split in dataset_config.splits
+                }
+            )
             for idx in range(benchmark_config.num_iterations)
         ]
+    else:
+        datasets = [dataset] * benchmark_config.num_iterations
 
-    datasets = [
-        DatasetDict(
-            {
-                split: bootstrapped_splits[split][idx]
-                for split in ["train", "val", "test"]
-            }
-        )
-        for idx in range(benchmark_config.num_iterations)
-    ]
     return datasets
 
 
@@ -113,7 +119,7 @@ def load_raw_data(dataset_config: "DatasetConfig", cache_dir: str) -> "DatasetDi
             requests.ConnectionError,
             requests.ReadTimeout,
         ):
-            logger.warning(
+            logger.debug(
                 f"Failed to load dataset {dataset_config.huggingface_id!r}. Retrying..."
             )
             time.sleep(1)
@@ -126,11 +132,10 @@ def load_raw_data(dataset_config: "DatasetConfig", cache_dir: str) -> "DatasetDi
             f"{num_attempts} attempts."
         )
     assert isinstance(dataset, DatasetDict)  # type: ignore[used-before-def]
-    required_keys = ["train", "val", "test"]
-    missing_keys = [key for key in required_keys if key not in dataset]
+    missing_keys = [key for key in dataset_config.splits if key not in dataset]
     if missing_keys:
         raise InvalidBenchmark(
             "The dataset is missing the following required splits: "
             f"{', '.join(missing_keys)}"
         )
-    return DatasetDict({key: dataset[key] for key in required_keys})
+    return DatasetDict({key: dataset[key] for key in dataset_config.splits})

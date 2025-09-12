@@ -12,6 +12,14 @@ class AutoStrEnum(str, Enum):
     ) -> str:
         return name.lower()
 
+    def __str__(self) -> str:
+        """Return the value in upper case for better readability."""
+        return self.value.upper()
+
+    def __repr__(self) -> str:
+        """Return the value in upper case for better readability."""
+        return self.value.upper()
+
 
 class Device(AutoStrEnum):
     """The compute device to use for the evaluation.
@@ -40,14 +48,11 @@ class InferenceBackend(AutoStrEnum):
             VLLM library.
         LITELLM:
             LiteLLM library.
-        NONE:
-            No inference backend used (e.g., for human evaluation).
     """
 
     TRANSFORMERS = auto()
     VLLM = auto()
     LITELLM = auto()
-    NONE = auto()
 
 
 class ModelType(AutoStrEnum):
@@ -58,13 +63,14 @@ class ModelType(AutoStrEnum):
             An encoder (i.e., BERT-style) model.
         GENERATIVE:
             A generative model. Can be either decoder or encoder-decoder (aka seq2seq).
-        HUMAN:
-            Human evaluator.
     """
 
     ENCODER = auto()
     GENERATIVE = auto()
-    HUMAN = auto()
+
+    def __repr__(self) -> str:
+        """Return the value in upper case for better readability."""
+        return self.value.upper()
 
 
 class GenerativeType(AutoStrEnum):

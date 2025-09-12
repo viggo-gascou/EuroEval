@@ -9,10 +9,13 @@ from dataclasses import dataclass, field
 import pydantic
 import torch
 
-from .enums import Device, InferenceBackend, ModelType, TaskGroup
-from .metrics import Metric
+from .enums import Device, GenerativeType, ModelType, TaskGroup
 from .types import ScoreDict
 from .utils import get_package_version
+
+if t.TYPE_CHECKING:
+    from .enums import InferenceBackend
+    from .metrics import Metric
 
 
 @dataclass
@@ -104,15 +107,58 @@ class Task:
             using few-shot evaluation.
         default_labels:
             The default labels for datasets using this task.
+        requires_zero_shot (optional):
+            Whether to only allow zero-shot evaluation for this task. If True, the
+            task will not be evaluated using few-shot examples.
+        uses_structured_output (optional):
+            Whether the task uses structured output. If True, the task will return
+            structured output (e.g., BIO tags for NER). Defaults to False.
+        uses_logprobs (optional):
+            Whether the task uses log probabilities. If True, the task will return
+            log probabilities for the generated tokens. Defaults to False.
+        requires_logprobs (optional):
+            Whether the task requires log probabilities. Implies `uses_logprobs`.
+        default_allowed_model_types (optional):
+            A list of model types that are allowed to be evaluated on this task.
+            Defaults to all model types being allowed.
+        default_allowed_generative_types (optional):
+            A list of generative model types that are allowed to be evaluated on this
+            task. If None, all generative model types are allowed. Only relevant if
+            `allowed_model_types` includes generative models.
+        default_allow_invalid_model_outputs (optional):
+            Whether to allow invalid model outputs. This is only relevant for generative
+            models on classification tasks, where the model may generate an output
+            which is not one of the allowed labels. If True, the model output will be
+            mapped to the closest valid label. If False, the model output will be
+            considered incorrect and the evaluation will be aborted. Defaults to True.
     """
 
     name: str
     task_group: TaskGroup
     template_dict: dict["Language", "PromptConfig"]
-    metrics: list[Metric]
+    metrics: list["Metric"]
     default_num_few_shot_examples: int
     default_max_generated_tokens: int
     default_labels: list[str]
+    requires_zero_shot: bool = False
+    uses_structured_output: bool = False
+    uses_logprobs: bool = False
+    requires_logprobs: bool = False
+    default_allowed_model_types: list[ModelType] = field(
+        default_factory=lambda: [ModelType.ENCODER, ModelType.GENERATIVE]
+    )
+    default_allowed_generative_types: list[GenerativeType] = field(
+        default_factory=lambda: [
+            GenerativeType.BASE,
+            GenerativeType.INSTRUCTION_TUNED,
+            GenerativeType.REASONING,
+        ]
+    )
+    default_allow_invalid_model_outputs: bool = True
+
+    def __post_init__(self) -> None:
+        """Post-initialisation checks."""
+        self.uses_logprobs = self.uses_logprobs or self.requires_logprobs
 
     def __hash__(self) -> int:
         """Return a hash of the task."""
@@ -177,10 +223,11 @@ class BenchmarkConfig:
             Whether to run the benchmark in debug mode.
         run_with_cli:
             Whether the benchmark is being run with the CLI.
-        only_allow_safetensors:
+        requires_safetensors:
             Whether to only allow models that use the safetensors format.
-        download_only:
-            Whether to only download the model and datasets, without evaluating.
+        generative_type:
+            The type of generative model to benchmark. Only relevant if the model is
+            generative.
     """
 
     model_languages: list[Language]
@@ -206,8 +253,8 @@ class BenchmarkConfig:
     gpu_memory_utilization: float
     debug: bool
     run_with_cli: bool
-    only_allow_safetensors: bool
-    download_only: bool
+    requires_safetensors: bool
+    generative_type: GenerativeType | None
 
 
 class BenchmarkConfigParams(pydantic.BaseModel):
@@ -237,10 +284,10 @@ class BenchmarkConfigParams(pydantic.BaseModel):
     api_base: str | None
     api_version: str | None
     gpu_memory_utilization: float
+    generative_type: GenerativeType | None
     debug: bool
     run_with_cli: bool
-    only_allow_safetensors: bool
-    download_only: bool
+    requires_safetensors: bool
 
 
 class BenchmarkResult(pydantic.BaseModel):
@@ -360,6 +407,26 @@ class DatasetConfig:
             to a 1:1 mapping between the labels and themselves. If None then the mapping
             will be set to the default mapping for the task and language. Defaults to
             None.
+        _allowed_model_types (optional):
+            A list of model types that are allowed to be evaluated on this dataset.
+            Defaults to the one for the task.
+        _allowed_generative_types (optional):
+            A list of generative model types that are allowed to be evaluated on this
+            dataset. If None, all generative model types are allowed. Only relevant if
+            `allowed_model_types` includes generative models. Defaults to the one for
+            the task.
+        _allow_invalid_model_outputs (optional):
+            Whether to allow invalid model outputs. This is only relevant for
+            generative models on classification tasks, where the model may generate an
+            output which is not one of the allowed labels. If True, the model output
+            will be mapped to the closest valid label. If False, the model output will
+            be considered incorrect and the evaluation will be aborted. Defaults to
+            the one for the task.
+        splits (optional):
+            The names of the splits in the dataset. If not provided, defaults to
+            ["train", "val", "test"].
+        bootstrap_samples (optional):
+            Whether to bootstrap the dataset samples. Defaults to True.
         unofficial (optional):
             Whether the dataset is unofficial. Defaults to False.
     """
@@ -376,6 +443,11 @@ class DatasetConfig:
     _max_generated_tokens: int | None = None
     _labels: list[str] | None = None
     _prompt_label_mapping: dict[str, str] | t.Literal["auto"] | None = None
+    _allowed_model_types: list[ModelType] | None = None
+    _allowed_generative_types: list[GenerativeType] | None = None
+    _allow_invalid_model_outputs: bool | None = None
+    splits: list[str] = field(default_factory=lambda: ["train", "val", "test"])
+    bootstrap_samples: bool = True
     unofficial: bool = False
 
     @property
@@ -388,7 +460,6 @@ class DatasetConfig:
             if self._prompt_prefix is None
             else self._prompt_prefix
         )
-        prompt_prefix = prompt_prefix.replace("{labels_str}", self._labels_str)
         return prompt_prefix
 
     @property
@@ -401,7 +472,6 @@ class DatasetConfig:
             if self._prompt_template is None
             else self._prompt_template
         )
-        prompt_template = prompt_template.replace("{labels_str}", self._labels_str)
         return prompt_template
 
     @property
@@ -413,9 +483,6 @@ class DatasetConfig:
             prompt_config.default_instruction_prompt
             if self._instruction_prompt is None
             else self._instruction_prompt
-        )
-        instruction_prompt = instruction_prompt.replace(
-            "{labels_str}", self._labels_str
         )
         return instruction_prompt
 
@@ -459,6 +526,33 @@ class DatasetConfig:
             return prompt_config.default_prompt_label_mapping
 
     @property
+    def allowed_model_types(self) -> list[ModelType]:
+        """A list of model types that are allowed to be evaluated on this dataset."""
+        return (
+            self._allowed_model_types
+            if self._allowed_model_types is not None
+            else self.task.default_allowed_model_types
+        )
+
+    @property
+    def allowed_generative_types(self) -> list[GenerativeType]:
+        """A list of generative model types that are allowed on this dataset."""
+        return (
+            self._allowed_generative_types
+            if self._allowed_generative_types is not None
+            else self.task.default_allowed_generative_types
+        )
+
+    @property
+    def allow_invalid_model_outputs(self) -> bool:
+        """Whether to allow invalid model outputs."""
+        return (
+            self._allow_invalid_model_outputs
+            if self._allow_invalid_model_outputs is not None
+            else self.task.default_allow_invalid_model_outputs
+        )
+
+    @property
     def id2label(self) -> dict[int, str]:
         """The mapping from ID to label."""
         return {idx: label for idx, label in enumerate(self.labels)}
@@ -477,15 +571,16 @@ class DatasetConfig:
         """Return a hash of the dataset configuration."""
         return hash(self.name)
 
-    @property
-    def _labels_str(self) -> str:
+    def get_labels_str(self, labels: list[str] | None = None) -> str:
         """Converts a set of labels to a natural string, in the specified language.
 
         If the task is NER, we separate using 'and' and use the mapped labels instead of
         the BIO NER labels.
 
         Args:
-            language: The language to be used when converting the labels.
+            labels (optional):
+                The labels to convert to a natural string. If None, uses all the labels
+                in the dataset. Defaults to None.
 
         Returns:
             The natural string representation of the labels in specified language.
@@ -497,16 +592,17 @@ class DatasetConfig:
         else:
             sep_word = main_language.or_separator
 
-        local_labels: list[str] = []
-        for label in self.labels:
-            if label not in self.prompt_label_mapping:
-                continue
-            local_label = self.prompt_label_mapping[label]
-            if local_label not in local_labels:
-                local_labels.append(local_label)
+        if labels is None:
+            labels = list()
+            for english_label in self.labels:
+                if english_label not in self.prompt_label_mapping:
+                    continue
+                label = self.prompt_label_mapping[english_label]
+                if label not in labels:
+                    labels.append(label)
 
         # Convert labels to single-quoted labels - and remove duplicates
-        quoted_labels = [f"'{label}'" for label in local_labels]
+        quoted_labels = [f"'{label}'" for label in labels]
 
         if not quoted_labels:
             return ""
@@ -527,6 +623,8 @@ class ModelConfig:
             The ID of the model.
         revision:
             The revision of the model.
+        param:
+            The parameter of the model, or None if the model has no parameters.
         task:
             The task that the model was trained on.
         languages:
@@ -548,9 +646,10 @@ class ModelConfig:
 
     model_id: str
     revision: str
+    param: str | None
     task: str
     languages: list[Language]
-    inference_backend: InferenceBackend
+    inference_backend: "InferenceBackend"
     merge: bool
     model_type: ModelType
     fresh: bool
@@ -661,3 +760,21 @@ class PromptConfig:
     default_prompt_template: str
     default_instruction_prompt: str
     default_prompt_label_mapping: dict[str, str] | t.Literal["auto"]
+
+
+@dataclass
+class ModelIdComponents:
+    """A model ID split into its components.
+
+    Attributes:
+        model_id:
+            The main model ID without revision or parameters.
+        revision:
+            The revision of the model, if any.
+        param:
+            The parameter of the model, if any.
+    """
+
+    model_id: str
+    revision: str
+    param: str | None

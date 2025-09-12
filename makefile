@@ -47,7 +47,7 @@ install-uv:
 			echo "Installed uv."; \
 		else \
 			echo "Updating uv..."; \
-			uv self update; \
+			uv self update || true; \
 	fi
 
 install-dependencies:
@@ -144,3 +144,6 @@ publish-major: install check bump-major publish  ## Publish a major version
 publish-minor: install check bump-minor publish  ## Publish a minor version
 
 publish-patch: install check bump-patch publish  ## Publish a patch version
+
+loc: ## Count the number of lines of code in the project
+	@git ls-files | grep '\.py' | xargs wc -l | tail -n 1

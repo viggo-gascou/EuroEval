@@ -13,12 +13,13 @@ from euroeval.constants import MAX_CONTEXT_LENGTH
 from euroeval.data_loading import load_data, load_raw_data
 from euroeval.data_models import BenchmarkConfig, DatasetConfig
 from euroeval.dataset_configs import get_all_dataset_configs, get_dataset_config
+from euroeval.enums import GenerativeType
 from euroeval.generation_utils import apply_prompt, extract_few_shot_examples
 
 
 @pytest.fixture(scope="module")
-def tokenizer_id() -> Generator[str, None, None]:
-    """Fixture for the tokenizer ID."""
+def tokeniser_id() -> Generator[str, None, None]:
+    """Fixture for the tokeniser ID."""
     yield "google/gemma-3-27b-it"
 
 
@@ -76,20 +77,27 @@ class TestLoadData:
     ],
 )
 def test_examples_in_official_datasets_are_not_too_long(
-    dataset_config: DatasetConfig, benchmark_config: BenchmarkConfig, tokenizer_id: str
+    dataset_config: DatasetConfig, benchmark_config: BenchmarkConfig, tokeniser_id: str
 ) -> None:
     """Test that the examples are not too long in official datasets."""
     dummy_model_config = LiteLLMModel.get_model_config(
         model_id="", benchmark_config=benchmark_config
     )
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_id)
+    tokeniser = AutoTokenizer.from_pretrained(tokeniser_id)
     dataset = load_raw_data(
         dataset_config=dataset_config, cache_dir=benchmark_config.cache_dir
     )
 
     for itr_idx in range(10):
-        few_shot_examples = extract_few_shot_examples(
-            dataset=dataset, dataset_config=dataset_config, itr_idx=itr_idx
+        few_shot_examples = (
+            extract_few_shot_examples(
+                dataset=dataset,
+                dataset_config=dataset_config,
+                benchmark_config=benchmark_config,
+                itr_idx=itr_idx,
+            )
+            if not dataset_config.task.requires_zero_shot
+            else []
         )
         for instruction_model in [True, False]:
             prepared_test = dataset["test"].map(
@@ -98,9 +106,13 @@ def test_examples_in_official_datasets_are_not_too_long(
                     few_shot_examples=few_shot_examples,
                     model_config=dummy_model_config,
                     dataset_config=dataset_config,
-                    instruction_model=instruction_model,
+                    generative_type=(
+                        GenerativeType.INSTRUCTION_TUNED
+                        if instruction_model
+                        else GenerativeType.BASE
+                    ),
                     always_populate_text_field=True,
-                    tokenizer=tokenizer,
+                    tokeniser=tokeniser,
                 ),
                 batched=True,
                 load_from_cache_file=False,
@@ -108,7 +120,7 @@ def test_examples_in_official_datasets_are_not_too_long(
             )
 
             max_input_length = max(
-                len(tokenizer(prompt)["input_ids"]) for prompt in prepared_test["text"]
+                len(tokeniser(prompt)["input_ids"]) for prompt in prepared_test["text"]
             )
             max_output_length = dataset_config.max_generated_tokens
             max_length = max_input_length + max_output_length

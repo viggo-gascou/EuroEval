@@ -1,9 +1,33 @@
 """Templates for the Reading Comprehension task."""
 
-from ..data_models import PromptConfig
-from ..languages import DA, DE, EN, ES, FI, FO, FR, IS, IT, NB, NL, NN, NO, PT, SV
+import typing as t
 
-RC_TEMPLATES = {
+from ..data_models import PromptConfig
+from ..languages import (
+    DA,
+    DE,
+    EN,
+    ES,
+    ET,
+    FI,
+    FO,
+    FR,
+    IS,
+    IT,
+    LV,
+    NB,
+    NL,
+    NN,
+    NO,
+    PL,
+    PT,
+    SV,
+)
+
+if t.TYPE_CHECKING:
+    from ..data_models import Language
+
+RC_TEMPLATES: dict["Language", PromptConfig] = {
     DA: PromptConfig(
         default_prompt_prefix="Følgende er tekster med tilhørende spørgsmål og svar.",
         default_prompt_template="Tekst: {text}\nSpørgsmål: {question}\nSvar med maks. "
@@ -37,6 +61,14 @@ RC_TEMPLATES = {
         "máximo 3 palabras: {label}",
         default_instruction_prompt="Texto: {text}\n\nResponda la siguiente pregunta "
         "sobre el texto anterior en máximo 3 palabras.\n\nPregunta: {question}",
+        default_prompt_label_mapping=dict(),
+    ),
+    ET: PromptConfig(
+        default_prompt_prefix="Järgnevad on tekstid koos küsimuste ja vastustega.",
+        default_prompt_template="Tekst: {text}\nKüsimus: {question}\nVasta "
+        "maksimaalselt 3 sõnaga: {label}",
+        default_instruction_prompt="Tekst: {text}\n\nVasta järgmisele küsimusele "
+        "ülevaltoodud teksti kohta maksimaalselt 3 sõnaga.\n\nKüsimus: {question}",
         default_prompt_label_mapping=dict(),
     ),
     FI: PromptConfig(
@@ -84,6 +116,15 @@ RC_TEMPLATES = {
         "sul in un massimo di 3 parole.\n\nDomanda: {question}",
         default_prompt_label_mapping=dict(),
     ),
+    LV: PromptConfig(
+        default_prompt_prefix="Turpmāk seko teksti ar atbilstošiem jautājumiem un "
+        "atbildēm.",
+        default_prompt_template="Teksts: {text}\nJautājums: {question}\nAtbildēt ar "
+        "maksimāli 3 vārdiem: {label}",
+        default_instruction_prompt="Teksts: {text}\n\nAtbildiet uz šo jautājumu par "
+        "iepriekš minēto tekstu ar maksimāli 3 vārdiem.\n\nJautājums: {question}",
+        default_prompt_label_mapping=dict(),
+    ),
     NB: PromptConfig(
         default_prompt_prefix="Her følger tekster med tilhørende spørsmål og svar.",
         default_prompt_template="Tekst: {text}\nSpørsmål: {question}\nSvar på maks 3 "
@@ -115,6 +156,16 @@ RC_TEMPLATES = {
         "ord: {label}",
         default_instruction_prompt="Tekst: {text}\n\nBesvar følgende spørsmål om "
         "teksten ovenfor med maks 3 ord.\n\nSpørsmål: {question}",
+        default_prompt_label_mapping=dict(),
+    ),
+    PL: PromptConfig(
+        default_prompt_prefix=(
+            "Poniżej znajdują się teksty z towarzyszącymi pytaniami i odpowiedziami."
+        ),
+        default_prompt_template="Tekst: {text}\nPytanie: {question}\nOdpowiedź w "
+        "maksymalnie 3 słowach: {label}",
+        default_instruction_prompt="Tekst: {text}\n\nOdpowiedz na następujące pytanie "
+        "dotyczące powyższego tekstu w maksymalnie 3 słowach.\n\nPytanie: {question}",
         default_prompt_label_mapping=dict(),
     ),
     PT: PromptConfig(

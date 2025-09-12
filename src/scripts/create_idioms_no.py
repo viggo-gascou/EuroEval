@@ -21,13 +21,13 @@ import random
 import re
 
 import pandas as pd
+from constants import CHOICES_MAPPING
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from dotenv import load_dotenv
 from huggingface_hub import HfApi
 from openai import OpenAI
 from openai.types.chat import ChatCompletionUserMessageParam
 from pydantic import BaseModel
-from requests import HTTPError
 from tqdm.auto import tqdm
 
 logging.basicConfig(format="%(asctime)s ⋅ %(message)s", level=logging.INFO)
@@ -92,11 +92,7 @@ def main() -> None:
     dataset_id = "EuroEval/idioms-no"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(dataset_id, private=True)
@@ -220,7 +216,7 @@ def build_dataset_with_llm(dataset: Dataset) -> pd.DataFrame:
         language_display = "Bokmål" if row.language == "nob" else "Nynorsk"
         text = (
             f"Complete the {language_display} idiom:\n{row.idiom_start} _____\n\n"
-            f"Svaralternativer:\na. {options['a']}\nb. {options['b']}\n"
+            f"{CHOICES_MAPPING['no']}:\na. {options['a']}\nb. {options['b']}\n"
             f"c. {options['c']}\nd. {options['d']}"
         )
 

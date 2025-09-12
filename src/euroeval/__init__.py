@@ -13,6 +13,7 @@ from termcolor import colored
 
 # Block specific warnings before importing anything else, as they can be noisy
 warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 logging.getLogger("httpx").setLevel(logging.CRITICAL)
 logging.getLogger("datasets").setLevel(logging.CRITICAL)
 logging.getLogger("vllm").setLevel(logging.CRITICAL)
@@ -77,10 +78,6 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 
 
-# Disable a warning from Ray regarding the detection of the number of CPUs
-os.environ["RAY_DISABLE_DOCKER_CPU_WARNING"] = "1"
-
-
 # Avoid the "Cannot re-initialize CUDA in forked subprocess" error - see
 # https://github.com/vllm-project/vllm/issues/6152 for more
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
@@ -100,9 +97,13 @@ os.environ["VLLM_ALLOW_LONG_MAX_MODEL_LEN"] = "1"
 os.environ["DISABLE_AIOHTTP_TRANSPORT"] = "True"
 
 
-# Use older version v0 of vLLM, as the newer one requires XGrammar as decoding backend,
-# but XGrammar does not support having a maximal amount of elements in lists
-os.environ["VLLM_USE_V1"] = "0"
+# Enable the newer vLLM V1 engine, which is faster and offers more compatibility with
+# newer models
+os.environ["VLLM_USE_V1"] = "1"
+
+
+# Use the FlashInfer flash-attention backend for vLLM
+os.environ["VLLM_ATTENTION_BACKEND"] = "FLASHINFER"
 
 
 # Set the HF_TOKEN env var to copy the HUGGINGFACE_API_KEY env var, as vLLM uses the

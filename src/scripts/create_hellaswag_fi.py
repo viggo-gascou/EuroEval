@@ -16,6 +16,7 @@ from collections import Counter
 
 import pandas as pd
 from constants import (
+    CHOICES_MAPPING,
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
     MAX_REPETITIONS,
@@ -25,7 +26,6 @@ from constants import (
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
 from pandas.errors import SettingWithCopyWarning
-from requests import HTTPError
 
 logging.basicConfig(format="%(asctime)s ⋅ %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -87,11 +87,7 @@ def main() -> None:
     dataset_id = "EuroEval/hellaswag-fi-mini"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(dataset_id, private=True)
@@ -177,7 +173,7 @@ def process_split(df: pd.DataFrame, split: str) -> pd.DataFrame:
     # Make a `text` column with all the options in it
     df["text"] = [
         row.ctx.replace("\n", " ").strip()
-        + "\nVastausvaihtoehdot:\n"
+        + f"\n{CHOICES_MAPPING['fi']}:\n"
         + "\n".join(
             f"{letter}. " + ending.replace("\n", " ").strip()
             for letter, ending in zip("abcd", row.endings)

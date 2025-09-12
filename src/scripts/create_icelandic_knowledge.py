@@ -21,13 +21,13 @@ import random
 import re
 
 import pandas as pd
+from constants import CHOICES_MAPPING
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from dotenv import load_dotenv
 from huggingface_hub import HfApi
 from openai import OpenAI
 from openai.types.chat import ChatCompletionUserMessageParam
 from pydantic import BaseModel
-from requests import HTTPError
 from tqdm.auto import tqdm
 
 logging.basicConfig(format="%(asctime)s ⋅ %(message)s", level=logging.INFO)
@@ -92,11 +92,7 @@ def main() -> None:
     dataset_id = "EuroEval/icelandic-knowledge"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(dataset_id, private=True)
@@ -202,8 +198,12 @@ def build_dataset_with_llm(dataset: Dataset) -> pd.DataFrame:
         correct_label = [k for k, v in options.items() if v == row.answer][0]
 
         text = (
-            f"{row.question}\nSvarmöguleikar:\na. {options['a']}\nb. {options['b']}\n"
-            f"c. {options['c']}\nd. {options['d']}"
+            f"{row.question}\n"
+            f"{CHOICES_MAPPING['is']}:\n"
+            f"a. {options['a']}\n"
+            f"b. {options['b']}\n"
+            f"c. {options['c']}\n"
+            f"d. {options['d']}"
         )
 
         # Sanity check that the texts are formatted correctly

@@ -1,11 +1,11 @@
-"""Unit tests for the `scores` module."""
+"""Tests for the `scores` module."""
 
 from typing import Generator
 
 import numpy as np
 import pytest
 
-from euroeval.data_models import Metric
+from euroeval.metrics import Metric
 from euroeval.scores import aggregate_scores, log_scores
 from euroeval.types import ScoreDict
 
@@ -21,7 +21,7 @@ def scores(metric: Metric) -> Generator[list[dict[str, float]], None, None]:
 
 
 class TestAggregateScores:
-    """Unit tests for the `aggregate_scores` function."""
+    """Tests for the `aggregate_scores` function."""
 
     def test_scores(self, scores: list[dict[str, float]], metric: Metric) -> None:
         """Test that `aggregate_scores` works when scores are provided."""
@@ -43,7 +43,7 @@ class TestAggregateScores:
 
 
 class TestLogScores:
-    """Unit tests for the `log_scores` function."""
+    """Tests for the `log_scores` function."""
 
     @pytest.fixture(scope="class")
     def logged_scores(
@@ -56,6 +56,7 @@ class TestLogScores:
             scores=scores,
             model_id="model_id",
             model_revision="main",
+            model_param=None,
         )
 
     def test_is_correct_type(self, logged_scores: ScoreDict) -> None:

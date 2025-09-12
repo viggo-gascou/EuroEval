@@ -17,6 +17,7 @@ from collections import Counter
 import pandas as pd
 import polars as pl
 from constants import (
+    CHOICES_MAPPING,
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
     MAX_REPETITIONS,
@@ -25,8 +26,9 @@ from constants import (
 )
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
-from requests import HTTPError
 from sklearn.model_selection import train_test_split
+
+LANGUAGES = ["da", "de", "en", "es", "fr", "is", "it", "nl", "no", "pt", "sv"]
 
 
 def main() -> None:
@@ -34,22 +36,7 @@ def main() -> None:
     # Define the base download URL
     repo_id = "alexandrainst/m_mmlu"
 
-    # Create a mapping with the word "Choices" in different languages
-    choices_mapping = {
-        "da": "Svarmuligheder",
-        "no": "Svaralternativer",
-        "sv": "Svarsalternativ",
-        "is": "Svarmöguleikar",
-        "de": "Antwortmöglichkeiten",
-        "nl": "Antwoordopties",
-        "en": "Choices",
-        "fr": "Choix",
-        "it": "Scelte",
-        "es": "Opciones",
-        "pt": "Opções",
-    }
-
-    for language in choices_mapping.keys():
+    for language in LANGUAGES:
         # Download the dataset
         try:
             dataset = load_dataset(path=repo_id, name=language, token=True)
@@ -110,7 +97,7 @@ def main() -> None:
         # Make a `text` column with all the options in it
         df["text"] = [
             row.instruction.replace("\n", " ").strip() + "\n"
-            f"{choices_mapping[language]}:\n"
+            f"{CHOICES_MAPPING[language]}:\n"
             "a. " + row.option_a.replace("\n", " ").strip() + "\n"
             "b. " + row.option_b.replace("\n", " ").strip() + "\n"
             "c. " + row.option_c.replace("\n", " ").strip() + "\n"
@@ -170,11 +157,7 @@ def main() -> None:
             dataset_id = f"EuroEval/mmlu-{language}-mini"
 
         # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api = HfApi()
-            api.delete_repo(dataset_id, repo_type="dataset")
-        except HTTPError:
-            pass
+        HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
         # Push the dataset to the Hugging Face Hub
         dataset.push_to_hub(dataset_id, private=True)

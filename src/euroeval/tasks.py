@@ -1,8 +1,9 @@
 """All benchmarks tasks used in EuroEval."""
 
 from . import metrics as m
+from .constants import NUM_GENERATION_TOKENS_FOR_CLASSIFICATION
 from .data_models import Task
-from .enums import TaskGroup
+from .enums import GenerativeType, ModelType, TaskGroup
 from .prompt_templates import (
     LA_TEMPLATES,
     MULTIPLE_CHOICE_TEMPLATES,
@@ -28,8 +29,9 @@ LA = Task(
     template_dict=LA_TEMPLATES,
     metrics=[m.mcc_metric, m.macro_f1_metric],
     default_num_few_shot_examples=12,
-    default_max_generated_tokens=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["correct", "incorrect"],
+    uses_logprobs=True,
 )
 
 
@@ -51,6 +53,7 @@ NER = Task(
         "b-misc",
         "i-misc",
     ],
+    uses_structured_output=True,
 )
 
 
@@ -71,8 +74,9 @@ SENT = Task(
     template_dict=SENT_TEMPLATES,
     metrics=[m.mcc_metric, m.macro_f1_metric],
     default_num_few_shot_examples=12,
-    default_max_generated_tokens=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["positive", "neutral", "negative"],
+    uses_logprobs=True,
 )
 
 
@@ -84,6 +88,7 @@ SUMM = Task(
     default_num_few_shot_examples=1,
     default_max_generated_tokens=256,
     default_labels=[],
+    default_allowed_model_types=[ModelType.GENERATIVE],
 )
 
 
@@ -93,8 +98,9 @@ KNOW = Task(
     template_dict=MULTIPLE_CHOICE_TEMPLATES,
     metrics=[m.mcc_metric, m.accuracy_metric],
     default_num_few_shot_examples=5,
-    default_max_generated_tokens=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["a", "b", "c", "d"],
+    uses_logprobs=True,
 )
 
 
@@ -104,8 +110,9 @@ MCRC = Task(
     template_dict=MULTIPLE_CHOICE_TEMPLATES,
     metrics=[m.mcc_metric, m.accuracy_metric],
     default_num_few_shot_examples=5,
-    default_max_generated_tokens=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["a", "b", "c", "d"],
+    uses_logprobs=True,
 )
 
 
@@ -115,8 +122,28 @@ COMMON_SENSE = Task(
     template_dict=MULTIPLE_CHOICE_TEMPLATES,
     metrics=[m.mcc_metric, m.accuracy_metric],
     default_num_few_shot_examples=5,
-    default_max_generated_tokens=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["a", "b", "c", "d"],
+    uses_logprobs=True,
+)
+
+
+EUROPEAN_VALUES = Task(
+    name="european-values",
+    task_group=TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION,
+    template_dict=MULTIPLE_CHOICE_TEMPLATES,
+    metrics=[m.european_values_metric],
+    default_num_few_shot_examples=0,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
+    default_labels=["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"],
+    default_allowed_model_types=[ModelType.GENERATIVE],
+    default_allowed_generative_types=[
+        GenerativeType.INSTRUCTION_TUNED,
+        GenerativeType.REASONING,
+    ],
+    requires_zero_shot=True,
+    uses_logprobs=True,
+    default_allow_invalid_model_outputs=False,
 )
 
 

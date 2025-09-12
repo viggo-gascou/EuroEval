@@ -1,10 +1,33 @@
 """Templates for all multiple choice tasks."""
 
+import typing as t
+
 from ..data_models import PromptConfig
-from ..languages import DA, DE, EN, ES, FI, FR, IS, IT, NB, NL, NN, NO, PT, SV
+from ..languages import (
+    DA,
+    DE,
+    EN,
+    ES,
+    ET,
+    FI,
+    FR,
+    IS,
+    IT,
+    LV,
+    NB,
+    NL,
+    NN,
+    NO,
+    PL,
+    PT,
+    SV,
+)
+
+if t.TYPE_CHECKING:
+    from ..data_models import Language
 
 # TODO: Missing Faroese
-MULTIPLE_CHOICE_TEMPLATES = {
+MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
     DA: PromptConfig(
         default_prompt_prefix="Følgende er multiple choice spørgsmål (med svar).",
         default_prompt_template="Spørgsmål: {text}\nSvar: {label}",
@@ -34,6 +57,14 @@ MULTIPLE_CHOICE_TEMPLATES = {
         default_prompt_template="Pregunta: {text}\nRespuesta: {label}",
         default_instruction_prompt="Pregunta: {text}\n\nResponda la pregunta anterior "
         "usando solo {labels_str}, y nada más.",
+        default_prompt_label_mapping="auto",
+    ),
+    ET: PromptConfig(
+        default_prompt_prefix="Järgnevad on vastusevariantidega küsimused (koos "
+        "vastustega).",
+        default_prompt_template="Küsimus: {text}\nVastus: {label}",
+        default_instruction_prompt="Küsimus: {text}\n\nVasta ülaltoodud küsimusele "
+        "ainult {labels_str}, ja mitte millegi muuga.",
         default_prompt_label_mapping="auto",
     ),
     PT: PromptConfig(
@@ -74,6 +105,14 @@ MULTIPLE_CHOICE_TEMPLATES = {
         "precedente con {labels_str}, e nient'altro.",
         default_prompt_label_mapping="auto",
     ),
+    LV: PromptConfig(
+        default_prompt_prefix="Tālāk seko jautājumi ar vairākām atbilžu izvēlēm "
+        "(ar atbildēm).",
+        default_prompt_template="Jautājums: {text}\nAtbilde: {label}",
+        default_instruction_prompt="Jautājums: {text}\n\nAtbildiet uz iepriekšējo "
+        "jautājumu, atbildot ar {labels_str}, un nekas cits.",
+        default_prompt_label_mapping="auto",
+    ),
     NB: PromptConfig(
         default_prompt_prefix="Følgende er flervalgsspørsmål (med svar).",
         default_prompt_template="Spørsmål: {text}\nSvar: {label}",
@@ -100,6 +139,14 @@ MULTIPLE_CHOICE_TEMPLATES = {
         default_prompt_template="Spørsmål: {text}\nSvar: {label}",
         default_instruction_prompt="Spørsmål: {text}\n\nBesvar følgende spørsmål med "
         "{labels_str}, og ikke noe annet.",
+        default_prompt_label_mapping="auto",
+    ),
+    PL: PromptConfig(
+        default_prompt_prefix="Poniżej znajdują się pytania wielokrotnego wyboru "
+        "(z odpowiedziami).",
+        default_prompt_template="Pytanie: {text}\nOdpowiedź: {label}",
+        default_instruction_prompt="Pytanie: {text}\n\nOdpowiedz na powyższe pytanie, "
+        "odpowiadając {labels_str}, i nic więcej.",
         default_prompt_label_mapping="auto",
     ),
     SV: PromptConfig(

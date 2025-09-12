@@ -8,7 +8,7 @@ import torch
 
 from .data_models import BenchmarkConfig
 from .dataset_configs import get_all_dataset_configs
-from .enums import Device
+from .enums import Device, GenerativeType
 from .exceptions import InvalidBenchmark
 from .languages import get_all_languages
 from .tasks import SPEED, get_all_tasks
@@ -43,11 +43,10 @@ def build_benchmark_config(
     api_base: str | None,
     api_version: str | None,
     gpu_memory_utilization: float,
+    generative_type: GenerativeType | None,
     debug: bool,
     run_with_cli: bool,
-    only_allow_safetensors: bool,
-    download_only: bool,
-    first_time: bool = False,
+    requires_safetensors: bool,
 ) -> BenchmarkConfig:
     """Create a benchmark configuration.
 
@@ -109,17 +108,15 @@ def build_benchmark_config(
             faster evaluation, but at the risk of running out of GPU memory. Only reduce
             this if you are running out of GPU memory. Only relevant if the model is
             generative.
+        generative_type:
+            The type of generative model. Only relevant if the model is generative. If
+            not specified, the type will be inferred automatically.
         debug:
             Whether to run the benchmark in debug mode.
         run_with_cli:
             Whether the benchmark is being run with the CLI.
-        only_allow_safetensors:
+        requires_safetensors:
             Whether to only allow evaluations of models stored as safetensors.
-        download_only:
-            Whether to only download the requested model weights and datasets.
-        first_time:
-            Whether this is the first time the benchmark configuration is being created.
-            Defaults to False.
 
     Returns:
         The benchmark configuration.
@@ -164,10 +161,10 @@ def build_benchmark_config(
         api_base=api_base,
         api_version=api_version,
         gpu_memory_utilization=gpu_memory_utilization,
+        generative_type=generative_type,
         debug=debug,
         run_with_cli=run_with_cli,
-        only_allow_safetensors=only_allow_safetensors,
-        download_only=download_only,
+        requires_safetensors=requires_safetensors,
     )
 
 

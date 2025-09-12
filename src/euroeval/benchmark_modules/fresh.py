@@ -1,6 +1,5 @@
 """Freshly initialised encoder models."""
 
-import os
 import typing as t
 from functools import cached_property
 from json import JSONDecodeError
@@ -26,10 +25,11 @@ from ..exceptions import (
     NeedsEnvironmentVariable,
     NeedsExtraInstalled,
 )
-from ..utils import block_terminal_output, create_model_cache_dir
+from ..generation_utils import raise_if_wrong_params
+from ..utils import block_terminal_output, create_model_cache_dir, get_hf_token
 from .hf import (
     HuggingFaceEncoderModel,
-    align_model_and_tokenizer,
+    align_model_and_tokeniser,
     setup_model_for_question_answering,
 )
 
@@ -51,6 +51,7 @@ class FreshEncoderModel(HuggingFaceEncoderModel):
         model_config: "ModelConfig",
         dataset_config: "DatasetConfig",
         benchmark_config: "BenchmarkConfig",
+        log_metadata: bool = True,
     ) -> None:
         """Initialise the model.
 
@@ -61,23 +62,29 @@ class FreshEncoderModel(HuggingFaceEncoderModel):
                 The dataset configuration.
             benchmark_config:
                 The benchmark configuration.
+            log_metadata:
+                Whether to log metadata about the model and the benchmark.
         """
+        raise_if_wrong_params(
+            model_config=model_config, allowed_params=self.allowed_params
+        )
+
         # This is already set when calling `super.__init__`, but we need it to get a
         # value from `self.model_max_length`, so we set it here as well.
         self.model_config = model_config
 
-        model, tokenizer = load_model_and_tokenizer(
+        model, tokeniser = load_model_and_tokeniser(
             model_config=model_config,
             dataset_config=dataset_config,
             benchmark_config=benchmark_config,
             model_max_length=self.model_max_length,
         )
         self._model: "PreTrainedModel" = model
-        self._tokenizer: "PreTrainedTokenizer" = tokenizer
+        self._tokeniser: "PreTrainedTokenizer" = tokeniser
 
-        self._model, self._tokenizer = align_model_and_tokenizer(
+        self._model, self._tokeniser = align_model_and_tokeniser(
             model=self._model,
-            tokenizer=self._tokenizer,
+            tokeniser=self._tokeniser,
             model_max_length=self.model_max_length,
             raise_errors=benchmark_config.raise_errors,
         )
@@ -88,6 +95,7 @@ class FreshEncoderModel(HuggingFaceEncoderModel):
             model_config=model_config,
             dataset_config=dataset_config,
             benchmark_config=benchmark_config,
+            log_metadata=log_metadata,
         )
 
     @cached_property
@@ -180,9 +188,10 @@ class FreshEncoderModel(HuggingFaceEncoderModel):
         """
         return ModelConfig(
             model_id=model_id,
+            revision="main",
+            param=None,
             task="fill-mask",
             languages=list(),
-            revision="main",
             merge=False,
             inference_backend=InferenceBackend.TRANSFORMERS,
             model_type=ModelType.ENCODER,
@@ -194,13 +203,13 @@ class FreshEncoderModel(HuggingFaceEncoderModel):
         )
 
 
-def load_model_and_tokenizer(
+def load_model_and_tokeniser(
     model_config: "ModelConfig",
     dataset_config: "DatasetConfig",
     benchmark_config: "BenchmarkConfig",
     model_max_length: int,
 ) -> "tuple[PreTrainedModel, PreTrainedTokenizer]":
-    """Load the model and tokenizer.
+    """Load the model and tokeniser.
 
     Args:
         model_config:
@@ -213,7 +222,7 @@ def load_model_and_tokenizer(
             The maximum context length of the model.
 
     Returns:
-        The loaded model and tokenizer.
+        The loaded model and tokeniser.
     """
     config: "PretrainedConfig"
     block_terminal_output()
@@ -262,7 +271,7 @@ def load_model_and_tokenizer(
 
     config = AutoConfig.from_pretrained(
         real_model_id,
-        token=benchmark_config.api_key or os.getenv("HUGGINGFACE_API_KEY") or True,
+        token=get_hf_token(api_key=benchmark_config.api_key),
         num_labels=len(id2label),
         id2label=id2label,
         label2id={label: id_ for id_, label in id2label.items()},
@@ -274,29 +283,31 @@ def load_model_and_tokenizer(
     if dataset_config.task.task_group == TaskGroup.QUESTION_ANSWERING:
         model = setup_model_for_question_answering(model=model)
 
-    # Load the tokenizer. If the model is a subclass of a RoBERTa model then we
+    # Load the tokeniser. If the model is a subclass of a RoBERTa model then we
     # have to add a prefix space to the tokens, by the way the model is constructed
     prefix_models = ["Roberta", "GPT", "Deberta"]
     prefix = any(model_type in type(model).__name__ for model_type in prefix_models)
     try:
-        tokenizer: "PreTrainedTokenizer" = AutoTokenizer.from_pretrained(
+        tokeniser: "PreTrainedTokenizer" = AutoTokenizer.from_pretrained(
             real_model_id,
             revision=model_config.revision,
-            token=benchmark_config.api_key or os.getenv("HUGGINGFACE_API_KEY") or True,
+            token=get_hf_token(api_key=benchmark_config.api_key),
             add_prefix_space=prefix,
             cache_dir=model_config.model_cache_dir,
             use_fast=True,
             verbose=False,
             trust_remote_code=benchmark_config.trust_remote_code,
         )
-    except (JSONDecodeError, OSError):
-        raise InvalidModel(f"Could not load tokenizer for model {real_model_id!r}.")
+    except (JSONDecodeError, OSError) as e:
+        raise InvalidModel(
+            f"Could not load tokeniser for model {real_model_id!r}."
+        ) from e
 
-    model, tokenizer = align_model_and_tokenizer(
+    model, tokeniser = align_model_and_tokeniser(
         model=model,
-        tokenizer=tokenizer,
+        tokeniser=tokeniser,
         model_max_length=model_max_length,
         raise_errors=benchmark_config.raise_errors,
     )
 
-    return model, tokenizer
+    return model, tokeniser

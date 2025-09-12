@@ -1,9 +1,33 @@
 """Templates for the Sentiment Analysis task."""
 
-from ..data_models import PromptConfig
-from ..languages import DA, DE, EN, ES, ET, FI, FO, FR, IS, IT, NB, NL, NN, NO, PT, SV
+import typing as t
 
-SENT_TEMPLATES = {
+from ..data_models import PromptConfig
+from ..languages import (
+    DA,
+    DE,
+    EN,
+    ES,
+    ET,
+    FI,
+    FO,
+    FR,
+    IS,
+    IT,
+    LV,
+    NB,
+    NL,
+    NN,
+    NO,
+    PL,
+    PT,
+    SV,
+)
+
+if t.TYPE_CHECKING:
+    from ..data_models import Language
+
+SENT_TEMPLATES: dict["Language", PromptConfig] = {
     DA: PromptConfig(
         default_prompt_label_mapping=dict(
             positive="positiv", neutral="neutral", negative="negativ"
@@ -54,6 +78,20 @@ SENT_TEMPLATES = {
         default_instruction_prompt="Dokument: {text}\n\nKlassifitseeri dokument "
         "meelestatuse järgi. Võimalikud vastused: {labels_str}. Muud vastused "
         "ei ole lubatud.",
+    ),
+    PL: PromptConfig(
+        default_prompt_label_mapping=dict(
+            positive="pozytywny", neutral="neutralny", negative="negatywny"
+        ),
+        default_prompt_prefix=(
+            "Poniżej znajdują się dokumenty i ich sentyment, który może być "
+            "{labels_str}."
+        ),
+        default_prompt_template="Dokument: {text}\nSentyment: {label}",
+        default_instruction_prompt=(
+            "Dokument: {text}\n\nKlasyfikuj sentyment w dokumencie. "
+            "Odpowiedz z {labels_str}, i nic więcej."
+        ),
     ),
     PT: PromptConfig(
         default_prompt_label_mapping=dict(
@@ -114,6 +152,16 @@ SENT_TEMPLATES = {
         default_prompt_template="Documento: {text}\nSentimento: {label}",
         default_instruction_prompt="Documento: {text}\n\nClassificare il sentiment del "
         "documento. Rispondere con {labels_str}, e nient'altro.",
+    ),
+    LV: PromptConfig(
+        default_prompt_label_mapping=dict(
+            positive="pozitīvs", neutral="neitrāls", negative="negatīvs"
+        ),
+        default_prompt_prefix="Tālāk ir dokumenti un to noskaņojums, kas var būt "
+        "{labels_str}.",
+        default_prompt_template="Dokuments: {text}\nNoskaņojums: {label}",
+        default_instruction_prompt="Dokuments: {text}\n\nKlasificējiet noskaņojumu "
+        "dokumentā. Atbildiet ar {labels_str}, un neko citu.",
     ),
     NB: PromptConfig(
         default_prompt_label_mapping=dict(

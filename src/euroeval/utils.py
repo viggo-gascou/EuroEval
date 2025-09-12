@@ -4,31 +4,30 @@ import asyncio
 import gc
 import importlib
 import importlib.metadata
-import importlib.util
 import logging
 import os
 import random
-import socket
+import re
 import sys
 import typing as t
 import warnings
 from functools import cache
 from pathlib import Path
 
+import demjson3
+import huggingface_hub as hf_hub
 import litellm
 import numpy as np
 import torch
 from datasets.utils import disable_progress_bar
 from transformers import logging as tf_logging
 
-from .exceptions import NaNValueInModelOutput
-
-if importlib.util.find_spec("ray") is not None:
-    import ray
+from .exceptions import InvalidBenchmark, InvalidModel, NaNValueInModelOutput
 
 if t.TYPE_CHECKING:
     from types import TracebackType
 
+    from .data_models import ModelIdComponents
     from .types import Predictions
 
 
@@ -93,54 +92,53 @@ def block_terminal_output() -> None:
     # Ignore miscellaneous warnings
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=FutureWarning)
-    warnings.filterwarnings(
-        "ignore",
-        module="torch.nn.parallel*",
-        message="Was asked to gather along dimension 0, but all input tensors were "
-        "scalars; will instead unsqueeze and return a vector.",
-    )
-    warnings.filterwarnings("ignore", module="seqeval*")
-
-    # Up the logging level, to disable outputs
-    logging.getLogger("filelock").setLevel(logging.CRITICAL)
     logging.getLogger("absl").setLevel(logging.CRITICAL)
-    logging.getLogger("datasets").setLevel(logging.CRITICAL)
+
+    # Disable matplotlib logging
+    logging.getLogger("matplotlib.font_manager").setLevel(logging.CRITICAL)
+
+    # Disable PyTorch logging
+    logging.getLogger("torch.utils.cpp_extension").setLevel(logging.CRITICAL)
+    warnings.filterwarnings(action="ignore", module="torch*")
+    os.environ["TORCH_LOGS"] = "-all"
+
+    # Disable huggingface_hub logging
+    logging.getLogger("huggingface_hub").setLevel(logging.CRITICAL)
+
+    # Disable LiteLLM logging
+    logging.getLogger("LiteLLM").setLevel(logging.CRITICAL)
+    logging.getLogger("LiteLLM Router").setLevel(logging.CRITICAL)
+    logging.getLogger("LiteLLM Proxy").setLevel(logging.CRITICAL)
     logging.getLogger("openai").setLevel(logging.CRITICAL)
-    logging.getLogger("torch.distributed.distributed_c10d").setLevel(logging.CRITICAL)
-    logging.getLogger("torch.nn.parallel.distributed").setLevel(logging.CRITICAL)
+    logging.getLogger("httpx").setLevel(logging.CRITICAL)
+    litellm.suppress_debug_info = True
+
+    # Disable vLLM logging
     logging.getLogger("vllm").setLevel(logging.CRITICAL)
     logging.getLogger("vllm.engine.llm_engine").setLevel(logging.CRITICAL)
     logging.getLogger("vllm.transformers_utils.tokenizer").setLevel(logging.CRITICAL)
     logging.getLogger("vllm.core.scheduler").setLevel(logging.CRITICAL)
     logging.getLogger("vllm.model_executor.weight_utils").setLevel(logging.CRITICAL)
     logging.getLogger("vllm.platforms").setLevel(logging.CRITICAL)
-    logging.getLogger("httpx").setLevel(logging.CRITICAL)
-    logging.getLogger("ray._private.worker").setLevel(logging.CRITICAL)
-    logging.getLogger("ray._private.services").setLevel(logging.CRITICAL)
-    logging.getLogger("matplotlib.font_manager").setLevel(logging.CRITICAL)
-    logging.getLogger("accelerate").setLevel(logging.CRITICAL)
-    logging.getLogger("LiteLLM").setLevel(logging.CRITICAL)
-    logging.getLogger("LiteLLM Router").setLevel(logging.CRITICAL)
-    logging.getLogger("LiteLLM Proxy").setLevel(logging.CRITICAL)
-    logging.getLogger("huggingface_hub").setLevel(logging.CRITICAL)
-
-    # This suppresses vLLM logging
+    logging.getLogger("mistral_common.tokens.tokenizers.tekken").setLevel(
+        logging.CRITICAL
+    )
     os.environ["LOG_LEVEL"] = "CRITICAL"
     os.environ["VLLM_CONFIGURE_LOGGING"] = "0"
 
-    if importlib.util.find_spec("ray") is not None:
-        ray._private.worker._worker_logs_enabled = False
-
-    # Disable the tokeniser progress bars
+    # Disable datasets logging
+    logging.getLogger("datasets").setLevel(logging.CRITICAL)
+    logging.getLogger("filelock").setLevel(logging.CRITICAL)
     disable_progress_bar()
+
+    # Disable evaluate logging
+    warnings.filterwarnings("ignore", module="seqeval*")
 
     # Disable most of the `transformers` logging
     tf_logging._default_log_level = logging.CRITICAL
     tf_logging.set_verbosity(logging.CRITICAL)
     logging.getLogger("transformers.trainer").setLevel(logging.CRITICAL)
-
-    # Disable logging from `litellm`
-    litellm.suppress_debug_info = True
+    logging.getLogger("accelerate").setLevel(logging.CRITICAL)
 
 
 def get_class_by_name(class_name: str | list[str], module_name: str) -> t.Type | None:
@@ -354,7 +352,8 @@ def safe_run(coroutine: t.Coroutine[t.Any, t.Any, T]) -> T:
     loop = asyncio.new_event_loop()
     try:
         asyncio.set_event_loop(loop)
-        return loop.run_until_complete(coroutine)
+        response = loop.run_until_complete(coroutine)
+        return response
     finally:
         loop.close()
         asyncio.set_event_loop(None)
@@ -379,3 +378,151 @@ async def add_semaphore_and_catch_exception(
             return await coroutine
         except Exception as exc:
             return exc
+
+
+def extract_json_dict_from_string(s: str) -> dict | None:
+    """Extract a JSON dictionary from a string.
+
+    Args:
+        s:
+            The string to extract the JSON dictionary from.
+
+    Returns:
+        The extracted JSON dictionary, or None if no JSON dictionary could be found.
+    """
+    json_regex = r"\{[^{}]+?\}"
+    if (json_match := re.search(pattern=json_regex, string=s, flags=re.DOTALL)) is None:
+        logger.debug(
+            "The model output does not contain any JSON dictionary, so cannot parse "
+            f"it. Skipping. Here is the output: {s!r}"
+        )
+        return None
+    json_string = json_match.group()
+    try:
+        json_output = demjson3.decode(txt=json_string)
+    except demjson3.JSONDecodeError:
+        logger.debug(
+            "The model output is not valid JSON, so cannot parse it. Skipping. "
+            f"Here is the output: {json_string!r}"
+        )
+        return None
+    if not isinstance(json_output, dict):
+        logger.debug(
+            "The model output is not a JSON dictionary, so cannot parse "
+            f"it. Skipping. Here is the output: {json_string!r}"
+        )
+        return None
+    elif not all(isinstance(key, str) for key in json_output.keys()):
+        logger.debug(
+            "The model output is not a JSON dictionary with string keys, "
+            "so cannot parse it. Skipping. Here is the output: "
+            f"{json_string!r}"
+        )
+        return None
+    return json_output
+
+
+@cache
+def get_hf_token(api_key: str | None) -> str | bool:
+    """Get the Hugging Face token.
+
+    Args:
+        api_key:
+            The API key to use as the Hugging Face token. If None, we will try to
+            extract it in other ways.
+
+    Returns:
+        The Hugging Face token, or True if no token is set but the user is logged in, or
+        False if no token is set and the user is not logged in.
+    """
+    if api_key is not None:
+        log_once(
+            "Using the Hugging Face API key passed to the function.",
+            level=logging.DEBUG,
+        )
+        return api_key
+    elif (token := os.getenv("HUGGINGFACE_API_KEY")) is not None:
+        log_once(
+            "Using the Hugging Face API key from the environment variable "
+            "`HUGGINGFACE_API_KEY`.",
+            level=logging.DEBUG,
+        )
+        return token
+    try:
+        hf_hub.whoami()
+        log_once(
+            "No Hugging Face API key was set, but the user is logged in to Hugging "
+            "Face, so using the local token.",
+            level=logging.DEBUG,
+        )
+        return True
+    except hf_hub.errors.LocalTokenNotFoundError:
+        log_once(
+            "No Hugging Face API key was set and the user is not logged in to Hugging "
+            "Face, so no token will be used.",
+            level=logging.DEBUG,
+        )
+        return False
+
+
+def extract_multiple_choice_labels(
+    prompt: str, candidate_labels: list[str]
+) -> list[str]:
+    """Extract multiple choice labels from a prompt.
+
+    Args:
+        prompt:
+            The prompt to extract the labels from.
+        candidate_labels:
+            The candidate labels to look for in the prompt.
+
+    Returns:
+        The extracted labels.
+    """
+    sample_candidate_labels: list[str] = list()
+    for candidate_label in candidate_labels:
+        candidate_label_match = re.search(
+            pattern=rf"\b{candidate_label}\. ", string=prompt, flags=re.IGNORECASE
+        )
+        if candidate_label_match is not None:
+            sample_candidate_labels.append(candidate_label)
+    if not sample_candidate_labels:
+        raise InvalidBenchmark(
+            "Could not extract any candidate labels from the prompt. Please ensure "
+            "that the candidate labels are present in the prompt, each followed by a "
+            "dot and a space (e.g., 'a. '). The candidate labels are: "
+            f"{', '.join(candidate_labels)}. Here is the prompt: {prompt!r}"
+        )
+    return sample_candidate_labels
+
+
+def split_model_id(model_id: str) -> "ModelIdComponents":
+    """Split a model ID into its components.
+
+    Args:
+        model_id:
+            The model ID to split.
+
+    Returns:
+        The split model ID.
+
+    Raises:
+        If the model ID is not valid.
+    """
+    # Importing here to avoid circular imports
+    from .data_models import ModelIdComponents
+
+    # Attempt to extract the model ID, revision, and param using regex
+    model_id_match = re.match(pattern=r"^[^@#]+", string=model_id)
+    revision_match = re.search(pattern=r"@([^@#]+)", string=model_id)
+    param_match = re.search(pattern=r"#([^@#]+)", string=model_id)
+
+    # If we cannot extract the model ID, raise an error
+    if model_id_match is None:
+        raise InvalidModel(f"The model ID {model_id!r} is not valid.")
+    model_id = model_id_match.group()
+
+    # Extract the revision and param and return the result
+    revision = revision_match.group(1) if revision_match is not None else "main"
+    param = param_match.group(1) if param_match is not None else None
+    return ModelIdComponents(model_id=model_id, revision=revision, param=param)

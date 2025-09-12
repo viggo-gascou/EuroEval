@@ -1,8 +1,9 @@
 """All Finnish dataset configurations used in EuroEval."""
 
 from ..data_models import DatasetConfig
+from ..enums import ModelType
 from ..languages import FI
-from ..tasks import COMMON_SENSE, LA, MCRC, NER, RC, SENT, SUMM
+from ..tasks import COMMON_SENSE, EUROPEAN_VALUES, LA, MCRC, NER, RC, SENT, SUMM
 
 ### Official datasets ###
 
@@ -57,6 +58,18 @@ SCALA_FI_CONFIG = DatasetConfig(
     languages=[FI],
 )
 
+EUROPEAN_VALUES_FI_CONFIG = DatasetConfig(
+    name="european-values-fi",
+    pretty_name="the Finnish version of the European values evaluation dataset",
+    huggingface_id="EuroEval/european-values-fi",
+    task=EUROPEAN_VALUES,
+    languages=[FI],
+    splits=["test"],
+    bootstrap_samples=False,
+    _instruction_prompt="{text}",
+)
+
+
 ### Unofficial datasets ###
 
 BELEBELE_FI_CONFIG = DatasetConfig(
@@ -86,5 +99,44 @@ GOLDENSWAG_FI_CONFIG = DatasetConfig(
     huggingface_id="EuroEval/goldenswag-fi-mini",
     task=COMMON_SENSE,
     languages=[FI],
+    unofficial=True,
+)
+
+WINOGRANDE_FI_CONFIG = DatasetConfig(
+    name="winogrande-fi",
+    pretty_name="the Finnish common-sense reasoning dataset Winogrande-fi, translated "
+    "from the English Winogrande dataset",
+    huggingface_id="EuroEval/winogrande-fi",
+    task=COMMON_SENSE,
+    languages=[FI],
+    splits=["train", "test"],
+    _labels=["a", "b"],
+    _allowed_model_types=[ModelType.GENERATIVE],
+    unofficial=True,
+)
+
+EUROPEAN_VALUES_SITUATIONAL_FI_CONFIG = DatasetConfig(
+    name="european-values-situational-fi",
+    pretty_name="the Finnish version of the European values evaluation dataset, where "
+    "the questions are phrased in a situational way",
+    huggingface_id="EuroEval/european-values-situational-fi",
+    task=EUROPEAN_VALUES,
+    languages=[FI],
+    splits=["test"],
+    bootstrap_samples=False,
+    _instruction_prompt="{text}",
+    unofficial=True,
+)
+
+EUROPEAN_VALUES_COMPLETIONS_FI_CONFIG = DatasetConfig(
+    name="european-values-completions-fi",
+    pretty_name="the Finnish version of the European values evaluation dataset, where "
+    "the questions are phrased as sentence completions",
+    huggingface_id="EuroEval/european-values-completions-fi",
+    task=EUROPEAN_VALUES,
+    languages=[FI],
+    splits=["test"],
+    bootstrap_samples=False,
+    _instruction_prompt="{text}",
     unofficial=True,
 )

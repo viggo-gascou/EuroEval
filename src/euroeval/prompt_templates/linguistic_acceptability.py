@@ -1,9 +1,33 @@
 """Templates for the Linguistic Acceptability task."""
 
-from ..data_models import PromptConfig
-from ..languages import DA, DE, EN, ES, FI, FO, FR, IS, IT, NB, NL, NN, NO, PT, SV
+import typing as t
 
-LA_TEMPLATES = {
+from ..data_models import PromptConfig
+from ..languages import (
+    DA,
+    DE,
+    EN,
+    ES,
+    ET,
+    FI,
+    FO,
+    FR,
+    IS,
+    IT,
+    LV,
+    NB,
+    NL,
+    NN,
+    NO,
+    PL,
+    PT,
+    SV,
+)
+
+if t.TYPE_CHECKING:
+    from ..data_models import Language
+
+LA_TEMPLATES: dict["Language", PromptConfig] = {
     DA: PromptConfig(
         default_prompt_label_mapping=dict(correct="ja", incorrect="nej"),
         default_prompt_prefix="Følgende er sætninger og om de er grammatisk korrekte.",
@@ -35,6 +59,22 @@ LA_TEMPLATES = {
         default_prompt_template="Texto: {text}\nGramaticalmente correcto: {label}",
         default_instruction_prompt="Texto: {text}\n\nDetermina si el texto es "
         "gramaticalmente correcto o no. Responde con {labels_str}, y nada más.",
+    ),
+    ET: PromptConfig(
+        default_prompt_label_mapping=dict(correct="jah", incorrect="ei"),
+        default_prompt_prefix="Järgnevad on laused ja kas need on grammatiliselt "
+        "õiged.",
+        default_prompt_template="Lause: {text}\nGrammatikaliselt õige: {label}",
+        default_instruction_prompt="Lause: {text}\n\nOtsusta, kas lause on "
+        "grammatiliselt õige või mitte. Vasta {labels_str}, ja mitte midagi muud.",
+    ),
+    PL: PromptConfig(
+        default_prompt_label_mapping=dict(correct="tak", incorrect="nie"),
+        default_prompt_prefix="Poniżej znajdują się teksty i czy są "
+        "gramatycznie poprawne.",
+        default_prompt_template="Tekst: {text}\nGramatycznie poprawny: {label}",
+        default_instruction_prompt="Tekst: {text}\n\nOkreśl czy tekst jest "
+        "gramatycznie poprawny czy nie. Odpowiedz {labels_str}, i nic więcej.",
     ),
     PT: PromptConfig(
         default_prompt_label_mapping=dict(correct="sim", incorrect="não"),
@@ -84,6 +124,13 @@ LA_TEMPLATES = {
         default_prompt_template="Frase : {text}\nGrammaticalmente corretto : {label}",
         default_instruction_prompt="Frase: {text}\n\nStabilite se la frase è "
         "grammaticalmente corretta o meno. Rispondere con {labels_str}, e nient'altro.",
+    ),
+    LV: PromptConfig(
+        default_prompt_label_mapping=dict(correct="jā", incorrect="nē"),
+        default_prompt_prefix="Šie ir teikumi un to gramatiskie pareizumi.",
+        default_prompt_template="Teikums: {text}\nGramatiski pareizs: {label}",
+        default_instruction_prompt="Teikums: {text}\n\nNoteiciet, vai teikums ir "
+        "gramatiski pareizs vai nē. Atbildiet ar {labels_str}, un neko citu.",
     ),
     NB: PromptConfig(
         default_prompt_label_mapping=dict(correct="ja", incorrect="nei"),

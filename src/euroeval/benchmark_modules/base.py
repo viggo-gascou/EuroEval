@@ -2,17 +2,18 @@
 
 import collections.abc as c
 import logging
+import re
 import sys
 import typing as t
 from abc import ABC, abstractmethod
 from functools import cached_property, partial
 
-from datasets import DatasetDict
+from datasets import Dataset, DatasetDict
 from torch import nn
 from tqdm.auto import tqdm
 
 from ..enums import TaskGroup
-from ..exceptions import NeedsEnvironmentVariable, NeedsExtraInstalled
+from ..exceptions import InvalidBenchmark, NeedsEnvironmentVariable, NeedsExtraInstalled
 from ..task_group_utils import (
     question_answering,
     sequence_classification,
@@ -55,12 +56,14 @@ class BenchmarkModule(ABC):
     fresh_model: bool
     batching_preference: "BatchingPreference"
     high_priority: bool
+    allowed_params: dict[re.Pattern, list[str]] = {re.compile(r".*"): []}
 
     def __init__(
         self,
         model_config: "ModelConfig",
         dataset_config: "DatasetConfig",
         benchmark_config: "BenchmarkConfig",
+        log_metadata: bool = True,
     ) -> None:
         """Initialise the benchmark module.
 
@@ -71,12 +74,16 @@ class BenchmarkModule(ABC):
                 The dataset configuration.
             benchmark_config:
                 The benchmark configuration.
+            log_metadata:
+                Whether to log the metadata of the model.
         """
         self.model_config = model_config
         self.dataset_config = dataset_config
         self.benchmark_config = benchmark_config
+        self.log_metadata = log_metadata
         self.buffer: dict[str, t.Any] = dict()
-        self._log_metadata()
+        if self.log_metadata:
+            self._log_metadata()
 
     def _log_metadata(self) -> None:
         """Log the metadata of the model."""
@@ -117,16 +124,16 @@ class BenchmarkModule(ABC):
             f"{self.__class__.__name__}."
         )
 
-    def get_tokenizer(self) -> "PreTrainedTokenizer":
-        """Get the underlying tokenizer.
+    def get_tokeniser(self) -> "PreTrainedTokenizer":
+        """Get the underlying tokeniser.
 
         Returns:
-            The tokenizer.
+            The tokeniser.
         """
-        if hasattr(self, "_tokenizer"):
-            return self._tokenizer
+        if hasattr(self, "_tokeniser"):
+            return self._tokeniser
         raise NotImplementedError(
-            "The `get_tokenizer` method has not been implemented for "
+            "The `get_tokeniser` method has not been implemented for "
             f"{self.__class__.__name__}."
         )
 
@@ -259,6 +266,11 @@ class BenchmarkModule(ABC):
 
         Returns:
             The prepared datasets.
+
+        Raises:
+            InvalidBenchmark:
+                If the dataset does not have a 'train' split for token classification
+                tasks.
         """
         for idx, dataset in enumerate(
             tqdm(iterable=datasets, desc="Preparing datasets")
@@ -267,22 +279,24 @@ class BenchmarkModule(ABC):
                 dataset=dataset, task=task, itr_idx=idx
             )
             if self.dataset_config.task.task_group == TaskGroup.TOKEN_CLASSIFICATION:
+                if "train" not in dataset:
+                    raise InvalidBenchmark(
+                        "The dataset does not have a 'train' split, which is required "
+                        "for token classification tasks."
+                    )
                 labels_in_train: set[str] = {
                     tag for tag_list in dataset["train"]["labels"] for tag in tag_list
                 }
                 self.buffer["has_misc_tags"] = (
                     "B-MISC" in labels_in_train or "I-MISC" in labels_in_train
                 )
-            datasets[idx] = DatasetDict(
-                dict(
-                    train=prepared_dataset["train"],
-                    val=prepared_dataset["val"],
-                    test=prepared_dataset["test"],
-                    original_train=dataset["train"],
-                    original_val=dataset["val"],
-                    original_test=dataset["test"],
-                )
-            )
+
+            datasets_dict: dict[str, Dataset] = dict()
+            for split_name, split in prepared_dataset.items():
+                datasets_dict[split_name] = split
+            for split_name, split in dataset.items():
+                datasets_dict[f"original_{split_name}"] = split
+            datasets[idx] = DatasetDict(datasets_dict)
         return datasets
 
     @abstractmethod

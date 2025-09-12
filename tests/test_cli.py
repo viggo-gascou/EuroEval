@@ -1,4 +1,4 @@
-"""Unit tests for the `cli` module."""
+"""Tests for the `cli` module."""
 
 from typing import Generator
 
@@ -43,8 +43,8 @@ def test_cli_param_names(params: dict[str, ParamType]) -> None:
         "gpu_memory_utilization",
         "debug",
         "help",
-        "only_allow_safetensors",
-        "download_only",
+        "requires_safetensors",
+        "generative_type",
     }
 
 
@@ -75,5 +75,5 @@ def test_cli_param_types(params: dict[str, ParamType]) -> None:
     assert params["gpu_memory_utilization"] == FLOAT
     assert params["debug"] == BOOL
     assert params["help"] == BOOL
-    assert params["only_allow_safetensors"] == BOOL
-    assert params["download_only"] == BOOL
+    assert params["requires_safetensors"] == BOOL
+    assert isinstance(params["generative_type"], Choice)

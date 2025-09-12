@@ -1,8 +1,9 @@
 """All Danish dataset configurations used in EuroEval."""
 
 from ..data_models import DatasetConfig
+from ..enums import ModelType
 from ..languages import DA
-from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
+from ..tasks import COMMON_SENSE, EUROPEAN_VALUES, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
 ### Official datasets ###
 
@@ -76,6 +77,16 @@ HELLASWAG_DA_CONFIG = DatasetConfig(
     languages=[DA],
 )
 
+EUROPEAN_VALUES_DA_CONFIG = DatasetConfig(
+    name="european-values-da",
+    pretty_name="the Danish version of the European values evaluation dataset",
+    huggingface_id="EuroEval/european-values-da",
+    task=EUROPEAN_VALUES,
+    languages=[DA],
+    splits=["test"],
+    bootstrap_samples=False,
+)
+
 
 ### Unofficial datasets ###
 
@@ -136,5 +147,42 @@ GOLDENSWAG_DA_CONFIG = DatasetConfig(
     huggingface_id="EuroEval/goldenswag-da-mini",
     task=COMMON_SENSE,
     languages=[DA],
+    unofficial=True,
+)
+
+WINOGRANDE_DA_CONFIG = DatasetConfig(
+    name="winogrande-da",
+    pretty_name="the Danish common-sense reasoning dataset Winogrande-da, translated "
+    "from the English Winogrande dataset",
+    huggingface_id="EuroEval/winogrande-da",
+    task=COMMON_SENSE,
+    languages=[DA],
+    splits=["train", "test"],
+    _labels=["a", "b"],
+    _allowed_model_types=[ModelType.GENERATIVE],
+    unofficial=True,
+)
+
+EUROPEAN_VALUES_SITUATIONAL_DA_CONFIG = DatasetConfig(
+    name="european-values-situational-da",
+    pretty_name="the Danish version of the European values evaluation dataset, where "
+    "the questions are phrased in a situational way",
+    huggingface_id="EuroEval/european-values-situational-da",
+    task=EUROPEAN_VALUES,
+    languages=[DA],
+    splits=["test"],
+    bootstrap_samples=False,
+    unofficial=True,
+)
+
+EUROPEAN_VALUES_COMPLETIONS_DA_CONFIG = DatasetConfig(
+    name="european-values-completions-da",
+    pretty_name="the Danish version of the European values evaluation dataset, where "
+    "the questions are phrased as sentence completions",
+    huggingface_id="EuroEval/european-values-completions-da",
+    task=EUROPEAN_VALUES,
+    languages=[DA],
+    splits=["test"],
+    bootstrap_samples=False,
     unofficial=True,
 )
