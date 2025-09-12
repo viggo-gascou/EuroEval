@@ -585,7 +585,6 @@ def load_model_and_tokeniser(
         label2id={label: idx for idx, label in id2label.items()},
         revision=model_config.revision,
         model_cache_dir=model_config.model_cache_dir,
-        is_offline=not internet_connection_available(),
         api_key=benchmark_config.api_key,
         trust_remote_code=benchmark_config.trust_remote_code,
         run_with_cli=benchmark_config.run_with_cli,
@@ -819,7 +818,6 @@ def get_model_repo_info(
             model_cache_dir=create_model_cache_dir(
                 cache_dir=benchmark_config.cache_dir, model_id=model_id
             ),
-            is_offline=not internet_connection_available(),
             api_key=benchmark_config.api_key,
             trust_remote_code=benchmark_config.trust_remote_code,
             run_with_cli=benchmark_config.run_with_cli,
@@ -978,7 +976,6 @@ def load_hf_model_config(
     api_key: str | None,
     trust_remote_code: bool,
     run_with_cli: bool,
-    is_offline: bool = False,
 ) -> "PretrainedConfig":
     """Load the Hugging Face model configuration.
 
@@ -995,8 +992,6 @@ def load_hf_model_config(
             The revision of the model.
         model_cache_dir:
             The directory to cache the model in.
-        is_offline:
-            Whether or not we are in offline mode, defaults to False.
         api_key:
             The Hugging Face API key.
         trust_remote_code:
@@ -1018,7 +1013,7 @@ def load_hf_model_config(
                 token=get_hf_token(api_key=api_key),
                 trust_remote_code=trust_remote_code,
                 cache_dir=model_cache_dir,
-                local_files_only=is_offline,
+                local_files_only=not internet_connection_available(),
             )
             if config.eos_token_id is not None and config.pad_token_id is None:
                 if isinstance(config.eos_token_id, list):
