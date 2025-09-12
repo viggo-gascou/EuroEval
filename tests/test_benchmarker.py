@@ -8,7 +8,6 @@ from pathlib import Path
 
 import pytest
 import torch
-from pytest_socket import disable_socket
 from requests.exceptions import RequestException
 
 from euroeval.benchmarker import (
@@ -34,6 +33,7 @@ def test_benchmark_results_is_a_list(benchmarker: Benchmarker) -> None:
     assert isinstance(benchmarker.benchmark_results, list)
 
 
+@pytest.mark.dependency(name="encoder_benchmark")
 def test_benchmark_encoder(
     benchmarker: Benchmarker, task: Task, language: Language, encoder_model_id: str
 ) -> None:
@@ -55,6 +55,7 @@ def test_benchmark_encoder(
 @pytest.mark.skipif(
     condition=not torch.cuda.is_available(), reason="CUDA is not available."
 )
+@pytest.mark.dependency(name="generative_benchmark")
 def test_benchmark_generative(
     benchmarker: Benchmarker, task: Task, language: Language, generative_model_id: str
 ) -> None:
@@ -69,6 +70,7 @@ def test_benchmark_generative(
 @pytest.mark.skipif(
     condition=not torch.cuda.is_available(), reason="CUDA is not available."
 )
+@pytest.mark.dependency(name="generative_adapter_benchmark")
 def test_benchmark_generative_adapter(
     benchmarker: Benchmarker,
     task: Task,
@@ -412,61 +414,54 @@ def test_prepare_dataset_configs(
     assert prepare_dataset_configs(dataset_names=dataset_names) == dataset_configs
 
 
-class TestNoInternetBenchmark:
-    """Tests for benchmarking models without internet."""
+@pytest.mark.disable_socket
+@pytest.mark.dependency(depends=["encoder_benchmark"])
+def test_benchmark_encoder_no_internet(
+    task: Task, language: Language, encoder_model_id: str
+) -> None:
+    """Test that encoder models can be benchmarked without internet."""
+    # need a new benchmarker since we only check for internet once per instance
+    benchmarker = Benchmarker(progress_bar=False, save_results=False, num_iterations=1)
+    benchmark_result = benchmarker.benchmark(
+        model=encoder_model_id, task=task.name, language=language.code
+    )
+    assert isinstance(benchmark_result, list)
+    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
 
-    @pytest.fixture(autouse=True)
-    def download_assets(
-        self,
-        request: pytest.FixtureRequest,
-        benchmarker: Benchmarker,
-        task: Task,
-        language: Language,
-        encoder_model_id: str,
-        generative_model_id: str,
-    ) -> None:
-        """Download appropriate models, datasets and metrics before running a test."""
-        if "encoder" in request.node.name:
-            benchmarker.benchmark(
-                model=encoder_model_id,
-                task=task.name,
-                language=language.code,
-                download_only=True,
-            )
-        elif "generative" in request.node.name:
-            benchmarker.benchmark(
-                model=generative_model_id,
-                task=task.name,
-                language=language.code,
-                download_only=True,
-            )
 
-    def test_benchmark_encoder_no_internet(
-        self,
-        benchmarker: Benchmarker,
-        task: Task,
-        language: Language,
-        encoder_model_id: str,
-    ) -> None:
-        """Test that encoder models can be benchmarked without internet."""
-        disable_socket()
-        benchmark_result = benchmarker.benchmark(
-            model=encoder_model_id, task=task.name, language=language.code
-        )
-        assert isinstance(benchmark_result, list)
-        assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
+# allow localhost since vllm uses it for some things
+@pytest.mark.allow_hosts(["127.0.0.1"])
+@pytest.mark.skipif(
+    condition=not torch.cuda.is_available(), reason="CUDA is not available."
+)
+@pytest.mark.dependency(depends=["generative_benchmark"])
+def test_benchmark_generative_no_internet(
+    task: Task, language: Language, generative_model_id: str
+) -> None:
+    """Test that generative models can be benchmarked without internet."""
+    # need a new benchmarker since we only check for internet once per instance
+    benchmarker = Benchmarker(progress_bar=False, save_results=False, num_iterations=1)
+    benchmark_result = benchmarker.benchmark(
+        model=generative_model_id, task=task.name, language=language.code
+    )
+    assert isinstance(benchmark_result, list)
+    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
 
-    def test_benchmark_generative_no_internet(
-        self,
-        benchmarker: Benchmarker,
-        task: Task,
-        language: Language,
-        generative_model_id: str,
-    ) -> None:
-        """Test that generative models can be benchmarked without internet."""
-        disable_socket()
-        benchmark_result = benchmarker.benchmark(
-            model=generative_model_id, task=task.name, language=language.code
-        )
-        assert isinstance(benchmark_result, list)
-        assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
+
+# allow localhost since vllm uses it for some things
+@pytest.mark.allow_hosts(["127.0.0.1"])
+@pytest.mark.skip(
+    "Benchmarking adapter models without internet access are not implemented yet."
+)
+@pytest.mark.dependency(depends=["generative_adapter_benchmark"])
+def test_benchmark_generative_adapter_no_internet(
+    task: Task, language: Language, generative_adapter_model_id: str
+) -> None:
+    """Test that generative adapter models can be benchmarked without internet."""
+    # need a new benchmarker since we only check for internet once per instance
+    benchmarker = Benchmarker(progress_bar=False, save_results=False, num_iterations=1)
+    benchmark_result = benchmarker.benchmark(
+        model=generative_adapter_model_id, task=task.name, language=language.code
+    )
+    assert isinstance(benchmark_result, list)
+    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
