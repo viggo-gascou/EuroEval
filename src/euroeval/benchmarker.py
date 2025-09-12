@@ -452,6 +452,28 @@ class Benchmarker:
                 num_finished_benchmarks += len(dataset_configs)
                 continue
 
+            if model_config.adapter_base_model_id:
+                open_issue_msg = (
+                    "If offline support is important to you, please "
+                    "consider opening an issue on GitHub."
+                )
+                if not internet_connection_available():
+                    raise InvalidModel(
+                        "Offline benchmarking of models with adapters is not currently "
+                        "supported. "
+                        f"An active internet connection is required. {open_issue_msg}"
+                    )
+                elif benchmark_config.download_only:
+                    log_once(
+                        "You are using download only mode with a model that includes "
+                        "an adapter. "
+                        "Please note: Offline benchmarking of adapter models is not "
+                        "currently supported. "
+                        "An internet connection will be required during evaluation. "
+                        f"{open_issue_msg}",
+                        level=logging.WARNING,
+                    )
+
             loaded_model: BenchmarkModule | None = None
             benchmark_params_to_revert: dict[str, t.Any] = dict()
             for dataset_config in dataset_configs:
