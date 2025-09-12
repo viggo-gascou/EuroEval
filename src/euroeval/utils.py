@@ -53,6 +53,65 @@ def create_model_cache_dir(cache_dir: str, model_id: str) -> str:
     return str(cache_dir_path)
 
 
+def resolve_model_path(download_dir: str) -> str:
+    """Resolve the path to the directory containing the model config files and weights.
+
+    Args:
+        download_dir:
+            The download directory
+
+    Returns:
+        The path to the model.
+    """
+    model_path = Path(download_dir)
+    # Get the 'path safe' version of the model id, which is the last dir in the path
+    model_id_path = model_path.name
+    # Hf hub `cache_dir` puts the files in models--`model_id_path`/snapshots
+    model_path = model_path / f"models--{model_id_path}" / "snapshots"
+    if not model_path.exists():
+        raise InvalidModel(f"No model files found at {model_path}")
+
+    # Get all files in the model path
+    found_files = [
+        found_file for found_file in model_path.rglob("*") if found_file.is_file()
+    ]
+    if not found_files:
+        raise InvalidModel(f"No model files found at {model_path}")
+
+    # Make sure that there arent multiples of the files found
+    if len(found_files) == len(set(found_files)):
+        raise InvalidModel(
+            f"Found multiple model config files for {model_id_path.strip('models--')}"
+            f"at {model_path}"
+        )
+
+    # Check that found_files contains at least a 'config.json'
+    config_file = next(
+        (file for file in found_files if file.name == "config.json"), None
+    )
+    if config_file is None:
+        raise InvalidModel(
+            f"Missing required file 'config.json' for {model_id_path.strip('models--')}"
+            f"at {model_path}"
+        )
+    model_path = config_file.parent
+
+    # As a precaution we also check that all of the files are in the same directory
+    # if not we create a new dir with symlinks to all of the files from all snapshots
+    # this is especially useful for vllm where we can only specify one folder and e.g.,
+    # the safetensors version of the weights was added in an unmerged PR
+    if not all(
+        [found_file.parent == found_files[0].parent for found_file in found_files]
+    ):
+        new_model_path = model_path.parent / "model_files"
+        new_model_path.mkdir(exist_ok=True)
+        for found_file in found_files:
+            Path(new_model_path / found_file.name).symlink_to(found_file)
+        model_path = new_model_path
+
+    return str(model_path)
+
+
 def clear_memory() -> None:
     """Clears the memory of unused items."""
     for gc_generation in range(3):
