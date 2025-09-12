@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v16.1.1] - 2025-09-12
 ### Fixed
 - Fixed an issue from v16.1.0, where reasoning models were not using the tokeniser's
   chat template.
