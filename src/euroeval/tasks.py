@@ -100,6 +100,7 @@ KNOW = Task(
     default_num_few_shot_examples=5,
     default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["a", "b", "c", "d"],
+    default_allowed_model_types=[ModelType.GENERATIVE],
     uses_logprobs=True,
 )
 
@@ -112,6 +113,7 @@ MCRC = Task(
     default_num_few_shot_examples=5,
     default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["a", "b", "c", "d"],
+    default_allowed_model_types=[ModelType.GENERATIVE],
     uses_logprobs=True,
 )
 
@@ -124,6 +126,7 @@ COMMON_SENSE = Task(
     default_num_few_shot_examples=5,
     default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["a", "b", "c", "d"],
+    default_allowed_model_types=[ModelType.GENERATIVE],
     uses_logprobs=True,
 )
 

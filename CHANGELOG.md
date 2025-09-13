@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Changed
+- Now does not benchmark encoder models on multiple-choice classification tasks, as they
+  get near-random performance and these scores are not used in the leaderboards. We can
+  change this in the future if we find a way to make encoder models work better on these
+  tasks.
+
 ### Fixed
 - Fixed an issue where old evaluation records could not be loaded, as the format had
   changed. We are now able to load old records again.
