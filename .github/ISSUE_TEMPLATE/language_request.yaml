@@ -7,8 +7,8 @@ type: task
 body:
 - type: input
   attributes:
-    label: Language name
-    description: What is the name of the language?
+    label: Language name and code
+    description: What is the name and ISO 639 code of the language?
   validations:
     required: true
 - type: markdown
