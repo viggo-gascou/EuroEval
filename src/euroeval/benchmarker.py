@@ -242,12 +242,28 @@ class Benchmarker:
     def benchmark_results(self) -> list[BenchmarkResult]:
         """The benchmark results."""
         if self.results_path.exists():
+            benchmark_results: list[BenchmarkResult] = list()
             with self.results_path.open() as f:
-                return [
-                    BenchmarkResult.from_dict(json.loads(line))
-                    for line in f
-                    if line.strip()
-                ]
+                for line in f:
+                    if line.strip():
+                        result_dict = json.loads(line.strip())
+
+                        # Fix for older records
+                        has_old_raw_results = (
+                            "results" in result_dict
+                            and isinstance(result_dict["results"], dict)
+                            and "raw" in result_dict["results"]
+                            and isinstance(result_dict["results"]["raw"], dict)
+                            and "test" in result_dict["results"]["raw"]
+                        )
+                        if has_old_raw_results:
+                            result_dict["results"]["raw"] = result_dict["results"][
+                                "raw"
+                            ]["test"]
+
+                        result = BenchmarkResult.from_dict(result_dict)
+                        benchmark_results.append(result)
+            return benchmark_results
         else:
             return list()
 

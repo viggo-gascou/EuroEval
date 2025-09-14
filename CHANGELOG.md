@@ -7,7 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+### Added
+- Added the `timm` package to the set of `generative` extra dependencies, as it is
+  required to load some multimodal models, such as Gemma-3n.
 
+### Changed
+- Now does not benchmark encoder models on multiple-choice classification tasks, as they
+  get near-random performance and these scores are not used in the leaderboards. We can
+  change this in the future if we find a way to make encoder models work better on these
+  tasks.
+
+### Fixed
+- Fixed an issue where old evaluation records could not be loaded, as the format had
+  changed. We are now able to load old records again.
+- Fixed some grammatical errors in the Icelandic prompts.
 
 
 ## [v16.1.1] - 2025-09-12

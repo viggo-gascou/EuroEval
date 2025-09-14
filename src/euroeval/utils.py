@@ -152,6 +152,9 @@ def block_terminal_output() -> None:
     libraries, disabled tokeniser progress bars when using Hugging Face tokenisers, and
     disables most of the logging from the `transformers` library.
     """
+    if os.getenv("FULL_LOG") == "1":
+        return
+
     # Ignore miscellaneous warnings
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=FutureWarning)
