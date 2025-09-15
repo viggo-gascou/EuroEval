@@ -109,11 +109,11 @@ $ euroeval --model <model-id> --task sentiment-classification --language da --do
 Or from a script:
 ```
 >>> benchmark(
-    model="<model>",
-    task="sentiment-classification",
-    language="da",
-    download_only=True,
-)
+... model="<model>",
+... task="sentiment-classification",
+... language="da",
+... download_only=True,
+... )
 ```
 
 Please note: Offline benchmarking of adapter models is not currently supported. An
