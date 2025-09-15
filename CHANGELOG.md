@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v16.2.0] - 2025-09-15
 ### Added
 - Now supports evaluating models in an offline environment. This is done by first
   downloading all necessary models, datasets, metrics and other artifacts while online,
