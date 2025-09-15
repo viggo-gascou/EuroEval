@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
+
+
+
+## [v16.2.2] - 2025-09-15
 ### Fixed
 - Added missing benchmark arguments to the `Benchmarker.benchmark` method.
 - Fixed another issue related to the `download_only` mode, causing model evaluations to
