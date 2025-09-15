@@ -96,19 +96,24 @@ models on the Danish sentiment classification task:
 >>> benchmark(task="sentiment-classification", language="da")
 ```
 
-### Benchmarking in an offline environment
-If you need to benchmark in an offline environment, you need to download the
-models, datasets and metrics beforehand. This can be done by adding the
-`--download-only` argument, from the command line, or the `download_only` argument,
-if benchmarking from a script.
-For example to download the model you want and all of the Danish sentiment
+### Benchmarking in an Offline Environment
+If you need to benchmark in an offline environment, you need to download the models,
+datasets and metrics beforehand. This can be done by adding the `--download-only`
+argument, from the command line, or the `download_only` argument, if benchmarking from a
+script. For example to download the model you want and all of the Danish sentiment
 classification datasets:
 ```
 $ euroeval --model <model-id> --task sentiment-classification --language da --download-only
 ```
-or from a script:
+
+Or from a script:
 ```
->>> benchmark(model="<model>", task="sentiment-classification", language="da", download_only=True)
+>>> benchmark(
+    model="<model>",
+    task="sentiment-classification",
+    language="da",
+    download_only=True,
+)
 ```
 
 Please note: Offline benchmarking of adapter models is not currently supported. An
