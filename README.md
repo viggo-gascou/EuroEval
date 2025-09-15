@@ -80,13 +80,13 @@ model:
 ```
 >>> from euroeval import Benchmarker
 >>> benchmark = Benchmarker()
->>> benchmark(model="<model>")
+>>> benchmark(model="<model-id>")
 ```
 
 To benchmark on a specific task and/or language, you simply specify the `task` or
 `language` arguments, shown here with same example as above:
 ```
->>> benchmark(model="<model>", task="sentiment-classification", language="da")
+>>> benchmark(model="<model-id>", task="sentiment-classification", language="da")
 ```
 
 If you want to benchmark a subset of all the models on the Hugging Face Hub, you can
@@ -109,7 +109,7 @@ $ euroeval --model <model-id> --task sentiment-classification --language da --do
 Or from a script:
 ```
 >>> benchmark(
-... model="<model>",
+... model="<model-id>",
 ... task="sentiment-classification",
 ... language="da",
 ... download_only=True,
