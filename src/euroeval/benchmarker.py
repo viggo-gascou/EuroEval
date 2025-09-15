@@ -760,9 +760,6 @@ class Benchmarker:
             download_only:
                 Whether to only download the models without evaluating them. If None,
                 then this value will not be updated.
-            download_only:
-                Whether to only download models and datasets without performing any
-                benchmarking. If None, then this value will not be updated.
 
         Returns:
             The updated benchmark configuration.
