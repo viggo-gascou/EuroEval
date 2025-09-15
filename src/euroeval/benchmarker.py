@@ -240,13 +240,26 @@ class Benchmarker:
 
     @property
     def benchmark_results(self) -> list[BenchmarkResult]:
-        """The benchmark results."""
+        """The benchmark results.
+
+        Returns:
+            A list of benchmark results.
+
+        Raises:
+            ValueError:
+                If there is an error decoding a line in the results file.
+        """
         if self.results_path.exists():
             benchmark_results: list[BenchmarkResult] = list()
             with self.results_path.open() as f:
                 for line in f:
                     if line.strip():
-                        result_dict = json.loads(line.strip())
+                        try:
+                            result_dict = json.loads(line.strip())
+                        except json.JSONDecodeError as e:
+                            raise ValueError(
+                                f"Error decoding JSON line: {line.strip()}"
+                            ) from e
 
                         # Fix for older records
                         has_old_raw_results = (
@@ -911,17 +924,19 @@ class Benchmarker:
                     model_param=model_config.param,
                 )
 
+                model_id_to_be_stored = model_config.model_id
+                if model_config.revision != "main":
+                    model_id_to_be_stored += f"@{model_config.revision}"
+                if model_config.param is not None:
+                    model_id_to_be_stored += f"#{model_config.param}"
+
                 record = BenchmarkResult(
                     dataset=dataset_config.name,
                     task=dataset_config.task.name,
                     dataset_languages=[
                         language.code for language in dataset_config.languages
                     ],
-                    model=(
-                        f"{model_config.model_id}@{model_config.revision}"
-                        if model_config.revision and model_config.revision != "main"
-                        else model_config.model_id
-                    ),
+                    model=model_id_to_be_stored,
                     results=results,
                     num_model_parameters=model.num_params,
                     max_sequence_length=model.model_max_length,
