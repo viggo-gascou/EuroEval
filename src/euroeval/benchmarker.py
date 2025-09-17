@@ -755,7 +755,7 @@ class Benchmarker:
                         loaded_model.generative_type
                         not in dataset_config.allowed_generative_types
                     ):
-                        logger.info(
+                        logger.debug(
                             f"Skipping the benchmark of model "
                             f"{model_config.model_id!r}on dataset "
                             f"{dataset_config.name!r} because the model has generative "
