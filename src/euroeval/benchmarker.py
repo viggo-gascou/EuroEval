@@ -33,6 +33,7 @@ from .utils import (
     get_package_version,
     internet_connection_available,
     log_once,
+    split_model_id,
 )
 
 if t.TYPE_CHECKING:
@@ -630,10 +631,9 @@ class Benchmarker:
                 if (
                     benchmark_config.force
                     or not model_has_been_benchmarked(
-                        model_id=model_config.model_id,
-                        dataset=dataset_config.name,
-                        few_shot=benchmark_config.few_shot,
-                        validation_split=not benchmark_config.evaluate_test_split,
+                        model_config=model_config,
+                        dataset_config=dataset_config,
+                        benchmark_config=benchmark_config,
                         benchmark_results=self.benchmark_results,
                     )
                 )
@@ -648,9 +648,8 @@ class Benchmarker:
         )
         if total_benchmarks == 0:
             logger.info(
-                "No benchmarks to run, either because all models have already been "
-                "benchmarked on all datasets, or because the models cannot be "
-                "benchmarked on any of the selected datasets."
+                "No benchmarks to run, as all the selected models have already been "
+                "benchmarked on all the selected datasets."
             )
             sys.exit(0)
 
@@ -659,6 +658,13 @@ class Benchmarker:
         num_finished_benchmarks = 0
         current_benchmark_results: list[BenchmarkResult] = list()
         for model_config in model_configs:
+            if not model_config_to_dataset_configs[model_config]:
+                logger.debug(
+                    f"Skipping model {model_config.model_id!r} because it has "
+                    "already been benchmarked on all valid datasets."
+                )
+                continue
+
             if model_config.adapter_base_model_id:
                 open_issue_msg = (
                     "If offline support is important to you, please consider opening "
@@ -993,23 +999,20 @@ class Benchmarker:
 
 
 def model_has_been_benchmarked(
-    model_id: str,
-    dataset: str,
-    few_shot: bool,
-    validation_split: bool,
+    model_config: "ModelConfig",
+    dataset_config: "DatasetConfig",
+    benchmark_config: "BenchmarkConfig",
     benchmark_results: list[BenchmarkResult],
 ) -> bool:
     """Checks whether a model has already been benchmarked on a dataset.
 
     Args:
-        model_id:
-            The model ID.
-        dataset:
-            The dataset.
-        few_shot:
-            Whether the model was evaluated using few-shot evaluation.
-        validation_split:
-            Whether the model was evaluated on the validation split.
+        model_config:
+            The configuration of the model we are evaluating.
+        dataset_config:
+            The configuration of the dataset we are evaluating on.
+        benchmark_config:
+            The general benchmark configuration.
         benchmark_results:
             The benchmark results.
 
@@ -1017,10 +1020,23 @@ def model_has_been_benchmarked(
         Whether the model has already been evaluated on the dataset.
     """
     for record in benchmark_results:
-        same_evaluation = record.model == model_id and record.dataset == dataset
-        same_validation_split_setting = record.validation_split == validation_split
-        same_few_shot_setting = record.few_shot == few_shot or not record.generative
-        if same_evaluation and same_validation_split_setting and same_few_shot_setting:
+        model_id_components = split_model_id(model_id=record.model)
+        same_model_id = model_id_components.model_id == model_config.model_id
+        same_revision = model_id_components.revision == model_config.revision
+        same_param = model_id_components.param == model_config.param
+        same_dataset = record.dataset == dataset_config.name
+        same_split = record.validation_split != benchmark_config.evaluate_test_split
+        same_num_shots = (
+            record.few_shot == benchmark_config.few_shot or not record.generative
+        )
+        if (
+            same_model_id
+            and same_revision
+            and same_param
+            and same_dataset
+            and same_split
+            and same_num_shots
+        ):
             return True
     return False
 
