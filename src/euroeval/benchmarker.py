@@ -646,6 +646,14 @@ class Benchmarker:
             len(dataset_configs)
             for dataset_configs in model_config_to_dataset_configs.values()
         )
+        if total_benchmarks == 0:
+            logger.debug(
+                "No benchmarks to run, either because all models have already been "
+                "benchmarked on all datasets, or because the models cannot be "
+                "benchmarked on any of the selected datasets."
+            )
+            sys.exit(0)
+
         logger.info(f"Initiated evaluation of {total_benchmarks:,} benchmarks.")
 
         num_finished_benchmarks = 0
@@ -674,7 +682,7 @@ class Benchmarker:
 
             loaded_model: BenchmarkModule | None = None
             benchmark_params_to_revert: dict[str, t.Any] = dict()
-            for dataset_config in dataset_configs:
+            for dataset_config in model_config_to_dataset_configs[model_config]:
                 # Revert any changes to the benchmark configuration made for the
                 # previous dataset
                 for param, value in benchmark_params_to_revert.items():
