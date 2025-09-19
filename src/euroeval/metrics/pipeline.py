@@ -191,6 +191,11 @@ def european_values_preprocessing_fn(
             for idx, choice in idx_to_choice.items()
             if choice is not None
         }
+        if prediction not in idx_to_choice:
+            raise InvalidBenchmark(
+                f"The prediction {prediction} is not a valid index for the "
+                f"question with choices {idx_to_choice}."
+            )
         integer_prediction = idx_to_choice[prediction]
         integer_predictions.append(integer_prediction)
 
