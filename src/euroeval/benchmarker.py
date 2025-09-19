@@ -1030,14 +1030,10 @@ def model_has_been_benchmarked(
             or "val" not in dataset_config.splits
         )
         same_num_shots = (
-            record.few_shot == benchmark_config.few_shot or not record.generative
+            record.few_shot == benchmark_config.few_shot
+            or not record.generative
+            or dataset_config.task.requires_zero_shot
         )
-        if (
-            record.dataset == "european-values-da"
-            and dataset_config.name == "european-values-da"
-        ):
-            breakpoint()
-            pass
         if (
             same_model_id
             and same_revision
