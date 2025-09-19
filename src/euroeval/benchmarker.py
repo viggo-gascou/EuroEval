@@ -1032,6 +1032,9 @@ def model_has_been_benchmarked(
         same_num_shots = (
             record.few_shot == benchmark_config.few_shot or not record.generative
         )
+        if record.dataset == "european-values-da":
+            breakpoint()
+            pass
         if (
             same_model_id
             and same_revision
