@@ -1025,7 +1025,10 @@ def model_has_been_benchmarked(
         same_revision = model_id_components.revision == model_config.revision
         same_param = model_id_components.param == model_config.param
         same_dataset = record.dataset == dataset_config.name
-        same_split = record.validation_split != benchmark_config.evaluate_test_split
+        same_split = (
+            record.validation_split != benchmark_config.evaluate_test_split
+            or "val" not in dataset_config.splits
+        )
         same_num_shots = (
             record.few_shot == benchmark_config.few_shot or not record.generative
         )

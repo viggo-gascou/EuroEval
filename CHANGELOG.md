@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Correct the the titles for Estonian and Finnic scatter plots.
 - Fixed an issue related to European values evaluation, when the model predicts an
   invalid option.
+- Previously we did not detect that a model was already evaluated on a dataset if the
+  dataset did not have a validation split (such as the European values dataset). This
+  has been fixed now.
 
 
 ## [v16.2.2] - 2025-09-15
