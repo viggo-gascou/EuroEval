@@ -1032,7 +1032,10 @@ def model_has_been_benchmarked(
         same_num_shots = (
             record.few_shot == benchmark_config.few_shot or not record.generative
         )
-        if record.dataset == "european-values-da":
+        if (
+            record.dataset == "european-values-da"
+            and dataset_config.name == "european-values-da"
+        ):
             breakpoint()
             pass
         if (
