@@ -489,27 +489,6 @@ class VLLMModel(HuggingFaceEncoderModel):
                     f"Encountered error during vLLM generation: {str(e)}. Retrying..."
                 )
                 sleep(1)
-            except RuntimeError as e:
-                head_size_error_message = (
-                    "Set VLLM_ATTENTION_BACKEND=FLEX_ATTENTION to use FlexAttention "
-                    "backend which supports all head sizes"
-                )
-                if head_size_error_message in str(e):
-                    error_message = (
-                        f"The model {self.model_config.model_id!r} has a head size "
-                        "that is not supported by vLLM. Please set the environment "
-                        "variable VLLM_ATTENTION_BACKEND=FLEX_ATTENTION and try again. "
-                        "Note that FlexAttention uses more memory than the default "
-                        "attention implementation, so you might need to reduce the "
-                        "GPU memory utilization as well (by using the "
-                    )
-                    if self.benchmark_config.run_with_cli:
-                        error_message += "--gpu-memory-utilization argument)."
-                    else:
-                        error_message += (
-                            "`gpu_memory_utilization` argument in `Benchmarker`)."
-                        )
-                    raise InvalidModel(error_message) from e
             except ValueError as e:
                 # Truncate the prompts if they are too long for the model
                 truncate_error_messages = [
@@ -916,6 +895,23 @@ def load_model_and_tokeniser(
                 "If you trust the suppliers of this model, then you can enable "
                 "this by setting the `--trust-remote-code` flag."
             ) from e
+        if (
+            "Set VLLM_ATTENTION_BACKEND=FLEX_ATTENTION to use FlexAttention "
+            "backend which supports all head sizes" in str(e)
+        ):
+            error_message = (
+                f"The model {model_id!r} has a head size that is not supported by "
+                "vLLM. Please set the environment variable "
+                "VLLM_ATTENTION_BACKEND=FLEX_ATTENTION and try again. Note that "
+                "FlexAttention uses more memory than the default attention "
+                "implementation, so you might need to reduce the GPU memory "
+                "utilization as well (by using the "
+            )
+            if benchmark_config.run_with_cli:
+                error_message += "--gpu-memory-utilization argument)."
+            else:
+                error_message += "`gpu_memory_utilization` argument in `Benchmarker`)."
+            raise InvalidModel(error_message) from e
         raise InvalidModel(
             f"The model {model_id!r} could not be loaded. The error was {e!r}."
         ) from e
