@@ -895,7 +895,7 @@ def load_model_and_tokeniser(
                 "If you trust the suppliers of this model, then you can enable "
                 "this by setting the `--trust-remote-code` flag."
             ) from e
-        if (
+        elif (
             "Set VLLM_ATTENTION_BACKEND=FLEX_ATTENTION to use FlexAttention "
             "backend which supports all head sizes" in str(e)
         ):
@@ -912,6 +912,7 @@ def load_model_and_tokeniser(
             else:
                 error_message += "`gpu_memory_utilization` argument in `Benchmarker`)."
             raise InvalidModel(error_message) from e
+        breakpoint()
         raise InvalidModel(
             f"The model {model_id!r} could not be loaded. The error was {e!r}."
         ) from e
