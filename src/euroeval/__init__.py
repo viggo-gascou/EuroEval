@@ -106,7 +106,7 @@ os.environ["VLLM_USE_V1"] = "1"
 # Use the FlashInfer flash-attention backend for vLLM, unless the user has already
 # specified a different backend.
 if os.getenv("VLLM_ATTENTION_BACKEND") is None:
-    os.environ["VLLM_ATTENTION_BACKEND"] = "FLEX_ATTENTION"
+    os.environ["VLLM_ATTENTION_BACKEND"] = "FLASHINFER"
 
 
 # Set the HF_TOKEN env var to copy the HUGGINGFACE_API_KEY env var, as vLLM uses the
