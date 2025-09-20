@@ -369,7 +369,8 @@ class LiteLLMModel(BenchmarkModule):
             ]
             logger.debug(
                 f"Attempt {attempt + 1:,}/{num_attempts:,}: retrying "
-                f"{len(inputs_to_run):,} failed message(s)"
+                f"{len(inputs_to_run):,} failed message(s). Here is the first error: "
+                f"{failures[0][1]}."
             )
 
             # Attempt to handle the exceptions, to improve the chance of getting
