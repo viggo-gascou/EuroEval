@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   models running with vLLM.
 
 ### Changed
-- Changed the default value of `gpu_memory_utilization` from 0.9 to 0.8, as the new
+- Changed the default value of `gpu_memory_utilization` from 0.9 to 0.7, as the new
   change to flex-attention needs a bit more buffer memory to avoid OOM errors. This can
   always be changed with the `--gpu-memory-utilization` argument (or
   `gpu_memory_utilization` in the `Benchmarker` API).
