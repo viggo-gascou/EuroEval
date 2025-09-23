@@ -52,20 +52,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Järgmised on dokumendid ja nende meelestatus, mis võib olla 'positiivne', 'neutraalne' või 'negatiivne'.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Dokument: {text}
   Meelestatus: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Dokument: {text}
 
   Klassifitseeri dokument meelestatuse järgi. Võimalikud vastused: 'positiivne', 'neutraalne' või 'negatiivne'. Muud vastused ei ole lubatud.
@@ -124,20 +124,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Allpool on laused ja JSON-sõnastikud, mis sisaldavad antud lauses esinevaid nimetatud üksuseid.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Lause: {text}
   Nimetatud üksused: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Lause: {text}
 
   Tuvasta lauses nimetatud üksused. Väljund peaks olema JSON-sõnastik, mille võtmed on 'inimene', 'asukoht', 'organisatsioon' ja 'muu'.
@@ -203,20 +203,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 1
 - Prefix prompt:
 
-  ```
+  ```text
   Järgnevad on laused ja kas need on grammatiliselt õiged.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Lause: {text}
   Grammatikaliselt õige:: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Lause: {text}
 
   Otsusta, kas lause on grammatiliselt õige või mitte. Vasta {labels_str}, ja mitte midagi muud.
@@ -272,20 +272,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Järgnevad on laused ja kas need on grammatiliselt õiged.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Lause: {text}
   Grammatikaliselt õige: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Sætning: {text}
 
   Bestem om sætningen er grammatisk korrekt eller ej. Svar med 'ja', hvis sætningen er korrekt, og 'nej', hvis den ikke er.
@@ -353,13 +353,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Järgnevad on tekstid koos küsimuste ja vastustega.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Tekst: {text}
   Küsimus: {question}
   Vasta maksimaalselt 3 sõnaga: {label}
@@ -367,7 +367,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Tekst: {text}
 
   Vasta järgmisele küsimusele ülevaltoodud teksti kohta maksimaalselt 3 sõnaga.
@@ -422,13 +422,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Järgnevad on vastusevariantidega küsimused (koos vastustega).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Küsimus: {text}
   Vastusevariandid:
   a. {option_a}
@@ -440,7 +440,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Küsimus: {text}
   Vastusevariandid:
   a. {option_a}
@@ -496,13 +496,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Järgnevad on vastusevariantidega küsimused (koos vastustega).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Küsimus: {text}
   Vastusevariandid:
   a. {option_a}
@@ -512,7 +512,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Küsimus: {text}
   Vastusevariandid:
   a. {option_a}
@@ -572,13 +572,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Sulle esitatakse lüngaga (_) tekstülesanne ja kaks vastusevarianti (a ja b).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Tekstülesanne: {text}
   Vastusevariandid:
   a. {option_a}
@@ -588,7 +588,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Tekstülesanne: {text}
   Vastusevariandid:
   a. {option_a}
@@ -645,20 +645,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 1
 - Prefix prompt:
 
-  ```
+  ```text
   Allpool on dokumendid koos kokkuvõtetega.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Dokument: {text}
   Kokkuvõte: {target_text}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Document: {text}
 
   Koosta ülaltoodud dokumendi kokkuvõte.

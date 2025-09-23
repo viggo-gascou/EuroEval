@@ -48,20 +48,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Tālāk ir dokumenti un to noskaņojums, kas var būt 'pozitīvs', 'neitrāls' vai 'negatīvs'.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Dokuments: {text}
   Noskaņojums: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Dokuments: {text}
 
   Klasificējiet noskaņojumu dokumentā. Atbildiet ar 'pozitīvs', 'neitrāls' vai 'negatīvs', un neko citu.
@@ -121,20 +121,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Tālāk ir teikumi un JSON vārdnīcas ar nosauktajiem objektiem, kas parādās dotajā teikumā.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Teikums: {text}
   Nosauktie objekti: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Teikums: {text}
 
   Identificējiet nosauktos objektus teikumā. Jums jāizvada šī informācija kā JSON vārdnīcu ar atslēgām 'persona', 'vieta', 'organizācija' un 'dažādi'. Vērtībām jābūt šī tipa nosaukto objektu sarakstiem, tieši tā, kā tie parādās teikumā.
@@ -202,20 +202,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Tālāk ir teikumi un JSON vārdnīcas ar nosauktajiem objektiem, kas parādās dotajā teikumā.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Teikums: {text}
   Nosauktie objekti: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Teikums: {text}
 
   Identificējiet nosauktos objektus teikumā. Jums jāizvada šī informācija kā JSON vārdnīcu ar atslēgām 'persona', 'vieta', 'organizācija' un 'dažādi'. Vērtībām jābūt šī tipa nosaukto objektu sarakstiem, tieši tā, kā tie parādās teikumā.
@@ -283,20 +283,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Šie ir teikumi un to gramatiskie pareizumi.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Teikums: {text}
   Gramatiski pareizs: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Teikums: {text}
 
   Noteiciet, vai teikums ir gramatiski pareizs vai nē. Atbildiet ar 'jā', ja teikums ir pareizs, un 'nē', ja tas nav.
@@ -364,13 +364,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Turpmāk seko teksti ar atbilstošiem jautājumiem un atbildēm.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Teksts: {text}
   Jautājums: {question}
   Atbildēt ar maksimāli 3 vārdiem:
@@ -378,7 +378,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Teksts: {text}
 
   Atbildiet uz šo jautājumu par iepriekš minēto tekstu ar maksimāli 3 vārdiem.
@@ -435,13 +435,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Tālāk seko jautājumi ar vairākām atbilžu izvēlēm (ar atbildēm).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Jautājums: {text}
   Izvēles:
   a. {option_a}
@@ -453,7 +453,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Jautājums: {text}
   Izvēles:
   a. {option_a}
@@ -513,13 +513,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Tālāk seko jautājumi ar vairākām atbilžu izvēlēm (ar atbildēm).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Jautājums: {text}
   Izvēles:
   a. {option_a}
@@ -529,7 +529,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Jautājums: {text}
   Izvēles:
   a. {option_a}
@@ -582,13 +582,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Tālāk seko jautājumi ar vairākām atbilžu izvēlēm (ar atbildēm).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Jautājums: {text}
   Izvēles:
   a. {option_a}
@@ -598,7 +598,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Jautājums: {text}
   Izvēles:
   a. {option_a}
@@ -654,20 +654,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 1
 - Prefix prompt:
 
-  ```
+  ```text
   Tālāk ir dokumenti ar pievienotām kopsavilkumiem.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Dokuments: {text}
   Kopsavilkums: {target_text}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Dokuments: {text}
 
   Uzrakstiet kopsavilkumu par iepriekš minēto dokumentu.

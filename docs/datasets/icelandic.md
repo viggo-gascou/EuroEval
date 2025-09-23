@@ -45,20 +45,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Hér fyrir neðan eru textabrot ásamt lyndisgildi þeirra sem getur verið 'jákvætt', 'hlutlaust' eða 'neikvætt'.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Textabrot: {text}
   Lyndi: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Texti: {text}
 
   Flokkaðu tilfinninguna í textanum. Svaraðu með 'jákvætt', 'hlutlaust' eða 'neikvætt'.
@@ -120,20 +120,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru setningar ásamt JSON lyklum með nefndum einingum sem koma fyrir í setningunum.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Setning: {text}
   Nafneiningar: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Setning: {text}
 
   Greindu nefndu einingarnar í setningunni. Þú ættir að skila þessu sem JSON orðabók með lyklunum 'einstaklingur', 'staðsetning', 'stofnun' og 'ýmislegt'. Gildin ættu að vera listi yfir nefndu einingarnar af þeirri gerð, nákvæmlega eins og þær koma fram í setningunni.
@@ -201,20 +201,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Hér fyrir neðan eru setningar ásamt mati á því hvort þær eru málfræðilega réttar.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Setning: {text}
   Málfræðilega rétt: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Setning: {text}
 
   Greindu hvort setningin er málfræðilega rétt. Svaraðu með 'já' ef setningin er rétt og 'nei' ef hún er það ekki.
@@ -271,20 +271,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Hér fyrir neðan eru setningar ásamt mati á því hvort þær eru málfræðilega réttar.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Setning: {text}
   Málfræðilega rétt: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Setning: {text}
 
   Greindu hvort setningin er málfræðilega rétt. Svaraðu með 'já' ef setningin er rétt og 'nei' ef hún er það ekki.
@@ -339,20 +339,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Hér fyrir neðan eru setningar ásamt mati á því hvort þær eru málfræðilega réttar.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Setning: {text}
   Málfræðilega rétt: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Setning: {text}
 
   Greindu hvort setningin er málfræðilega rétt. Svaraðu með 'já' ef setningin er rétt og 'nei' ef hún er það ekki.
@@ -423,13 +423,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru textar með tilheyrandi spurningum og svörum.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Texti: {text}
   Spurning: {question}
   Svaraðu með að hámarki 3 orðum: {label}
@@ -437,7 +437,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Texti: {text}
 
   Svaraðu eftirfarandi spurningu um textann að hámarki í 3 orðum.
@@ -507,13 +507,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru textar með tilheyrandi spurningum og svörum.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Texti: {text}
   Spurning: {question}
   Svaraðu með að hámarki 3 orðum: {label}
@@ -521,7 +521,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Texti: {text}
 
   Svaraðu eftirfarandi spurningu um textann að hámarki í 3 orðum.
@@ -573,13 +573,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru fjölvalsspurningar (með svörum).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -591,7 +591,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -658,13 +658,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru textar með tilheyrandi spurningum og svörum.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Texti: {text}
   Spurning: {question}
   Svaraðu með að hámarki 3 orðum: {label}
@@ -672,7 +672,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Texti: {text}
 
   Svaraðu eftirfarandi spurningu um textann að hámarki í 3 orðum.
@@ -748,13 +748,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru fjölvalsspurningar (með svörum).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -766,7 +766,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -823,13 +823,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru fjölvalsspurningar (með svörum).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -841,7 +841,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -900,13 +900,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru fjölvalsspurningar (með svörum).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -918,7 +918,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -977,13 +977,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru fjölvalsspurningar (með svörum).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -995,7 +995,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -1052,13 +1052,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru fjölvalsspurningar (með svörum).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -1070,7 +1070,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spurningar: {text}
   Svarmöguleikar:
   a. {option_a}
@@ -1127,20 +1127,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 1
 - Prefix prompt:
 
-  ```
+  ```text
   Eftirfarandi eru fréttagreinar með tilheyrandi samantektum.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Fréttagrein: {text}
   Samantekt: {target_text}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Fréttagrein: {text}
 
   Skrifaðu samantekt um ofangreindu grein.

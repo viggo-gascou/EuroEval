@@ -45,20 +45,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Seuraavassa on arvosteluja ja niiden tunnesävy, joka voi olla 'positiivinen' tai 'negatiivinen'.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Teksti: {text}
   Tunnesävy: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Teksti: {text}
 
   Luokittele arvostelun tunnesävy. Vastaa vain 'positiivinen' tai 'negatiivinen', ei muuta.
@@ -116,20 +116,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Seuraavassa on lauseita ja JSON-sanakirjoja, jotka sisältävät annetussa lauseessa esiintyvät nimetyt entiteetit.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Lause: {text}
   Nimetyt entiteetit: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Lause: {text}
 
   Tunnista lauseessa esiintyvät nimetyt entiteetit. Tulosta ne JSON-sanakirjana, jonka avaimet ovat 'henkilö', 'paikka', 'organisaatio' ja 'muut'. Arvojen tulee olla listoja kyseisen tyypin nimetyistä entiteeteistä täsmälleen siinä muodossa kuin ne esiintyvät lauseessa.
@@ -197,20 +197,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Seuraavat ovat lauseita ja ovatko ne kieliopillisesti oikein.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Lause: {text}
   Kieliopillisesti oikein: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Lause: {text}
 
   Määritä onko lause kieliopillisesti oikein vai ei. Vastaa 'kyllä', jos lause on oikein, ja 'ei', jos se ei ole.
@@ -286,13 +286,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Seuraavassa on tekstejä ja niihin liittyviä kysymyksiä ja vastauksia.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Teksti: {text}
   Kysymys: {question}
   Vastaa enintään 3 sanalla: {label}
@@ -300,7 +300,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Teksti: {text}
 
   Vastaa seuraavaan kysymykseen yllä olevasta tekstistä enintään 3 sanalla.
@@ -352,13 +352,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Seuraavat ovat monivalintakysymyksiä (vastauksineen).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Kysymys: {text}
   Vaihtoehdot:
   a. {option_a}
@@ -370,7 +370,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Kysymys: {text}
   Vaihtoehdot:
   a. {option_a}
@@ -437,13 +437,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Seuraavassa on tekstejä ja niihin liittyviä kysymyksiä ja vastauksia.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Teksti: {text}
   Kysymys: {question}
   Vastaa enintään 3 sanalla: {label}
@@ -451,7 +451,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Teksti: {text}
 
   Vastaa seuraavaan kysymykseen yllä olevasta tekstistä enintään 3 sanalla.
@@ -505,13 +505,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Seuraavat ovat monivalintakysymyksiä (vastauksineen).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Kysymys: {text}
   Vastausvaihtoehdot:
   a. {option_a}
@@ -523,7 +523,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Kysymys: {text}
   Vastausvaihtoehdot:
   a. {option_a}
@@ -583,13 +583,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Seuraavat ovat monivalintakysymyksiä (vastauksineen).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Kysymys: {text}
   Vastausvaihtoehdot:
   a. {option_a}
@@ -601,7 +601,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Kysymys: {text}
   Vastausvaihtoehdot:
   a. {option_a}
@@ -656,13 +656,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Seuraavat ovat monivalintakysymyksiä (vastauksineen).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Kysymys: {text}
   Vastausvaihtoehdot:
   a. {option_a}
@@ -672,7 +672,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Kysymys: {text}
   Vastausvaihtoehdot:
   a. {option_a}
@@ -731,20 +731,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 1
 - Prefix prompt:
 
-  ```
+  ```text
   Seuraavassa on artikkeleita ja niihin liittyviä tiivistelmiä.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Uutisartikkeli: {text}
   Tiivistelmä: {target_text}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Uutisartikkeli: {text}
 
   Kirjoita tiivistelmä yllä olevasta artikkelista.

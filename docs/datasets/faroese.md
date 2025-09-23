@@ -48,20 +48,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Her eru nakrir tekstir flokkaðir eftir lyndi, sum kann vera 'positivt', 'neutralt' ella 'negativt'.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Text: {text}
   Lyndi: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Tekstur: {text}
 
   Flokka lyndið í tekstinum. Svara við 'positivt', 'neutralt' ella 'negativt'.
@@ -121,20 +121,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Her eru nakrir setningar og nakrar JSON orðabøkur við nevndar eindir, sum eru í setningunum.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Setningur: {text}
   Nevndar eindir: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Setningur: {text}
 
   Greinið nevndu einingarnar í setningunni. Þú ættir að skila þessu sem JSON orðabók með lyklunum 'persónur', 'staður', 'felagsskapur' og 'ymiskt'. Gildin ættu að vera listi yfir nevndu einingarnar af þeirri gerð, nákvæmlega eins og þær koma fram í setningunni.
@@ -195,20 +195,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Her eru nakrir setningar og nakrar JSON orðabøkur við nevndar eindir, sum eru í setningunum.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Setningur: {text}
   Nevndar eindir: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Setningur: {text}
 
   Greinið nevndu einingarnar í setningunni. Þú ættir að skila þessu sem JSON orðabók með lyklunum 'persónur', 'staður', 'felagsskapur' og 'ymiskt'. Gildin ættu að vera listi yfir nevndu einingarnar af þeirri gerð, nákvæmlega eins og þær koma fram í setningunni.
@@ -276,20 +276,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Hetta eru nakrir setningar og um teir eru mállæruliga rættir.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Setningur: {text}
   Mállæruliga rættur: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Setningur: {text}
 
   Greinið hvort setningurin er mállæruliga rættur ella ikki. Svarið skal vera 'ja' um setningurin er rættur og 'nei' um hann ikki er.
@@ -358,13 +358,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Hetta eru tekstir saman við spurningum og svar.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Tekstur: {text}
   Spurningur: {question}
   Svara við í mesta lagi trimum orðum: {label}
@@ -372,7 +372,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Tekstur: {text}
 
   Svara hesum spurninginum um tekstin uppiyvir við í mesta lagi trimum orðum.
@@ -436,13 +436,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Hetta eru tekstir saman við spurningum og svar.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Tekstur: {text}
   Spurningur: {question}
   Svara við í mesta lagi trimum orðum: {label}
@@ -450,7 +450,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Tekstur: {text}
 
   Svara hesum spurninginum um tekstin uppiyvir við í mesta lagi trimum orðum.

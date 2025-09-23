@@ -49,20 +49,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Voici des textes et leur sentiment, qui peut être 'positif' ou 'négatif'.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Texte: {text}
   Sentiment: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Texte: {text}
 
   Classez le sentiment dans le texte. Répondez par ‘positif' ou ‘négatif'.
@@ -127,20 +127,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Vous trouverez ci-dessous des phrases et des dictionnaires JSON avec les entités nommées qui apparaissent dans la phrase donnée.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Sentence: {text}
   Entités nommées: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Sentence: {text}
 
   Identifiez les entités nommées dans la phrase. Vous devez produire ceci sous forme de dictionnaire JSON avec les clés 'personne', 'lieu', 'organisation' et 'divers'. Les valeurs doivent être des listes des entités nommées de ce type, exactement comme elles apparaissent dans la phrase.
@@ -208,20 +208,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Les phrases suivantes indiquent si elles sont grammaticalement correctes.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Phrase: {text}
   Correct du point de vue grammatical: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Phrase: {text}
 
   Déterminez si la phrase est grammaticalement correcte ou non. Répondez par 'oui' si la phrase est correcte et par 'non' si elle ne l'est pas, et rien d'autre.
@@ -293,13 +293,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Les textes suivants sont accompagnés de questions et de réponses.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Texte: {text}
   Question: {question}
   Réponse en 3 mots maximum: {label}
@@ -307,7 +307,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Texte: {text}
 
   Répondez à la question suivante sur le texte ci-dessus en 3 mots maximum.
@@ -359,13 +359,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Les questions suivantes sont des questions à choix multiples (avec réponses).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Question: {text}
   Choix:
   a. {option_a}
@@ -377,7 +377,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Question: {text}
   Choix:
   a. {option_a}
@@ -444,13 +444,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Les textes suivants sont accompagnés de questions et de réponses.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Texte: {text}
   Question: {question}
   Réponse en 3 mots maximum: {label}
@@ -458,7 +458,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Texte: {text}
 
   Répondez à la question suivante sur le texte ci-dessus en 3 mots maximum.
@@ -517,13 +517,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Les questions suivantes sont des questions à choix multiples (avec réponses).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Question: {text}
   Choix:
   a. {option_a}
@@ -535,7 +535,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Question: {text}
   Choix:
   a. {option_a}
@@ -594,13 +594,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Les questions suivantes sont des questions à choix multiples (avec réponses).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Question: {text}
   Choix:
   a. {option_a}
@@ -612,7 +612,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Question: {text}
   Choix:
   a. {option_a}
@@ -672,13 +672,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Les questions suivantes sont des questions à choix multiples (avec réponses).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Question: {text}
   Choix:
   a. {option_a}
@@ -690,7 +690,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Question: {text}
   Choix:
   a. {option_a}
@@ -745,13 +745,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Les questions suivantes sont des questions à choix multiples (avec réponses).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Question: {text}
   Choix:
   a. {option_a}
@@ -761,7 +761,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Question: {text}
   Choix:
   a. {option_a}
@@ -818,20 +818,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 1
 - Prefix prompt:
 
-  ```
+  ```text
   Les articles suivants sont accompagnés d'un résumé.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Article de presse: {text}
   Résumé: {target_text}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Article de presse: {text}
 
   Rédigez un résumé de l'article ci-dessus.

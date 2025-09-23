@@ -48,20 +48,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er tweets og deres sentiment, som kan være 'positiv', 'neutral' eller 'negativ'.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Tweet: {text}
   Sentiment: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Tweet: {text}
 
   Klassificer sentimentet i tweetet. Svar kun med 'positiv', 'neutral' eller 'negativ'.
@@ -144,20 +144,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er sætninger og JSON-ordbøger med de navngivne enheder, som forekommer i den givne sætning.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Sætning: {text}
   Navngivne enheder: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Sætning: {text}
 
   Identificér de navngivne enheder i sætningen. Du skal outputte dette som en JSON-ordbog med nøglerne 'person', 'sted', 'organisation' og 'diverse'. Værdierne skal være lister over de navngivne enheder af den type, præcis som de forekommer i sætningen.
@@ -261,20 +261,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er sætninger og om de er grammatisk korrekte.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Sætning: {text}
   Grammatisk korrekt: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Sætning: {text}
 
   Bestem om sætningen er grammatisk korrekt eller ej. Svar med 'ja', hvis sætningen er korrekt, og 'nej', hvis den ikke er.
@@ -352,13 +352,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er tekster med tilhørende spørgsmål og svar.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Tekst: {text}
   Spørgsmål: {question}
   Svar med maks. 3 ord: {label}
@@ -366,7 +366,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Tekst: {text}
 
   Besvar følgende spørgsmål om teksten ovenfor med maks. 3 ord.
@@ -418,13 +418,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er multiple choice spørgsmål (med svar).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -436,7 +436,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -503,13 +503,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er tekster med tilhørende spørgsmål og svar.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Tekst: {text}
   Spørgsmål: {question}
   Svar med maks. 3 ord: {label}
@@ -517,7 +517,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Tekst: {text}
 
   Besvar følgende spørgsmål om teksten ovenfor med maks. 3 ord.
@@ -574,13 +574,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er multiple choice spørgsmål (med svar).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Hvad er betydningen af følgende talemåde: {text}
   Svarmuligheder:
   a. {option_a}
@@ -592,7 +592,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Hvad er betydningen af følgende talemåde: {text}
   Svarmuligheder:
   a. {option_a}
@@ -651,13 +651,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er multiple choice spørgsmål (med svar).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -668,7 +668,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -727,13 +727,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er multiple choice spørgsmål (med svar).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -745,7 +745,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -797,13 +797,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er multiple choice spørgsmål (med svar).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -815,7 +815,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -868,13 +868,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er multiple choice spørgsmål (med svar).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -886,7 +886,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -946,13 +946,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er multiple choice spørgsmål (med svar).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -964,7 +964,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -1019,13 +1019,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er multiple choice spørgsmål (med svar).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -1035,7 +1035,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Spørgsmål: {text}
   Svarmuligheder:
   a. {option_a}
@@ -1091,20 +1091,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 1
 - Prefix prompt:
 
-  ```
+  ```text
   Følgende er nyhedsartikler med tilhørende resuméer.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Nyhedsartikel: {text}
   Resumé: {target_text}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Nyhedsartikel: {text}
 
   Skriv et resumé af ovenstående artikel.

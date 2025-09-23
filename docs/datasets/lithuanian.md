@@ -48,21 +48,21 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Toliau pateikti dokumentai ir jų nuotaika,
   kuri gali būti 'teigiamas', 'neutralus' arba 'neigiamas'.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Dokumentas: {text}
   Nuotaika: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Dokumentas: {text}
 
   Klasifikuokite nuotaiką dokumente. Atsakykite su 'teigiamas', 'neutralus' arba 'neigiamas', ir nieko kito.
@@ -124,20 +124,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Toliau pateikti sakiniai ir JSON žodynai su vardiniais vienetais, kurie pateikiame sakinyje.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Sakinys: {text}
   Vardiniai vienetai: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Sakinys: {text}
 
   Identifikuokite vardinius vienetus sakinyje. Turėtumėte pateikti tai kaip JSON žodyną su raktais 'asmuo', 'vieta', 'organizacija' ir 'kita'. Reikšmės turi būti to tipo vardinių vienetų sąrašai, tiksliai taip, kaip jie rodomi sakinyje.
@@ -205,20 +205,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   Toliau pateikti sakiniai ir ar jie yra gramatiškai teisingi.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Sakinys: {text}
   Gramatiškai teisingas: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Sakinys: {text}
 
   Nustatykite, ar sakinys yra gramatiškai teisingas, ar ne. Atsakykite su 'taip' arba 'ne', ir nieko kito.
@@ -277,13 +277,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   Toliau pateikti tekstai su atitinkamais klausimais ir atsakymais.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Tekstas: {text}
   Klausimas: {question}
   Atsakykite ne daugiau kaip 3 žodžiais: {label}
@@ -291,7 +291,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Tekstas: {text}
 
   Atsakykite į šį klausimą apie aukščiau pateiktą tekstą ne daugiau kaip 3 žodžiais.
@@ -345,13 +345,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Toliau pateikti daugiavariančiai klausimai (su atsakymais).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Klausimas: {text}
   Pasirinkimai:
   a. {option_a}
@@ -363,7 +363,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Klausimas: {text}
   Pasirinkimai:
   a. {option_a}
@@ -420,13 +420,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   Toliau pateikti daugiavariančiai klausimai (su atsakymais).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Klausimas: {text}
   Pasirinkimai:
   a. {option_a}
@@ -436,7 +436,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Klausimas: {text}
   Pasirinkimai:
   a. {option_a}

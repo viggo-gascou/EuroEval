@@ -55,20 +55,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   The following are texts and their sentiment, which can be 'positive', 'neutral' or 'negative'.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Text: {text}
   Sentiment: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Text: {text}
 
   Classify the sentiment in the text. Answer with 'positive', 'neutral' or 'negative'.
@@ -128,20 +128,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 8
 - Prefix prompt:
 
-  ```
+  ```text
   Below are sentences and JSON dictionaries with the named entities that occur in the given sentence.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Sentence: {text}
   Named entities: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Sentence: {text}
 
   Identify the named entities in the sentence. You should output this as a JSON dictionary with the keys being 'person', 'location', 'organization' and 'miscellaneous'. The values should be lists of the named entities of that type, exactly as they appear in the sentence.
@@ -209,20 +209,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 12
 - Prefix prompt:
 
-  ```
+  ```text
   The following are sentences and whether they are grammatically correct.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Sentence: {text}
   Grammatically correct: {label}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Sentence: {text}
 
   Determine whether the sentence is grammatically correct or not. Reply with 'yes' if the sentence is correct and 'no' if it is not.
@@ -293,13 +293,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   The following are texts with accompanying questions and answers.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Text: {text}
   Question: {question}
   Answer in max 3 words:
@@ -307,7 +307,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Text: {text}
 
   Answer the following question about the above text in at most 3 words.
@@ -372,13 +372,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   The following are texts with accompanying questions and answers.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Text: {text}
   Question: {question}
   Answer in max 3 words:
@@ -386,7 +386,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Text: {text}
 
   Answer the following question about the above text in at most 3 words.
@@ -439,13 +439,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   The following are texts with accompanying questions and answers.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Text: {text}
   Question: {question}
   Answer in max 3 words:
@@ -453,7 +453,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Text: {text}
 
   Answer the following question about the above text in at most 3 words.
@@ -517,13 +517,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 4
 - Prefix prompt:
 
-  ```
+  ```text
   The following are texts with accompanying questions and answers.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Text: {text}
   Question: {question}
   Answer in max 3 words:
@@ -531,7 +531,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Text: {text}
 
   Answer the following question about the above text in at most 3 words.
@@ -590,13 +590,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   The following are multiple choice questions (with answers).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Question: {text}
   Options:
   a. {option_a}
@@ -608,7 +608,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Question: {text}
   Options:
   a. {option_a}
@@ -666,13 +666,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   The following are multiple choice questions (with answers).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Question: {text}
   Options:
   a. {option_a}
@@ -684,7 +684,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Question: {text}
   Options:
   a. {option_a}
@@ -740,13 +740,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   The following are multiple choice questions (with answers).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Question: {text}
   Options:
   a. {option_a}
@@ -758,7 +758,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Question: {text}
   Options:
   a. {option_a}
@@ -815,13 +815,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   The following are multiple choice questions (with answers).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Question: {text}
   Options:
   a. {option_a}
@@ -833,7 +833,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Question: {text}
   Options:
   a. {option_a}
@@ -885,13 +885,13 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 5
 - Prefix prompt:
 
-  ```
+  ```text
   The following are multiple choice questions (with answers).
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   Question: {text}
   Options:
   a. {option_a}
@@ -901,7 +901,7 @@ When evaluating generative models, we use the following setup (see the
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   Question: {text}
   Options:
   a. {option_a}
@@ -958,20 +958,20 @@ When evaluating generative models, we use the following setup (see the
 - Number of few-shot examples: 1
 - Prefix prompt:
 
-  ```
+  ```text
   The following are articles with accompanying summaries.
   ```
 
 - Base prompt template:
 
-  ```
+  ```text
   News article: {text}
   Summary: {target_text}
   ```
 
 - Instruction-tuned prompt template:
 
-  ```
+  ```text
   News article: {text}
 
   Write a summary of the above article.
