@@ -9,9 +9,16 @@ information about what these constitute.
 
 ### Lithuanian Emotions
 
-This dataset is a combination of machine translated versions of the [GoEmotions dataset](https://doi.org/10.48550/arXiv.2005.00547) and the [Kaggle emotions dataset](https://www.kaggle.com/datasets/nelgiriyewithana/emotions). GoEmotions consists of English Reddit comments and the Kaggle dataset contains English Twitter messages. Both datasets have been machine translated to Lithuanian.
+This dataset is a combination of machine translated versions of the [GoEmotions
+dataset](https://doi.org/10.48550/arXiv.2005.00547) and the [Kaggle emotions
+dataset](https://www.kaggle.com/datasets/nelgiriyewithana/emotions). GoEmotions consists
+of English Reddit comments and the Kaggle dataset contains English Twitter messages.
+Both datasets have been machine translated to Lithuanian.
 
-The original dataset contains 377k / 47.1k / 5.43k / 41.7k samples for the combined training, combined validation, Lithuanian GoEmotions test, and Lithuanian Twitter emotions test splits, respectively. We use 1,024 / 256 / 2,048 samples for our training, validation and test splits, respectively. Our splits are based on the original splits.
+The original dataset contains 377k / 47.1k / 5.43k / 41.7k samples for the combined
+training, combined validation, Lithuanian GoEmotions test, and Lithuanian Twitter
+emotions test splits, respectively. We use 1,024 / 256 / 2,048 samples for our training,
+validation and test splits, respectively. Our splits are based on the original splits.
 
 Here are a few examples from the training split:
 
@@ -145,8 +152,8 @@ $ euroeval --model <model-id> --dataset wikiann-lt
 
 This dataset was published in [this paper](https://aclanthology.org/2023.nodalida-1.20/)
 and was automatically created from the [Lithuanian Universal Dependencies
-treebank](https://github.com/UniversalDependencies/UD_Lithuanian-ALKSNIS) by assuming that the
-documents in the treebank are correct, and corrupting the samples to create
+treebank](https://github.com/UniversalDependencies/UD_Lithuanian-ALKSNIS) by assuming
+that the documents in the treebank are correct, and corrupting the samples to create
 grammatically incorrect samples. The corruptions were done by either removing a word
 from a sentence, or by swapping two neighbouring words in a sentence. To ensure that
 this does indeed break the grammaticality of the sentence, a set of rules were used on
@@ -276,10 +283,12 @@ $ euroeval --model <model-id> --dataset multi-wiki-qa-lt
 
 ### LT-History
 
-This dataset was published in [this paper](https://aclanthology.org/2025.nbreal-1.1/), and consists of Lithuanian national and general history
-questions and answers.
+This dataset was published in [this paper](https://aclanthology.org/2025.nbreal-1.1/),
+and consists of Lithuanian national and general history questions and answers.
 
-The dataset originally contains 593 samples, which are reduced to 559 after filtering. Due to the limited number of examples, there is no training split; instead, the data is divided into 47 samples for validation and 512 for testing.
+The dataset originally contains 593 samples, which are reduced to 559 after filtering.
+Due to the limited number of examples, there is no training split; instead, the data is
+divided into 47 samples for validation and 512 for testing.
 
 Here are a few examples from the validation split:
 
