@@ -31,7 +31,7 @@ ______________________________________________________________________
 
 To install the package simply write the following command in your favorite terminal:
 
-```
+```bash
 pip install euroeval[all]
 ```
 
@@ -46,7 +46,7 @@ when an evaluation requires a certain extra dependency, and how you install it.
 The easiest way to benchmark pretrained models is via the command line interface. After
 having installed the package, you can benchmark your favorite model like so:
 
-```
+```bash
 euroeval --model <model-id>
 ```
 
@@ -55,7 +55,7 @@ Hub](https://huggingface.co/models). By default this will benchmark the model on
 the tasks available. If you want to benchmark on a particular task, then use the
 `--task` argument:
 
-```
+```bash
 euroeval --model <model-id> --task sentiment-classification
 ```
 
@@ -63,20 +63,20 @@ We can also narrow down which languages we would like to benchmark on. This can 
 by setting the `--language` argument. Here we thus benchmark the model on the Danish
 sentiment classification task:
 
-```
+```bash
 euroeval --model <model-id> --task sentiment-classification --language da
 ```
 
 Multiple models, datasets and/or languages can be specified by just attaching multiple
 arguments. Here is an example with two models:
 
-```
+```bash
 euroeval --model <model-id1> --model <model-id2>
 ```
 
 The specific model version/revision to use can also be added after the suffix '@':
 
-```
+```bash
 euroeval --model <model-id>@<commit>
 ```
 
@@ -84,7 +84,7 @@ This can be a branch name, a tag name, or a commit id. It defaults to 'main' for
 
 See all the arguments and options available for the `euroeval` command by typing
 
-```
+```bash
 euroeval --help
 ```
 
@@ -94,7 +94,7 @@ In a script, the syntax is similar to the command line interface. You simply ini
 an object of the `Benchmarker` class, and call this benchmark object with your favorite
 model:
 
-```
+```python
 >>> from euroeval import Benchmarker
 >>> benchmark = Benchmarker()
 >>> benchmark(model="<model-id>")
@@ -103,7 +103,7 @@ model:
 To benchmark on a specific task and/or language, you simply specify the `task` or
 `language` arguments, shown here with same example as above:
 
-```
+```python
 >>> benchmark(model="<model-id>", task="sentiment-classification", language="da")
 ```
 
@@ -111,7 +111,7 @@ If you want to benchmark a subset of all the models on the Hugging Face Hub, you
 simply leave out the `model` argument. In this example, we're benchmarking all Danish
 models on the Danish sentiment classification task:
 
-```
+```python
 >>> benchmark(task="sentiment-classification", language="da")
 ```
 
@@ -123,13 +123,13 @@ argument, from the command line, or the `download_only` argument, if benchmarkin
 script. For example to download the model you want and all of the Danish sentiment
 classification datasets:
 
-```
+```bash
 euroeval --model <model-id> --task sentiment-classification --language da --download-only
 ```
 
 Or from a script:
 
-```
+```python
 >>> benchmark(
 ... model="<model-id>",
 ... task="sentiment-classification",
@@ -148,7 +148,7 @@ A Dockerfile is provided in the repo, which can be downloaded and run, without n
 to clone the repo and installing from source. This can be fetched programmatically by
 running the following:
 
-```
+```bash
 wget https://raw.githubusercontent.com/EuroEval/EuroEval/main/Dockerfile.cuda
 ```
 
@@ -161,13 +161,13 @@ Ensure that the the CUDA version stated at the top of the Dockerfile matches the
 version installed (which you can check using `nvidia-smi`). After that, we build the
 image as follows:
 
-```
+```bash
 docker build --pull -t euroeval -f Dockerfile.cuda .
 ```
 
 With the Docker image built, we can now evaluate any model as follows:
 
-```
+```bash
 docker run -e args="<euroeval-arguments>" --gpus 1 --name euroeval --rm euroeval
 ```
 
@@ -181,13 +181,13 @@ All datasets used in this project are generated using the scripts located in the
 [src/scripts](src/scripts) folder. To reproduce a dataset, run the corresponding script
 with the following command
 
-```shell
+```bash
 uv run src/scripts/<name-of-script>.py
 ```
 
 Replace <name-of-script> with the specific script you wish to execute, e.g.,
 
-```shell
+```bash
 uv run src/scripts/create_allocine.py
 ```
 
@@ -338,7 +338,7 @@ contributing new datasets, your help makes this project better for everyone.
 
 If you want to cite the framework then feel free to use this:
 
-```
+```bibtex
 @article{smart2024encoder,
   title={Encoder vs Decoder: Comparative Analysis of Encoder and Decoder Language Models on Multilingual NLU Tasks},
   author={Smart, Dan Saattrup and Enevoldsen, Kenneth and Schneider-Kamp, Peter},

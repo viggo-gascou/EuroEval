@@ -39,7 +39,7 @@ generate the correct output.
 For the base (i.e., non-instruction tuned) models, we use the following prompt
 structure:
 
-```
+```text
 [prefix prompt]
 
 {% for each few-shot example %}
@@ -55,7 +55,7 @@ structure:
 
 For the instruction tuned models, we use the following prompt structure:
 
-```
+```text
 {% for each few-shot example %}
   USER: [instruction with few-shot example]
   ASSISTANT: [label]
