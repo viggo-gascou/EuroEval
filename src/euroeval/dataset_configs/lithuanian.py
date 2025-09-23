@@ -1,6 +1,6 @@
 """All Lithuanian dataset configurations used in EuroEval."""
 
-from ..data_models import DatasetConfig, ModelType
+from ..data_models import DatasetConfig
 from ..languages import LT
 from ..tasks import COMMON_SENSE, KNOW, LA, NER, RC, SENT
 
