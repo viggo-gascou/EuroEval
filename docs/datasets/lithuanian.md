@@ -4,7 +4,6 @@ This is an overview of all the datasets used in the Lithuanian part of EuroEval.
 datasets are grouped by their task - see the [task overview](/tasks) for more
 information about what these constitute.
 
-
 ## Sentiment Classification
 
 ### Lithuanian Emotions
@@ -28,12 +27,14 @@ Here are a few examples from the training split:
   "label": "positive"
 }
 ```
+
 ```json
 {
   "text": "Jaučiuosi gana bendras šeimininkas Toros",
   "label": "negative"
 }
 ```
+
 ```json
 {
   "text": "Florida, jis gavo du",
@@ -46,32 +47,37 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 12
 - Prefix prompt:
+
   ```
   Toliau pateikti dokumentai ir jų nuotaika,
   kuri gali būti 'teigiamas', 'neutralus' arba 'neigiamas'.
   ```
+
 - Base prompt template:
+
   ```
   Dokumentas: {text}
   Nuotaika: {label}
   ```
+
 - Instruction-tuned prompt template:
+
   ```
   Dokumentas: {text}
 
   Klasifikuokite nuotaiką dokumente. Atsakykite su 'teigiamas', 'neutralus' arba 'neigiamas', ir nieko kito.
   ```
+
 - Label mapping:
-    - `positive` ➡️ `teigiamas`
-    - `neutral` ➡️ `neutralus`
-    - `negative` ➡️ `neigiamas`
+  - `positive` ➡️ `teigiamas`
+  - `neutral` ➡️ `neutralus`
+  - `negative` ➡️ `neigiamas`
 
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset lithuanian-emotions
+euroeval --model <model-id> --dataset lithuanian-emotions
 ```
-
 
 ## Named Entity Recognition
 
@@ -96,12 +102,14 @@ Here are a few examples from the training split:
   "labels": ["O", "O", "B-PER", "I-PER", "O", "O"]
 }
 ```
+
 ```json
 {
   "tokens": array(['Keliu', 'sujungtas', 'su', 'Alta', '.'], dtype=object),
   "labels": ["O", "O", "O", "B-LOC", "O"]
 }
 ```
+
 ```json
 {
   "tokens": array(['Amazonės', 'lamantinas', '(', "''Trichechus", 'inunguis', "''",
@@ -115,36 +123,41 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 8
 - Prefix prompt:
+
   ```
   Toliau pateikti sakiniai ir JSON žodynai su vardiniais vienetais, kurie pateikiame sakinyje.
   ```
+
 - Base prompt template:
+
   ```
   Sakinys: {text}
   Vardiniai vienetai: {label}
   ```
+
 - Instruction-tuned prompt template:
+
   ```
   Sakinys: {text}
 
   Identifikuokite vardinius vienetus sakinyje. Turėtumėte pateikti tai kaip JSON žodyną su raktais 'asmuo', 'vieta', 'organizacija' ir 'kita'. Reikšmės turi būti to tipo vardinių vienetų sąrašai, tiksliai taip, kaip jie rodomi sakinyje.
   ```
+
 - Label mapping:
-    - `B-PER` ➡️ `asmuo`
-    - `I-PER` ➡️ `asmuo`
-    - `B-LOC` ➡️ `vieta`
-    - `I-LOC` ➡️ `vieta`
-    - `B-ORG` ➡️ `organizacija`
-    - `I-ORG` ➡️ `organizacija`
-    - `B-MISC` ➡️ `kita`
-    - `I-MISC` ➡️ `kita`
+  - `B-PER` ➡️ `asmuo`
+  - `I-PER` ➡️ `asmuo`
+  - `B-LOC` ➡️ `vieta`
+  - `I-LOC` ➡️ `vieta`
+  - `B-ORG` ➡️ `organizacija`
+  - `I-ORG` ➡️ `organizacija`
+  - `B-MISC` ➡️ `kita`
+  - `I-MISC` ➡️ `kita`
 
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset wikiann-lt
+euroeval --model <model-id> --dataset wikiann-lt
 ```
-
 
 ## Linguistic Acceptability
 
@@ -171,12 +184,14 @@ Here are a few examples from the training split:
   "label": "incorrect"
 }
 ```
+
 ```json
 {
   "text": "Juos sukelia kokia nors konkreti organinė ir šiuo atveju galvos skausmas yra tik tam tikros ligos simptomas.",
   "label": "incorrect"
 }
 ```
+
 ```json
 {
   "text": "Juos sukelia kokia nors konkreti organinė ir šiuo atveju galvos skausmas yra tik tam tikros ligos simptomas.",
@@ -189,30 +204,35 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 12
 - Prefix prompt:
+
   ```
   Toliau pateikti sakiniai ir ar jie yra gramatiškai teisingi.
   ```
+
 - Base prompt template:
+
   ```
   Sakinys: {text}
   Gramatiškai teisingas: {label}
   ```
+
 - Instruction-tuned prompt template:
+
   ```
   Sakinys: {text}
 
   Nustatykite, ar sakinys yra gramatiškai teisingas, ar ne. Atsakykite su 'taip' arba 'ne', ir nieko kito.
   ```
+
 - Label mapping:
-    - `correct` ➡️ `taip`
-    - `incorrect` ➡️ `ne`
+  - `correct` ➡️ `taip`
+  - `incorrect` ➡️ `ne`
 
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset scala-lt
+euroeval --model <model-id> --dataset scala-lt
 ```
-
 
 ## Reading Comprehension
 
@@ -234,6 +254,7 @@ Here are a few examples from the training split:
     "answers": {"answer_start": [1559], "text": ["Charlotte Casiraghi"]}
 }
 ```
+
 ```json
 {
     "context": "Bus kraujo () – 2007 m. JAV epinės dramos filmas, kurio scenarijaus autorius ir režisierius Paul Thomas Anderson. Filmas dalinai remiasi Upton Sinclair romano „Oil!“ motyvais. Pasakojama apie auksakasį, kuris XIX a. pab. – XX a. pr Pietų Kalifornijoje kilusio naftos bumo metu nusprendė užsiimti naftos gavyba ir taip pralobti iš šio verslo.\n\nSiužetas \n\n1902-ieji. Aukso ieškotojas Danielis Pleinvju (akt. Day-Lewis) atranda naftos klodą ir įkuria nedidelę naftos gavybos įmonę. Vieno nelaimingo atsitikimo metu žuvus jo darbininkui, Pleinvju įsivaikina jo sūnų. Berniukas, vardu H.V., tampa jo formaliu verslo „partneriu“.\n\nPo devynerių metu Pleinvju sutinka Polą Sandėjų (akt. Dano), kuris jam prasitaria apie naftos klodą, esantį po jo žeme. Pleinvju mėgina nupirkti sklypą už nusiderėtą kainą, bet Polo brolis dvynys Elis, žinodamas apie jo ketinimus, primygtinai pareikalauja $5 000, už kuriuos būtų pastatyta vietinė bažnyčia, kurios pastoriumi taptų Elis. Tačiau Pleinvju įtikina Elio tėvą sudaryti sandorį už nusiderėtą kainą. Vėliau avarijos metu įvykęs sprogimas pažeidžia H.V. klausą.\n\nVieną dieną, Pleinvju aplanko vyriškis, teigiantis esąs jo pusiau brolis Henris. Pleinvju jį priima, nors jo istorijoje ir randa spragų. Vėliau berniukas pabando nužudyti Henrį padegdamas jo antklodę. Pasipiktinęs sūnaus poelgiu, Pleinvju išsiunčia berniuką į mokyklą San Franciske. Įmonės „Standard Oil“ atstovas pasisiūlo nupirkti Pleinvju žemę, bet Pleinvju sudaro sutartį su „Union Oil“ ir nutiesia vamzdyną į Kalifornijos pakrantę. Pleinvju kyla įtarimas dėl Henrio ir šiam papasakojus tikrąją istoriją, Pleinvju jį nužudo ir užkasa lavoną.\n\n1927-ieji. H.V. jau suaugęs ir vedęs. Jis susitinka su tėvu, kuris ne tik, kad tapo turtingu, bet ir įniko į alkoholį, ir paprašo jo nutraukti judviejų sutartį, kad jis galėtų įsteigti savo verslą. Pleinvju išjuokia jo kurtumą ir papasakoja jam apie jo kilmę, ir H.V. išvyksta.\n\nElis aplanko Pleinvju ir pasiūlo jam dar kartą įsigyti dalį jo žemės, kuri priklausė ponui Bendžiui. Pleinvju atskleidžia, kad jis jau seniausiai išgavo visą naftą iš jo nuosavybės per aplinkinius naftos gręžinius. Elis vis tiek paprašo sumokėti, bet Pleinvju įniršta ir užmuša jį boulingo kėgliu.\n\nApdovanojimai \n Oskarų apdovanojimai: geriausias aktorius (Daniel Day-Lewis), geriausia kinematografija (Robert Elswit)\n BAFTA: geriausias pirmo plano aktorius (Daniel Day-Lewis)\n Auksiniai gaubliai: geriausias draminio filmo aktorius (Daniel Day-Lewis)\n Ekrano aktorių gildijos apdovanojimai: geriausias aktorius (Daniel Day-Lewis)\n\nIšnašos \n\n2007 filmai\nJAV filmai\nDramos\nEpiniai filmai",
@@ -241,6 +262,7 @@ Here are a few examples from the training split:
     "answers": {"answer_start": [448], "text": ["nedidelę naftos gavybos įmonę"]}
 }
 ```
+
 ```json
 {
     "context": "Ero ežeras (, arabanų k. Kati Thanda)\xa0– ežeras centrinėje Australijoje, Pietų Australijos valstijoje, didžiausias visame žemyne.\n\nEro ežeras yra žemiausiame Australijos taške\xa0– jo dugnas yra 15\xa0m žemiau jūros lygio. Dvi ežero dalys\xa0– šiaurinis Ero ežeras ir pietinis Ero ežeras\xa0– kartu užima apie 9 600\xa0km² plotą. Šiuos ežerus jungia 15\xa0km ilgio Godjero sąsiauris. Paviršiaus altitudė\xa0– 9,5 metro. Ero ežero baseino plotas apie 1,3 mln. km².\n\nPavadinimą ežerui davė Edvardas Eras (Edward Eyre), kuris 1839\xa0m. išvyko iš Adelaidės norėdamas tapti pirmuoju europiečiu, kirtusiu Australiją iš pietų į šiaurę. Įveikęs Flinderso kalnagūbrį jis susidūrė su neįveikiama sūrių ežerų juosta ir buvo priverstas grįžti atgal. Po keleto metų Eras dar kartą išvyko į kelionę ir pasiekė ežerą, kuris buvo pavadintas jo vardu. Aborigenai arabanai ežerą vadino Kati Thanda.\n\nUpėms pripildžius Ero ežerą, jo pakrantėse įsikuria didžiulė pelikanų kolonija ir susuka dešimtis tūkstančių lizdų. Tam, kad čia patektų, šie paukščiai įveikia didžiulius atstumus skrisdami virš kaitrios dykumos. Vandens srautui nutrūkus, didelėje kaitroje ežeras greitai garuoja ir tampa dar sūresnis.\n\nDidžiąją metų dalį Ero ežeras\xa0– uždruskėjusi pelkė, vandens prisipildo tik vasarą. Ilgą laiką tyrinėtojai manė, kad Ero ežeras\xa0– didžiulis gėlo vandens ežeras. Šiandien jau aišku, kad Ero ežeras gali būti didžiulėmis gėlo vandens platybėmis\xa0– tačiau vos kartą per aštuonerius ar dešimt metų. Šis ciklas jau kartojasi apie 20 tūkstančių metų. Smarkūs lietūs dvi vasaras iš eilės\xa0– retas įvykis šiame regione: pirmųjų metų lietus susigeria į žemę, antraisiais metais žemė sugeria mažiau vandens, jis atiteka į Ero ežerą iš kalnų ir jį pripildo.\n\nAplink ežerą įsteigtas Ero ežero nacionalinis parkas.\n\nŠaltiniai\n\nNuorodos \n Ero ežeras: Pelikanų rojus  \n Ero ežeras: Jachtklubas \n \nAustralijos ežerai\nPietų Australija",
@@ -254,16 +276,21 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 4
 - Prefix prompt:
+
   ```
   Toliau pateikti tekstai su atitinkamais klausimais ir atsakymais.
   ```
+
 - Base prompt template:
+
   ```
   Tekstas: {text}
   Klausimas: {question}
   Atsakykite ne daugiau kaip 3 žodžiais: {label}
   ```
+
 - Instruction-tuned prompt template:
+
   ```
   Tekstas: {text}
 
@@ -275,9 +302,8 @@ When evaluating generative models, we use the following setup (see the
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset multi-wiki-qa-lt
+euroeval --model <model-id> --dataset multi-wiki-qa-lt
 ```
-
 
 ## Knowledge
 
@@ -298,12 +324,14 @@ Here are a few examples from the validation split:
   "label": "c"
 }
 ```
+
 ```json
 {
   "text": "Kurioje eilutėje visos išvardytos asmenybės gyveno Renesanso epochoje?\nPasirinkimai:\na. Vaskas da Gama, Maksimiljenas Robespjeras, Johanas Gutenbergas.\nb. Nikola Makiavelis, Šarlis Monteskjė, Kristupas Kolumbas.\nc. Mikalojus Kopernikas, Ferdinandas Magelanas, Leonardas da Vinčis.\nd. Johanas Gutenbergas, Žanas Žakas Ruso, Leonardas da Vinčis.",
   "label": "c"
 }
 ```
+
 ```json
 {
   "text": "Lietuvos teritorija suskirstyta į 10 apskričių: Vilniaus, Kauno, Klaipėdos, Šiaulių, Panevėžio, Alytaus ir...\nPasirinkimai:\na. Tauragės, Utenos, Marijampolės ir Telšių;\nb. Tauragės, Trakų, Kėdainių ir Plungės;\nc. Utenos, Marijampolės, Šalčininkų ir Telšių.\nd. Marijampolės, Telšių, Ukmergės ir Neringos;",
@@ -316,10 +344,13 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 5
 - Prefix prompt:
+
   ```
   Toliau pateikti daugiavariančiai klausimai (su atsakymais).
   ```
+
 - Base prompt template:
+
   ```
   Klausimas: {text}
   Pasirinkimai:
@@ -329,7 +360,9 @@ When evaluating generative models, we use the following setup (see the
   d. {option_d}
   Atsakymas: {label}
   ```
+
 - Instruction-tuned prompt template:
+
   ```
   Klausimas: {text}
   Pasirinkimai:
@@ -344,9 +377,8 @@ When evaluating generative models, we use the following setup (see the
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset lt-history
+euroeval --model <model-id> --dataset lt-history
 ```
-
 
 ## Common-sense Reasoning
 
@@ -387,10 +419,13 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 5
 - Prefix prompt:
+
   ```
   Toliau pateikti daugiavariančiai klausimai (su atsakymais).
   ```
+
 - Base prompt template:
+
   ```
   Klausimas: {text}
   Pasirinkimai:
@@ -398,7 +433,9 @@ When evaluating generative models, we use the following setup (see the
   b. {option_b}
   Atsakymas: {label}
   ```
+
 - Instruction-tuned prompt template:
+
   ```
   Klausimas: {text}
   Pasirinkimai:
@@ -411,5 +448,5 @@ When evaluating generative models, we use the following setup (see the
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset winogrande-lt
+euroeval --model <model-id> --dataset winogrande-lt
 ```
