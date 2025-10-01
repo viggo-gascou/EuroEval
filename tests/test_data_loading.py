@@ -91,8 +91,8 @@ def test_examples_in_official_datasets_are_not_too_long(
     datasets_to_check = [
         dataset_name.strip() for dataset_name in os.environ["CHECK_DATASET"].split(",")
     ]
-    if dataset_config.name in datasets_to_check or any(
-        language.code in datasets_to_check for language in dataset_config.languages
+    if dataset_config.name not in datasets_to_check and all(
+        language.code not in datasets_to_check for language in dataset_config.languages
     ):
         pytest.skip(
             reason=f"Skipping test for dataset {dataset_config.name!r}, as it was not "
