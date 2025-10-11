@@ -245,6 +245,7 @@ class VLLMModel(HuggingFaceEncoderModel):
                 return partial(
                     sequence_classification.extract_labels_from_generation,
                     dataset_config=self.dataset_config,
+                    model_config=self.model_config,
                     first_label_token_mapping=self.buffer["first_label_token_mapping"],
                 )
             case TaskGroup.TEXT_TO_TEXT:
@@ -565,30 +566,25 @@ class VLLMModel(HuggingFaceEncoderModel):
             self.end_of_reasoning_token is not None
             and self.generative_type == GenerativeType.REASONING
         ):
+            num_samples_without_eor_token = 0
             for idx in range(len(completions)):
                 if self.end_of_reasoning_token in completions[idx]:
                     completions[idx] = completions[idx].split(
                         self.end_of_reasoning_token
                     )[-1]
-                elif self.benchmark_config.verbose:
-                    logger.warning(
-                        f"The model {self.model_config.model_id!r} is a reasoning "
-                        "model, but the generated output does not contain the end of "
-                        f"reasoning token ({self.end_of_reasoning_token!r}). Using "
-                        "an empty string as the prediction instead."
-                    )
-                    completions[idx] = ""
                 else:
-                    log_once(
-                        f"The model {self.model_config.model_id!r} is a reasoning "
-                        "model, but the generated output does not contain the end of "
-                        f"reasoning token ({self.end_of_reasoning_token!r}). Using "
-                        "an empty string as the prediction instead. Only showing "
-                        "this warning once - see all occurrences if you run with the "
-                        "`verbose` flag.",
-                        level=logging.WARNING,
-                    )
+                    num_samples_without_eor_token += 1
                     completions[idx] = ""
+            if num_samples_without_eor_token > 0:
+                log_once(
+                    f"The model {self.model_config.model_id!r} is a reasoning "
+                    "model, but the generated output did not contain the end of "
+                    f"reasoning token ({self.end_of_reasoning_token!r}) in "
+                    f"{num_samples_without_eor_token:,}/{len(completions):,} of "
+                    "the samples. Using an empty string for all these samples "
+                    "instead.",
+                    level=logging.WARNING,
+                )
         stop_token_pattern = re.compile(
             "|".join(re.escape(stop_token) for stop_token in stop_tokens)
         )
