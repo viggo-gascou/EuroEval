@@ -554,7 +554,7 @@ class VLLMModel(HuggingFaceEncoderModel):
 
         # Parse the raw model outputs
         completion_ids: list[list[int]] = [
-            output.outputs[0].token_ids for output in raw_outputs
+            list(output.outputs[0].token_ids) for output in raw_outputs
         ]
         completions = self._tokeniser.batch_decode(
             sequences=[
@@ -609,10 +609,10 @@ class VLLMModel(HuggingFaceEncoderModel):
             scores: list[list[list[tuple[str, float]]]] = [
                 [
                     [
-                        (obj.decoded_token, obj.logprob)
+                        (obj.decoded_token or "", obj.logprob)
                         for obj in token_logprobs_dict.values()
                     ]
-                    for token_logprobs_dict in raw_output.outputs[0].logprobs
+                    for token_logprobs_dict in raw_output.outputs[0].logprobs or list()
                 ]
                 for raw_output in raw_outputs
             ]
