@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   affected by this change.
 - In the same vein as the above, we now use 32 samples for validation for the Lithuanian
   LT-history dataset and the Swedish Skolprov dataset.
+- Changed logging styling.
 
 ### Fixed
 
