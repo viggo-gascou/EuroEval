@@ -296,7 +296,6 @@ class Benchmarker:
         )
         del dataset
 
-        log_once(f"Loading model {model_config.model_id}", level=logging.INFO)
         model = load_model(
             model_config=model_config,
             dataset_config=dataset_config,
@@ -727,7 +726,6 @@ class Benchmarker:
                         num_total_benchmarks=total_benchmarks,
                     )
                     if loaded_model is None:
-                        log("Loading model...", level=logging.DEBUG)
                         try:
                             loaded_model = load_model(
                                 model_config=model_config,
@@ -900,7 +898,6 @@ class Benchmarker:
                 rng = enforce_reproducibility()
 
                 if model is None or model_config.model_type != ModelType.GENERATIVE:
-                    log("Loading model...")
                     model = load_model(
                         model_config=model_config,
                         dataset_config=dataset_config,

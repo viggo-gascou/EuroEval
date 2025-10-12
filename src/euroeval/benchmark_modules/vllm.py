@@ -49,7 +49,7 @@ from ..generation_utils import (
     raise_if_wrong_params,
 )
 from ..languages import get_all_languages
-from ..logging_utils import get_pbar, log, log_once
+from ..logging_utils import get_pbar, log, log_once, no_terminal_output
 from ..task_group_utils import (
     question_answering,
     sequence_classification,
@@ -129,9 +129,10 @@ class VLLMModel(HuggingFaceEncoderModel):
             model_config=model_config, allowed_params=self.allowed_params
         )
 
-        model, tokeniser = load_model_and_tokeniser(
-            model_config=model_config, benchmark_config=benchmark_config
-        )
+        with no_terminal_output(disable=benchmark_config.verbose):
+            model, tokeniser = load_model_and_tokeniser(
+                model_config=model_config, benchmark_config=benchmark_config
+            )
         self._model: "LLM" = model
         self._tokeniser: "PreTrainedTokenizer" = tokeniser
 
@@ -788,14 +789,16 @@ def load_model_and_tokeniser(
             log(
                 "You are loading a model with dtype FP32, which we will convert to "
                 "BF16 as FP32 is not supported by vLLM and BF16 is supported by your "
-                "GPU."
+                "GPU.",
+                level=logging.WARNING,
             )
             dtype = torch.bfloat16
         else:
             log(
                 "You are loading a model with dtype FP32, which we will convert to "
                 "FP16 as FP32 is not supported by vLLM and BF16 is not supported by "
-                "your GPU."
+                "your GPU.",
+                level=logging.WARNING,
             )
             dtype = torch.float16
 
