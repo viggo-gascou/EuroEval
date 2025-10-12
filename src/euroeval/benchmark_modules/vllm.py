@@ -14,7 +14,6 @@ from time import sleep
 import torch
 from huggingface_hub import snapshot_download
 from pydantic import conlist, create_model
-from tqdm.auto import tqdm
 from transformers.models.auto.configuration_auto import AutoConfig
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 from transformers.tokenization_mistral_common import MistralCommonTokenizer
@@ -50,6 +49,7 @@ from ..generation_utils import (
     raise_if_wrong_params,
 )
 from ..languages import get_all_languages
+from ..logging_utils import get_pbar, log, log_once
 from ..task_group_utils import (
     question_answering,
     sequence_classification,
@@ -73,7 +73,6 @@ from ..utils import (
     get_hf_token,
     get_min_cuda_compute_capability,
     internet_connection_available,
-    log_once,
     resolve_model_path,
     split_model_id,
 )
@@ -94,8 +93,6 @@ if t.TYPE_CHECKING:
     from transformers.trainer import Trainer
 
     from ..data_models import BenchmarkConfig, DatasetConfig, Task
-
-logger = logging.getLogger("euroeval")
 
 
 class VLLMModel(HuggingFaceEncoderModel):
@@ -396,9 +393,10 @@ class VLLMModel(HuggingFaceEncoderModel):
             or (self.dataset_config.task.uses_logprobs and self.dataset_config.labels)
         ) and self.generative_type == GenerativeType.REASONING:
             structured_outputs = None
-            logger.debug(
+            log(
                 "The dataset uses structured output, but we are not using it as the "
-                "model is a reasoning model."
+                "model is a reasoning model.",
+                level=logging.DEBUG,
             )
         elif self.dataset_config.task.uses_structured_output:
             ner_tag_names = list(self.dataset_config.prompt_label_mapping.values())
@@ -455,7 +453,7 @@ class VLLMModel(HuggingFaceEncoderModel):
         # so that the vLLM model can generate from them
         prompts: list[str] = inputs["text"]
         if any(len(prompt) == 0 for prompt in prompts):
-            logger.debug("Found empty prompts, replacing with BOS token.")
+            log("Found empty prompts, replacing with BOS token.", level=logging.DEBUG)
             prompts = [
                 prompt if len(prompt) > 0 else str(self._tokeniser.bos_token)
                 for prompt in prompts
@@ -483,13 +481,14 @@ class VLLMModel(HuggingFaceEncoderModel):
                 raw_outputs = self._model.generate(
                     prompts=prompts,
                     sampling_params=sampling_params,
-                    use_tqdm=False if input_is_a_test else get_pbar_without_leave,
+                    use_tqdm=False if input_is_a_test else get_pbar,
                     lora_request=self.buffer.get("lora_request"),
                 )
                 break
             except TypeError as e:
-                logger.debug(
-                    f"Encountered error during vLLM generation: {str(e)}. Retrying..."
+                log(
+                    f"Encountered error during vLLM generation: {str(e)}. Retrying...",
+                    level=logging.DEBUG,
                 )
                 sleep(1)
             except ValueError as e:
@@ -501,10 +500,8 @@ class VLLMModel(HuggingFaceEncoderModel):
                     re.search(pattern, str(e), flags=re.IGNORECASE) is not None
                     for pattern in truncate_error_messages
                 ):
-                    logger.info(
-                        "Prompts are too long, so truncating them and trying again..."
-                    )
-                    logger.debug(f"The error message was: {str(e)}")
+                    log("Prompts are too long, so truncating them and trying again...")
+                    log(f"The error message was: {str(e)}", level=logging.DEBUG)
 
                     # If we have already tried truncating the prompts a few times, then
                     # we truncate a bit more aggressively
@@ -547,10 +544,11 @@ class VLLMModel(HuggingFaceEncoderModel):
                     f"{num_extra_outputs!r} extra outputs."
                 )
             else:
-                logger.debug(
+                log(
                     f"Filtered out {num_extra_outputs:,} extra outputs from the model, "
                     "which occured as we interupted the generation when we truncated "
-                    "the prompts."
+                    "the prompts.",
+                    level=logging.DEBUG,
                 )
 
         # Parse the raw model outputs
@@ -787,14 +785,14 @@ def load_model_and_tokeniser(
     # Choose bf16 over fp16 if the model is a fp32 model and the GPU supports it
     if hf_model_config.dtype == torch.float32:
         if torch.cuda.is_bf16_supported():
-            logger.info(
+            log(
                 "You are loading a model with dtype FP32, which we will convert to "
                 "BF16 as FP32 is not supported by vLLM and BF16 is supported by your "
                 "GPU."
             )
             dtype = torch.bfloat16
         else:
-            logger.info(
+            log(
                 "You are loading a model with dtype FP32, which we will convert to "
                 "FP16 as FP32 is not supported by vLLM and BF16 is not supported by "
                 "your GPU."
@@ -804,12 +802,13 @@ def load_model_and_tokeniser(
     # If the model is a quantized model, we might need to change the dtype
     if quantization == "mxfp4" and hf_model_config.dtype is None:
         dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
-        logger.debug(
+        log(
             "You are loading a quantized model where `dtype` has not been set. "
-            f"Setting dtype to {dtype!r}."
+            f"Setting dtype to {dtype!r}.",
+            level=logging.DEBUG,
         )
     elif quantization is not None and hf_model_config.dtype != torch.float16:
-        logger.info(
+        log(
             "You are loading a quantized model with dtype "
             f"{hf_model_config.dtype}, which vLLM does not support. Setting "
             "dtype to float16 instead."
@@ -823,7 +822,7 @@ def load_model_and_tokeniser(
 
         if min_cuda_compute_capability is not None:
             if min_cuda_compute_capability < required_capability:
-                logger.info(
+                log(
                     f"You are loading a model with dtype {hf_model_config.dtype}, "
                     "which vLLM only supports for CUDA devices with CUDA compute "
                     f"capability >={required_capability}. You are using one or more "
@@ -995,13 +994,14 @@ def load_tokeniser(
                     f"Could not load tokeniser for model {model_id!r}. The error was "
                     f"{str(e)}."
                 ) from e
-            logger.debug(
+            log(
                 f"Could not load tokeniser for {model_id!r}. Falling back to "
-                f"{adapter_base_model_id!r}."
+                f"{adapter_base_model_id!r}.",
+                level=logging.DEBUG,
             )
             model_id = adapter_base_model_id
         except (TimeoutError, RequestError):
-            logger.info(f"Couldn't load tokeniser for {model_id!r}. Retrying.")
+            log(f"Couldn't load tokeniser for {model_id!r}. Retrying.")
             sleep(5)
             continue
         except (KeyError, ValueError) as e:
@@ -1200,30 +1200,15 @@ def get_custom_stop_tokens(
         if stop_token in prompt or stop_token in completion
     ]
     if stop_tokens:
-        logger.debug(
+        log(
             f"Found the following custom stop tokens for model {model_id!r}: "
-            f"{stop_tokens}."
+            f"{stop_tokens}.",
+            level=logging.DEBUG,
         )
     else:
-        logger.debug(f"Found no custom stop tokens for model {model_id!r}.")
+        log(f"Found no custom stop tokens for model {model_id!r}.", level=logging.DEBUG)
 
     return stop_tokens
-
-
-def get_pbar_without_leave(*tqdm_args, **tqdm_kwargs) -> tqdm:
-    """Get a progress bar for vLLM which disappears after completion.
-
-    Args:
-        *tqdm_args:
-            Positional arguments to pass to tqdm.
-        **tqdm_kwargs:
-            Additional keyword arguments to pass to tqdm.
-
-    Returns:
-        A tqdm progress bar.
-    """
-    tqdm_kwargs.pop("leave", None)  # Remove the 'leave' key if it exists
-    return tqdm(*tqdm_args, leave=False, **tqdm_kwargs)
 
 
 def get_vllm_tokenisation_params(

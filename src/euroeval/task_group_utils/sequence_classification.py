@@ -28,9 +28,6 @@ if t.TYPE_CHECKING:
     from ..types import Labels, Predictions
 
 
-logger = logging.getLogger("euroeval")
-
-
 def compute_metrics(
     model_outputs_and_labels: "tuple[Predictions, Labels] | EvalPrediction",
     dataset_config: "DatasetConfig",
@@ -222,13 +219,15 @@ def extract_labels_from_generation(
                 "but since invalid model outputs are allowed for this task, we used "
                 "the closest candidate labels as the output labels."
             )
+            level = logging.DEBUG
             if num_predictions_being_very_off / len(model_output.sequences) > 0.5:
                 log_msg += (
                     " Since this happened for most of the model's predictions, please "
                     "report this issue to the EuroEval team at "
                     "github.com/EuroEval/EuroEval/issues."
                 )
-            log_once(log_msg, level=logging.WARNING)
+                level = logging.WARNING
+            log_once(log_msg, level=level)
         else:
             raise InvalidBenchmark(
                 "No candidate labels found for the predicted label in "
@@ -368,7 +367,7 @@ def get_closest_logprobs_labels(
                     "be determined. This means that using logprobs to extract the "
                     "labels is not reliable, and we will instead fall back to "
                     "extracting the labels using word edit distance.",
-                    level=logging.INFO,
+                    level=logging.DEBUG,
                 )
             else:
                 log_once(
@@ -376,7 +375,7 @@ def get_closest_logprobs_labels(
                     "means that using logprobs to extract the labels is not reliable, "
                     "and we will instead fall back to extracting the labels using "
                     "word edit distance.",
-                    level=logging.INFO,
+                    level=logging.DEBUG,
                 )
             return None
 

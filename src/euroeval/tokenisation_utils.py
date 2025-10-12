@@ -5,20 +5,17 @@ import re
 import typing as t
 
 import torch
-from transformers import MistralCommonTokenizer
+from transformers.tokenization_mistral_common import MistralCommonTokenizer
 
 from .enums import GenerativeType
 from .exceptions import InvalidModel
-from .utils import log_once
+from .logging_utils import log, log_once
 
 if t.TYPE_CHECKING:
     from transformers.tokenization_utils import PreTrainedTokenizer
     from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
     from .data_models import DatasetConfig, ModelConfig
-
-
-logger = logging.getLogger("euroeval")
 
 
 def get_special_token_metadata(tokeniser: "PreTrainedTokenizerBase") -> dict:
@@ -358,12 +355,16 @@ def get_end_of_chat_token_ids(
             x_token_index = idx
             break
     else:
-        logger.debug("Could not locate the end-of-chat token for the model.")
+        log(
+            "Could not locate the end-of-chat token for the model.", level=logging.DEBUG
+        )
         return None
 
     end_of_chat_tokens = token_ids[x_token_index + 1 :]
     if len(end_of_chat_tokens) == 0:
-        logger.debug("Could not locate the end-of-chat token for the model.")
+        log(
+            "Could not locate the end-of-chat token for the model.", level=logging.DEBUG
+        )
         return None
 
     log_once(
