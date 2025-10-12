@@ -1140,7 +1140,7 @@ def initial_logging(
         eval_type = "Benchmarking"
 
     log(
-        f"{eval_type} {model_id} on the {split_type} split of "
+        f"\n{eval_type} {model_id} on the {split_type} split of "
         f"{dataset_config.pretty_name} ({num_finished_benchmarks + 1}/"
         f"{num_total_benchmarks} benchmarks)..."
     )

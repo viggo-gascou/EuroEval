@@ -61,7 +61,7 @@ def log_scores(
             else f"- {metric.pretty_name}: {test_score_str}"
         )
         all_log_strs.append(log_str)
-    log("\n".join(all_log_strs) + "\n")
+    log("\n".join(all_log_strs))
 
     return dict(raw=scores, total=total_dict)
 
