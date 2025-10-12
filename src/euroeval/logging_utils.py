@@ -113,7 +113,7 @@ def block_terminal_output() -> None:
     os.environ["TORCH_LOGS"] = "-all"
 
     # Disable huggingface_hub logging
-    logging.getLogger("huggingface_hub").setLevel(logging.CRITICAL)
+    logging.getLogger("huggingface_hub").setLevel(logging.NOTSET)
 
     # Disable LiteLLM logging
     logging.getLogger("LiteLLM").setLevel(logging.CRITICAL)
