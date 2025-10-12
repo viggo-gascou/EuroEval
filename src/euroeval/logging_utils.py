@@ -10,6 +10,9 @@ from functools import cache
 import litellm
 from datasets.utils import disable_progress_bars as disable_datasets_progress_bars
 from evaluate import disable_progress_bar as disable_evaluate_progress_bar
+from huggingface_hub.utils.tqdm import (
+    disable_progress_bars as disable_hf_hub_progress_bars,
+)
 from termcolor import colored
 from tqdm.auto import tqdm
 from transformers import logging as tf_logging
@@ -114,6 +117,7 @@ def block_terminal_output() -> None:
 
     # Disable huggingface_hub logging
     logging.getLogger("huggingface_hub").setLevel(logging.CRITICAL)
+    disable_hf_hub_progress_bars()
 
     # Disable LiteLLM logging
     logging.getLogger("LiteLLM").setLevel(logging.CRITICAL)

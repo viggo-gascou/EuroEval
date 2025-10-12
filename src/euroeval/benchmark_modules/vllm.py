@@ -827,7 +827,8 @@ def load_model_and_tokeniser(
                     "which vLLM only supports for CUDA devices with CUDA compute "
                     f"capability >={required_capability}. You are using one or more "
                     f"devices with compute capability {min_cuda_compute_capability}. "
-                    "Setting dtype to float16 instead."
+                    "Setting dtype to float16 instead.",
+                    level=logging.WARNING,
                 )
                 dtype = torch.float16
 
@@ -1001,7 +1002,10 @@ def load_tokeniser(
             )
             model_id = adapter_base_model_id
         except (TimeoutError, RequestError):
-            log(f"Couldn't load tokeniser for {model_id!r}. Retrying.")
+            log(
+                f"Couldn't load tokeniser for {model_id!r}. Retrying.",
+                level=logging.WARNING,
+            )
             sleep(5)
             continue
         except (KeyError, ValueError) as e:

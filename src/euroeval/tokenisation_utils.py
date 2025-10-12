@@ -179,7 +179,7 @@ def get_bos_token(
             "The model does not have a beginning-of-sequence token. Please ensure that "
             "this has been set in the tokeniser's configuration. Using no BOS token."
             " This may lead to unexpected behavior in the model.",
-            level=logging.INFO,
+            level=logging.WARNING,
         )
         return None, None
 
@@ -220,14 +220,14 @@ def get_eos_token(
             "The model does not have an end-of-sequence token. Please ensure that this "
             "has been set in the tokeniser's configuration. Using no EOS token. This "
             "may lead to unexpected behavior in the model.",
-            level=logging.INFO,
+            level=logging.WARNING,
         )
         return None, None
 
     log_once(
         f"End-of-sequence token was not set, but detected it as {eos_token!r} with "
         f"ID {eos_token_id}.",
-        level=logging.DEBUG,
+        level=logging.WARNING,
     )
     return eos_token, eos_token_id
 
@@ -303,7 +303,7 @@ def get_pad_token(
                 "Could not identify a padding token for the model. Please ensure that "
                 "this has been set in the tokeniser's configuration. Using no padding "
                 "token. This may lead to unexpected behavior in the model.",
-                level=logging.INFO,
+                level=logging.WARNING,
             )
             return None, None
 
@@ -507,7 +507,8 @@ def get_first_label_token_mapping(
             log_once(
                 "We will not use logprobs with the model since the first tokens of the "
                 "labels are not distinct. The first tokens for the labels "
-                f"{local_labels} are {first_tokens}"
+                f"{local_labels} are {first_tokens}",
+                level=logging.DEBUG,
             )
         return False
 

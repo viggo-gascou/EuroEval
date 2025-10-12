@@ -1298,7 +1298,8 @@ class LiteLLMModel(BenchmarkModule):
                 "that the revision is actually the parameter and set the revision "
                 "to 'main'. In the future, use the new '#' syntax to specify the "
                 f"parameter (in this case, this would be {proper_model_id!r}), as this "
-                "will be an error in future versions of EuroEval."
+                "will be an error in future versions of EuroEval.",
+                level=logging.WARNING,
             )
             model_id_components.param = model_id_components.revision
             model_id_components.revision = "main"
@@ -1594,7 +1595,8 @@ def try_download_ollama_model(model_id: str) -> bool:
                         f"The model {model_id!r} cannot be found on Ollama, but the "
                         f"model {model_id_with_prefix} *was* found, so we would "
                         "recommend you cancelling this run and trying the evaluation "
-                        "with that model ID instead."
+                        "with that model ID instead.",
+                        level=logging.WARNING,
                     )
                     return False
                 except ollama.ResponseError as inner_e:

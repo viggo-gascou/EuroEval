@@ -617,7 +617,7 @@ class Benchmarker:
                 )
                 model_configs.append(model_config)
             except InvalidModel as e:
-                log(e.message)
+                log(e.message, level=logging.ERROR)
 
         # Create a dictionary that takes each model config to the dataset configs that
         # we need to benchmark the model on. Here we remove the datasets that the model
@@ -737,7 +737,7 @@ class Benchmarker:
                         except InvalidModel as e:
                             if benchmark_config.raise_errors:
                                 raise e
-                            log(e.message)
+                            log(e.message, level=logging.ERROR)
 
                             # Add the remaining number of benchmarks for the model to
                             # our benchmark counter, since we're skipping the rest of
@@ -762,7 +762,8 @@ class Benchmarker:
                             f"{model_config.model_id!r}on dataset "
                             f"{dataset_config.name!r} because the model has generative "
                             f"type {loaded_model.generative_type} and the dataset "
-                            f"only allows {dataset_config.allowed_generative_types}."
+                            f"only allows {dataset_config.allowed_generative_types}.",
+                            level=logging.DEBUG,
                         )
                         num_finished_benchmarks += 1
                         continue
@@ -784,12 +785,12 @@ class Benchmarker:
                     raise benchmark_output_or_err
 
                 elif isinstance(benchmark_output_or_err, InvalidBenchmark):
-                    log(benchmark_output_or_err.message)
+                    log(benchmark_output_or_err.message, level=logging.WARNING)
                     num_finished_benchmarks += 1
                     continue
 
                 elif isinstance(benchmark_output_or_err, InvalidModel):
-                    log(benchmark_output_or_err.message)
+                    log(benchmark_output_or_err.message, level=logging.WARNING)
 
                     # Add the remaining number of benchmarks for the model to our
                     # benchmark counter, since we're skipping the rest of them
@@ -1148,12 +1149,14 @@ def initial_logging(
         log(
             f"Note that the {dataset_config.name!r} dataset is unofficial, "
             "meaning that the resulting evaluation will not be included in the "
-            "official leaderboard."
+            "official leaderboard.",
+            level=logging.WARNING,
         )
 
     if benchmark_config.debug:
         log(
             "Running in debug mode. This will output additional information, as "
             "well as store the model outputs in the current directory after each "
-            "batch. For this reason, evaluation will be slower."
+            "batch. For this reason, evaluation will be slower.",
+            level=logging.WARNING,
         )

@@ -653,7 +653,10 @@ def load_model_and_tokeniser(
             else:
                 raise InvalidModel(str(e)) from e
         except (TimeoutError, RequestError):
-            log(f"Couldn't load the model {model_id!r}. Retrying.")
+            log(
+                f"Couldn't load the model {model_id!r}. Retrying.",
+                level=logging.WARNING,
+            )
             sleep(5)
             continue
         except (OSError, ValueError) as e:
@@ -941,7 +944,10 @@ def load_tokeniser(
                 f"Could not load tokeniser for model {model_id!r}."
             ) from e
         except (TimeoutError, RequestError):
-            log(f"Couldn't load tokeniser for {model_id!r}. Retrying.")
+            log(
+                f"Couldn't load tokeniser for {model_id!r}. Retrying.",
+                level=logging.WARNING,
+            )
             sleep(5)
             continue
     else:
@@ -1055,7 +1061,10 @@ def load_hf_model_config(
                 f"{e!r}. Skipping"
             ) from e
         except (TimeoutError, RequestError):
-            log(f"Couldn't load model config for {model_id!r}. Retrying.")
+            log(
+                f"Couldn't load model config for {model_id!r}. Retrying.",
+                level=logging.WARNING,
+            )
             sleep(5)
             continue
         except ValueError as e:
