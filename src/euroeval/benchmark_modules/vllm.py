@@ -582,7 +582,11 @@ class VLLMModel(HuggingFaceEncoderModel):
                     f"{num_samples_without_eor_token:,}/{len(completions):,} of "
                     "the samples. Using an empty string for all these samples "
                     "instead.",
-                    level=logging.WARNING,
+                    level=(
+                        logging.WARNING
+                        if num_samples_without_eor_token / len(completions) > 0.5
+                        else logging.DEBUG
+                    ),
                 )
         stop_token_pattern = re.compile(
             "|".join(re.escape(stop_token) for stop_token in stop_tokens)
