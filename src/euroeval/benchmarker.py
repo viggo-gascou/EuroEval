@@ -1,6 +1,7 @@
 """Class that benchmarks language models."""
 
 import contextlib
+import datetime as dt
 import json
 import logging
 import os
@@ -1135,6 +1136,7 @@ def initial_logging(
         eval_type = "Benchmarking"
 
     log_once(
+        f"\n[{dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
         f"\n{eval_type} {model_id} on the {split_type} split of "
         f"{dataset_config.pretty_name} ({num_finished_benchmarks + 1}/"
         f"{num_total_benchmarks} benchmarks)..."
