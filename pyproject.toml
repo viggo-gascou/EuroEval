@@ -102,6 +102,7 @@ dev = [
     "debugpy>=1.8.13",
     "pytest-socket>=0.7.0",
     "pytest-dependency>=0.6.0",
+    "pytest-rerunfailures>=16.1",
 ]
 
 [tool.ruff]

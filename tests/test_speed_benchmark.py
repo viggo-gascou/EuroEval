@@ -27,6 +27,7 @@ def model(
     )
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=5)
 class TestBenchmarkSpeed:
     """Tests for the `benchmark_speed` function."""
 

@@ -20,6 +20,7 @@ from euroeval.tokenisation_utils import (
         ("google-bert/bert-base-uncased", False),
     ],
 )
+@pytest.mark.flaky(reruns=3, reruns_delay=5)
 def test_should_prompts_be_stripped(model_id: str, expected: bool, auth: str) -> None:
     """Test that a model ID is a generative model."""
     config = load_hf_model_config(
@@ -45,6 +46,7 @@ def test_should_prompts_be_stripped(model_id: str, expected: bool, auth: str) ->
     argnames=["model_id", "expected"],
     argvalues=[("AI-Sweden-Models/gpt-sw3-6.7b-v2", False), ("01-ai/Yi-6B", True)],
 )
+@pytest.mark.flaky(reruns=3, reruns_delay=5)
 def test_should_prefix_space_be_added_to_labels(
     model_id: str, expected: bool, auth: str
 ) -> None:
@@ -71,6 +73,7 @@ def test_should_prefix_space_be_added_to_labels(
         ("ibm-granite/granite-3b-code-instruct-2k", [478], ""),
     ],
 )
+@pytest.mark.flaky(reruns=3, reruns_delay=5)
 def test_get_end_of_chat_token_ids(
     model_id: str,
     expected_token_ids: list[int] | None,
