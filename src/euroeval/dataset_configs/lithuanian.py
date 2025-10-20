@@ -41,7 +41,7 @@ MULTI_WIKI_QA_LT_CONFIG = DatasetConfig(
     languages=[LT],
 )
 
-LSM_CONFIG = DatasetConfig(
+LRYTAS_CONFIG = DatasetConfig(
     name="lrytas",
     pretty_name="the truncated version of the Lithuanian summarisation dataset Lrytas",
     huggingface_id="EuroEval/lrytas-mini",
