@@ -9,6 +9,7 @@ import os
 import random
 import re
 import socket
+import sys
 import typing as t
 from pathlib import Path
 
@@ -195,7 +196,7 @@ def get_min_cuda_compute_capability() -> float | None:
     return float(f"{major}.{minor}")
 
 
-@cache_arguments()
+@cache_arguments(disable_condition=lambda: hasattr(sys, "_called_from_test"))
 def internet_connection_available() -> bool:
     """Checks if internet connection is available by pinging google.com.
 
