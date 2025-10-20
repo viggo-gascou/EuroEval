@@ -7,13 +7,15 @@ from .constants import T
 
 
 def cache_arguments(
-    *arguments: str,
+    *arguments: str, disable: bool = False
 ) -> t.Callable[[t.Callable[..., T]], t.Callable[..., T]]:
     """Cache specified arguments of a function.
 
     Args:
         arguments:
             The list of argument names to cache. If empty, all arguments are cached.
+        disable:
+            Whether to disable caching.
 
     Returns:
         A decorator that caches the specified arguments of a function.
@@ -29,6 +31,9 @@ def cache_arguments(
         Returns:
             The decorated function.
         """
+        if disable:
+            return func
+
         cache: dict[tuple, T] = dict()
 
         @wraps(func)
