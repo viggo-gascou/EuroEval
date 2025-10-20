@@ -1,5 +1,6 @@
 """Caching utility functions."""
 
+import sys
 import typing as t
 from functools import wraps
 
@@ -7,15 +8,13 @@ from .constants import T
 
 
 def cache_arguments(
-    *arguments: str, disable: bool = False
+    *arguments: str,
 ) -> t.Callable[[t.Callable[..., T]], t.Callable[..., T]]:
     """Cache specified arguments of a function.
 
     Args:
         arguments:
             The list of argument names to cache. If empty, all arguments are cached.
-        disable:
-            Whether to disable caching.
 
     Returns:
         A decorator that caches the specified arguments of a function.
@@ -31,7 +30,8 @@ def cache_arguments(
         Returns:
             The decorated function.
         """
-        if disable:
+        # Never cache when testing
+        if hasattr(sys, "_called_from_test"):
             return func
 
         cache: dict[tuple, T] = dict()

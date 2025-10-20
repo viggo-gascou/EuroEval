@@ -9,7 +9,6 @@ import os
 import random
 import re
 import socket
-import sys
 import typing as t
 from pathlib import Path
 
@@ -196,26 +195,27 @@ def get_min_cuda_compute_capability() -> float | None:
     return float(f"{major}.{minor}")
 
 
-@cache_arguments(disable=hasattr(sys, "_called_from_test"))
+@cache_arguments()
 def internet_connection_available() -> bool:
     """Checks if internet connection is available by pinging google.com.
 
     Returns:
         Whether or not internet connection is available.
     """
+    internet_available: bool = False
+
     try:
         s = socket.create_connection(("1.1.1.1", 80))
         s.close()
-        return True
-
-    # We want to only catch exceptions related to socket connections, but as we cannot
-    # import these here as they're developer dependencies, we check the exception name
-    # instead. If the exception is not related to socket connections, we reraise it.
+        internet_available = True
+    except OSError:
+        pass
     except Exception as e:
         pytest_socket_errors = ["SocketConnectBlockedError", "SocketBlockedError"]
-        if type(e).__name__ in pytest_socket_errors or isinstance(e, OSError):
-            return False
-        raise e
+        if type(e).__name__ not in pytest_socket_errors:
+            raise e
+
+    return internet_available
 
 
 def raise_if_model_output_contains_nan_values(model_output: "Predictions") -> None:
