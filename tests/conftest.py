@@ -29,15 +29,18 @@ def pytest_unconfigure() -> None:
     delattr(sys, "_called_from_test")
 
 
-ACTIVE_LANGUAGES = {
-    language_code: language
-    for language_code, language in get_all_languages().items()
-    if any(
-        language in cfg.languages
-        for cfg in get_all_dataset_configs().values()
-        if cfg != SPEED_CONFIG
-    )
-}
+if os.environ.get("TEST_ALL_LANGUAGES", "0") == "1":
+    ACTIVE_LANGUAGES = {
+        language_code: language
+        for language_code, language in get_all_languages().items()
+        if any(
+            language in cfg.languages
+            for cfg in get_all_dataset_configs().values()
+            if cfg != SPEED_CONFIG
+        )
+    }
+else:
+    ACTIVE_LANGUAGES = dict(da=DA)
 
 
 @pytest.fixture(scope="session")
