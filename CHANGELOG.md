@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for Ukrainian 🇺🇦! This includes the sentiment classification dataset
   Cross-Domain UK Reviews, the linguistic acceptability dataset ScaLA-uk, the named
   entity recognition dataset NER-uk, the reading comprehension dataset MultiWikiQA-uk,
-  the summarisation dataset LR-Sum-uk, and the knowledge dataset Global-MMLU-uk.
+  the summarisation dataset LR-Sum-uk, and the knowledge dataset Global-MMLU-uk. This
+  was contributed by @oliverkinch ✨
 
 ### Fixed
 
