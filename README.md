@@ -218,7 +218,7 @@ define the associated `DatasetConfig` objects for your dataset. Here is an examp
 simple text classification dataset with two classes:
 
 ```python
-from euroeval import DatasetConfig
+from euroeval import DatasetConfig, TEXT_CLASSIFICATION
 from euroeval.languages import ENGLISH
 
 MY_CONFIG = DatasetConfig(
