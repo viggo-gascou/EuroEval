@@ -1,5 +1,6 @@
 """Utility functions related to generative models."""
 
+import collections.abc as c
 import itertools as it
 import json
 import logging
@@ -25,7 +26,7 @@ def extract_few_shot_examples(
     dataset_config: "DatasetConfig",
     benchmark_config: "BenchmarkConfig",
     itr_idx: int,
-) -> list[dict[str, t.Any]]:
+) -> c.Sequence[dict[str, t.Any]]:
     """Extract few-shot examples from a dataset.
 
     This will always extract the examples from the training split.
@@ -78,7 +79,7 @@ def extract_few_shot_examples(
                     lambda example: len(example["text"]) < max_num_tokens
                 )
                 num_short_examples = len(train_with_short_examples)
-                if num_short_examples >= dataset_config.num_few_shot_examples:
+                if num_short_examples >= num_few_shots:
                     break
             else:
                 raise InvalidBenchmark(
@@ -143,7 +144,7 @@ def extract_few_shot_examples(
                     lambda example: len(example["context"]) < max_num_tokens
                 )
                 num_short_examples = len(train_with_short_examples)
-                if num_short_examples >= dataset_config.num_few_shot_examples:
+                if num_short_examples >= num_few_shots:
                     break
             else:
                 raise InvalidBenchmark(
@@ -170,7 +171,7 @@ def extract_few_shot_examples(
 
 def apply_prompt(
     examples: dict[str, t.Any],
-    few_shot_examples: list[dict[str, t.Any]],
+    few_shot_examples: c.Sequence[dict[str, t.Any]],
     model_config: "ModelConfig",
     dataset_config: "DatasetConfig",
     generative_type: GenerativeType | None,
@@ -431,7 +432,7 @@ def apply_prompt(
 
 
 def raise_if_wrong_params(
-    model_config: "ModelConfig", allowed_params: dict[re.Pattern, list[str]]
+    model_config: "ModelConfig", allowed_params: dict[re.Pattern, c.Sequence[str]]
 ) -> None:
     """Raise an error if the model configuration has invalid parameters.
 

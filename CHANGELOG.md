@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Added better support for evaluating on custom datasets, by allowing `DatasetConfig`
+  objects directly in the `Benchmarker.benchmark` method. We also support custom
+  datasets with the CLI, by simply defining the desired `DatasetConfig`s in a
+  `custom_datasets.py` file (path can be changed with the `--custom-datasets-file`
+  argument. In the `DatasetConfig`s we also support loading datasets from CSVs directly,
+  with the new `source` argument. This argument can both be the Hugging Face Hub ID of
+  the dataset or a dictionary with 'train', 'val' and 'test', and values the paths to
+  the CSV files.
 - Added support for Serbian 🇷🇸! This includes the sentiment classification dataset
   MMS-sr, the linguistic acceptability dataset ScaLA-sr, the named entity recognition
   dataset UNER-sr, the reading comprehension dataset MultiWikiQA-sr, the summarisation
@@ -17,7 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for Bulgarian 🇧🇬! This includes the sentiment classification dataset
   Cinexio, the linguistic acceptability dataset ScaLA-bg, the named entity recognition
   dataset BG-NER-BSNLP, the reading comprehension dataset MultiWikiQA-bg, the knowledge
-  dataset Exams-bg, and the common-sense reasoning dataset Winogrande-bg.
+  dataset Exams-bg, and the common-sense reasoning dataset Winogrande-bg. This was
+  contributed by @oliverkinch ✨
 - Added support for Greek 🇬🇷! This includes the binary sentiment classification dataset
   Greek-SA, the linguistic acceptability dataset ScaLA-el, the named entity recognition
   dataset elNER, the reading comprehension dataset MultiWikiQA-el, the summarisation

@@ -4,30 +4,30 @@ import typing as t
 
 from ..data_models import PromptConfig
 from ..languages import (
-    BG,
-    CS,
-    DA,
-    DE,
-    EL,
-    EN,
-    ES,
-    ET,
-    FI,
-    FR,
-    IS,
-    IT,
-    LT,
-    LV,
-    NB,
-    NL,
-    NN,
-    NO,
-    PL,
-    PT,
-    SK,
-    SR,
-    SV,
-    UK,
+    BULGARIAN,
+    CZECH,
+    DANISH,
+    DUTCH,
+    ENGLISH,
+    ESTONIAN,
+    FINNISH,
+    FRENCH,
+    GERMAN,
+    GREEK,
+    ICELANDIC,
+    ITALIAN,
+    LATVIAN,
+    LITHUANIAN,
+    NORWEGIAN,
+    NORWEGIAN_BOKMÅL,
+    NORWEGIAN_NYNORSK,
+    POLISH,
+    PORTUGUESE,
+    SERBIAN,
+    SLOVAK,
+    SPANISH,
+    SWEDISH,
+    UKRAINIAN,
 )
 
 if t.TYPE_CHECKING:
@@ -35,14 +35,14 @@ if t.TYPE_CHECKING:
 
 # TODO: Missing Faroese
 MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
-    BG: PromptConfig(
+    BULGARIAN: PromptConfig(
         default_prompt_prefix="Следват въпроси с множествен избор (с отговори).",
         default_prompt_template="Въпрос: {text}\nОтговор: {label}",
         default_instruction_prompt="Въпрос: {text}\n\nОтговорете на горния въпрос "
         "като отговорите с {labels_str}, и нищо друго.",
         default_prompt_label_mapping="auto",
     ),
-    CS: PromptConfig(
+    CZECH: PromptConfig(
         default_prompt_prefix=(
             "Následující jsou otázky s výběrem z více možností (s odpověďmi)."
         ),
@@ -53,14 +53,14 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         ),
         default_prompt_label_mapping="auto",
     ),
-    DA: PromptConfig(
+    DANISH: PromptConfig(
         default_prompt_prefix="Følgende er multiple choice spørgsmål (med svar).",
         default_prompt_template="Spørgsmål: {text}\nSvar: {label}",
         default_instruction_prompt="Spørgsmål: {text}\n\nBesvar ovenstående spørgsmål "
         "ved at svare med {labels_str}, og intet andet.",
         default_prompt_label_mapping="auto",
     ),
-    DE: PromptConfig(
+    GERMAN: PromptConfig(
         default_prompt_prefix="Die folgenden Fragen sind Multiple-Choice-Fragen "
         "(mit Antworten).",
         default_prompt_template="Frage: {text}\nAntwort: {label}",
@@ -68,7 +68,7 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "mit {labels_str}, und nichts anderes.",
         default_prompt_label_mapping="auto",
     ),
-    EL: PromptConfig(
+    GREEK: PromptConfig(
         default_prompt_prefix="Ακολουθούν ερωτήσεις πολλαπλών επιλογών "
         "(με απαντήσεις).",
         default_prompt_template="Ερώτηση: {text}\nΑπάντηση: {label}",
@@ -76,7 +76,7 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "χρησιμοποιώντας {labels_str}, και τίποτα άλλο.",
         default_prompt_label_mapping="auto",
     ),
-    EN: PromptConfig(
+    ENGLISH: PromptConfig(
         default_prompt_prefix="The following are multiple choice questions (with "
         "answers).",
         default_prompt_template="Question: {text}\nAnswer: {label}",
@@ -84,7 +84,7 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "replying with {labels_str}, and nothing else.",
         default_prompt_label_mapping="auto",
     ),
-    ES: PromptConfig(
+    SPANISH: PromptConfig(
         default_prompt_prefix="Las siguientes son preguntas de opción múltiple "
         "(con respuestas).",
         default_prompt_template="Pregunta: {text}\nRespuesta: {label}",
@@ -92,7 +92,7 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "usando solo {labels_str}, y nada más.",
         default_prompt_label_mapping="auto",
     ),
-    ET: PromptConfig(
+    ESTONIAN: PromptConfig(
         default_prompt_prefix="Järgnevad on vastusevariantidega küsimused (koos "
         "vastustega).",
         default_prompt_template="Küsimus: {text}\nVastus: {label}",
@@ -100,7 +100,7 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "ainult {labels_str}, ja mitte millegi muuga.",
         default_prompt_label_mapping="auto",
     ),
-    PT: PromptConfig(
+    PORTUGUESE: PromptConfig(
         default_prompt_prefix="As seguintes são perguntas de escolha múltipla "
         "(com respostas).",
         default_prompt_template="Pergunta: {text}\nResposta: {label}",
@@ -108,14 +108,14 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "acima usando só {labels_str}, e nada mais.",
         default_prompt_label_mapping="auto",
     ),
-    FI: PromptConfig(
+    FINNISH: PromptConfig(
         default_prompt_prefix="Seuraavat ovat monivalintakysymyksiä (vastauksineen).",
         default_prompt_template="Kysymys: {text}\nVastaus: {label}",
         default_instruction_prompt="Kysymys: {text}\n\nVastaa yllä olevaan kysymykseen "
         "käyttämällä {labels_str}, äläkä mitään muuta.",
         default_prompt_label_mapping="auto",
     ),
-    FR: PromptConfig(
+    FRENCH: PromptConfig(
         default_prompt_prefix="Les questions suivantes sont des questions à choix "
         "multiples (avec réponses).",
         default_prompt_template="Question: {text}\nRéponse: {label}",
@@ -123,14 +123,14 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "ci-dessus par {labels_str}, et rien d'autre.",
         default_prompt_label_mapping="auto",
     ),
-    IS: PromptConfig(
+    ICELANDIC: PromptConfig(
         default_prompt_prefix="Eftirfarandi eru fjölvalsspurningar (með svörum).",
         default_prompt_template="Spurningar: {text}\nSvara: {label}",
         default_instruction_prompt="Spurningar: {text}\n\nSvaraðu eftirfarandi "
         "spurningum með {labels_str}, og engu öðru.",
         default_prompt_label_mapping="auto",
     ),
-    IT: PromptConfig(
+    ITALIAN: PromptConfig(
         default_prompt_prefix="Le seguenti sono domande a scelta multipla "
         "(con relative risposte).",
         default_prompt_template="Domanda: {text}\nRisposta: {label}",
@@ -138,7 +138,7 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "precedente con {labels_str}, e nient'altro.",
         default_prompt_label_mapping="auto",
     ),
-    LT: PromptConfig(
+    LITHUANIAN: PromptConfig(
         default_prompt_prefix="Toliau pateikti daugiavariančiai klausimai "
         "(su atsakymais).",
         default_prompt_template="Klausimas: {text}\nAtsakymas: {label}",
@@ -146,7 +146,7 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "pateiktą klausimą atsakydami {labels_str}, ir nieko daugiau.",
         default_prompt_label_mapping="auto",
     ),
-    LV: PromptConfig(
+    LATVIAN: PromptConfig(
         default_prompt_prefix="Tālāk seko jautājumi ar vairākām atbilžu izvēlēm "
         "(ar atbildēm).",
         default_prompt_template="Jautājums: {text}\nAtbilde: {label}",
@@ -154,35 +154,35 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "jautājumu, atbildot ar {labels_str}, un nekas cits.",
         default_prompt_label_mapping="auto",
     ),
-    NB: PromptConfig(
+    NORWEGIAN_BOKMÅL: PromptConfig(
         default_prompt_prefix="Følgende er flervalgsspørsmål (med svar).",
         default_prompt_template="Spørsmål: {text}\nSvar: {label}",
         default_instruction_prompt="Spørsmål: {text}\n\nBesvar følgende spørsmål med "
         "{labels_str}, og ikke noe annet.",
         default_prompt_label_mapping="auto",
     ),
-    NL: PromptConfig(
+    DUTCH: PromptConfig(
         default_prompt_prefix="Hieronder staan meerkeuzevragen (met antwoorden).",
         default_prompt_template="Vraag: {text}\nAntwoord: {label}",
         default_instruction_prompt="Vraag: {text}\n\nBeantwoord de bovenstaande vraag "
         "met {labels_str}, en niets anders.",
         default_prompt_label_mapping="auto",
     ),
-    NN: PromptConfig(
+    NORWEGIAN_NYNORSK: PromptConfig(
         default_prompt_prefix="Følgende er flervalgsspørsmål (med svar).",
         default_prompt_template="Spørsmål: {text}\nSvar: {label}",
         default_instruction_prompt="Spørsmål: {text}\n\nBesvar følgende spørsmål med "
         "{labels_str}, og ikke noe annet.",
         default_prompt_label_mapping="auto",
     ),
-    NO: PromptConfig(
+    NORWEGIAN: PromptConfig(
         default_prompt_prefix="Følgende er flervalgsspørsmål (med svar).",
         default_prompt_template="Spørsmål: {text}\nSvar: {label}",
         default_instruction_prompt="Spørsmål: {text}\n\nBesvar følgende spørsmål med "
         "{labels_str}, og ikke noe annet.",
         default_prompt_label_mapping="auto",
     ),
-    PL: PromptConfig(
+    POLISH: PromptConfig(
         default_prompt_prefix="Poniżej znajdują się pytania wielokrotnego wyboru "
         "(z odpowiedziami).",
         default_prompt_template="Pytanie: {text}\nOdpowiedź: {label}",
@@ -190,7 +190,7 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         "używając {labels_str} i niczego więcej.",
         default_prompt_label_mapping="auto",
     ),
-    SK: PromptConfig(
+    SLOVAK: PromptConfig(
         default_prompt_prefix=(
             "Nasledujú otázky s viacerými možnosťami (s odpoveďami)."
         ),
@@ -201,7 +201,7 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         ),
         default_prompt_label_mapping="auto",
     ),
-    SR: PromptConfig(
+    SERBIAN: PromptConfig(
         default_prompt_prefix=("Slede pitanja višestrukog izbora (sa odgovorima)."),
         default_prompt_template="Pitanje: {text}\nOdgovor: {label}",
         default_instruction_prompt=(
@@ -210,14 +210,14 @@ MULTIPLE_CHOICE_TEMPLATES: dict["Language", PromptConfig] = {
         ),
         default_prompt_label_mapping="auto",
     ),
-    SV: PromptConfig(
+    SWEDISH: PromptConfig(
         default_prompt_prefix="Följande är flervalsfrågor (med svar).",
         default_prompt_template="Fråga: {text}\nSvar: {label}",
         default_instruction_prompt="Fråga: {text}\n\nBesvara följande fråga med "
         "{labels_str}, och inget annat.",
         default_prompt_label_mapping="auto",
     ),
-    UK: PromptConfig(
+    UKRAINIAN: PromptConfig(
         default_prompt_prefix=(
             "Нижче наведено питання з кількома варіантами відповідей (з відповідями)."
         ),

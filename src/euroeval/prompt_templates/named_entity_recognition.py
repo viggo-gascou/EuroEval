@@ -4,31 +4,31 @@ import typing as t
 
 from ..data_models import PromptConfig
 from ..languages import (
-    BG,
-    CS,
-    DA,
-    DE,
-    EL,
-    EN,
-    ES,
-    ET,
-    FI,
-    FO,
-    FR,
-    IS,
-    IT,
-    LT,
-    LV,
-    NB,
-    NL,
-    NN,
-    NO,
-    PL,
-    PT,
-    SK,
-    SR,
-    SV,
-    UK,
+    BULGARIAN,
+    CZECH,
+    DANISH,
+    DUTCH,
+    ENGLISH,
+    ESTONIAN,
+    FAROESE,
+    FINNISH,
+    FRENCH,
+    GERMAN,
+    GREEK,
+    ICELANDIC,
+    ITALIAN,
+    LATVIAN,
+    LITHUANIAN,
+    NORWEGIAN,
+    NORWEGIAN_BOKMÅL,
+    NORWEGIAN_NYNORSK,
+    POLISH,
+    PORTUGUESE,
+    SERBIAN,
+    SLOVAK,
+    SPANISH,
+    SWEDISH,
+    UKRAINIAN,
 )
 
 if t.TYPE_CHECKING:
@@ -36,7 +36,7 @@ if t.TYPE_CHECKING:
 
 
 NER_TEMPLATES: dict["Language", PromptConfig] = {
-    BG: PromptConfig(
+    BULGARIAN: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "лице",
             "i-per": "лице",
@@ -55,7 +55,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Стойностите трябва да бъдат списъци на именуваните обекти от "
         "този тип, точно както се появяват в изречението.",
     ),
-    CS: PromptConfig(
+    CZECH: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "osoba",
             "i-per": "osoba",
@@ -74,7 +74,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "Hodnoty by měly být seznamy pojmenovaných entit tohoto typu, přesně tak, "
         "jak se objevují ve větě.",
     ),
-    DA: PromptConfig(
+    DANISH: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "person",
             "i-per": "person",
@@ -93,7 +93,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Værdierne skal være lister over de navngivne enheder af den "
         "type, præcis som de forekommer i sætningen.",
     ),
-    DE: PromptConfig(
+    GERMAN: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "person",
             "i-per": "person",
@@ -112,7 +112,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "Schlüsseln {labels_str} ausgeben. Die Werte sollten Listen der "
         "benannten Entitäten dieses Typs sein, genau wie sie im Satz erscheinen.",
     ),
-    EL: PromptConfig(
+    GREEK: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "πρόσωπο",
             "i-per": "πρόσωπο",
@@ -131,7 +131,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "κλειδιά {labels_str}. Οι τιμές πρέπει να είναι λίστες των ονομαστικών "
         "οντοτήτων αυτού του τύπου, ακριβώς όπως εμφανίζονται στην πρόταση.",
     ),
-    EN: PromptConfig(
+    ENGLISH: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "person",
             "i-per": "person",
@@ -150,7 +150,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. The values should be lists of the named entities of that "
         "type, exactly as they appear in the sentence.",
     ),
-    ES: PromptConfig(
+    SPANISH: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "persona",
             "i-per": "persona",
@@ -169,7 +169,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "claves {labels_str}. Los valores deben ser listas de las "
         "entidades nombradas de ese tipo, exactamente como aparecen en la oración.",
     ),
-    ET: PromptConfig(
+    ESTONIAN: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "inimene",
             "i-per": "inimene",
@@ -188,7 +188,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "mille võtmed on {labels_str}. Väärtused peaksid olema kindlat tüüpi nimetatud "
         "üksuste loendid, täpselt nii nagu need lauses esinevad.",
     ),
-    PT: PromptConfig(
+    PORTUGUESE: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "pessoa",
             "i-per": "pessoa",
@@ -207,7 +207,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Os valores devem ser listas contendo as entidades "
         "mencionadas desse tipo, tal como ocorrem na frase.",
     ),
-    FI: PromptConfig(
+    FINNISH: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "henkilö",
             "i-per": "henkilö",
@@ -226,7 +226,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "Arvojen tulee olla listoja kyseisen tyypin nimetyistä entiteeteistä "
         "täsmälleen siinä muodossa kuin ne esiintyvät lauseessa.",
     ),
-    FO: PromptConfig(
+    FAROESE: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "persónur",
             "i-per": "persónur",
@@ -245,7 +245,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Gildin ættu að vera listi yfir nevndu einingarnar af "
         "þeirri gerð, nákvæmlega eins og þær koma fram í setningunni.",
     ),
-    FR: PromptConfig(
+    FRENCH: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "personne",
             "i-per": "personne",
@@ -266,7 +266,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "entités nommées de ce type, exactement comme elles apparaissent dans "
         "la phrase.",
     ),
-    IS: PromptConfig(
+    ICELANDIC: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "einstaklingur",
             "i-per": "einstaklingur",
@@ -286,7 +286,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "einingarnar af þeirri gerð, nákvæmlega eins og þær koma fram í "
         "setningunni.",
     ),
-    IT: PromptConfig(
+    ITALIAN: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "persona",
             "i-per": "persona",
@@ -305,7 +305,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. I valori devono essere elenchi di entità "
         "nominate di quel tipo, esattamente come appaiono nella frase.",
     ),
-    LT: PromptConfig(
+    LITHUANIAN: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "asmuo",
             "i-per": "asmuo",
@@ -324,7 +324,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Reikšmės turi būti to tipo vardinių vienetų sąrašai, "
         "tiksliai taip, kaip jie rodomi sakinyje.",
     ),
-    LV: PromptConfig(
+    LATVIAN: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "persona",
             "i-per": "persona",
@@ -344,7 +344,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Vērtībām jābūt šī tipa nosaukto objektu sarakstiem, "
         "tieši tā, kā tie parādās teikumā.",
     ),
-    NB: PromptConfig(
+    NORWEGIAN_BOKMÅL: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "person",
             "i-per": "person",
@@ -363,7 +363,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Verdiene skal være lister over de navngitte enhetene av den "
         "typen, akkurat som de vises i frasen.",
     ),
-    NL: PromptConfig(
+    DUTCH: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "persoon",
             "i-per": "persoon",
@@ -382,7 +382,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. De waarden moeten lijsten zijn van de "
         "genoemde entiteiten van dat type, precies zoals ze voorkomen in de zin.",
     ),
-    NN: PromptConfig(
+    NORWEGIAN_NYNORSK: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "person",
             "i-per": "person",
@@ -401,7 +401,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "Verdiene skal være lister over de navngitte enhetene "
         "av den typen, akkurat som de vises i frasen.",
     ),
-    NO: PromptConfig(
+    NORWEGIAN: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "person",
             "i-per": "person",
@@ -420,7 +420,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "Verdiene skal være lister over de navngitte enhetene "
         "av den typen, akkurat som de vises i frasen.",
     ),
-    PL: PromptConfig(
+    POLISH: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "osoba",
             "i-per": "osoba",
@@ -439,7 +439,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Wartości odpowiadające kluczom powinny być listami jednostek "
         "nazewniczych danego typu, dokładnie tak, jak pojawiają się w zdaniu.",
     ),
-    SK: PromptConfig(
+    SLOVAK: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "osoba",
             "i-per": "osoba",
@@ -458,7 +458,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Hodnoty by mali byť zoznamy pomenovaných entít danej "
         "kategórie, presne tak, ako sa vyskytujú vo vete.",
     ),
-    SR: PromptConfig(
+    SERBIAN: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "osoba",
             "i-per": "osoba",
@@ -477,7 +477,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Vrednosti treba da budu liste imenovanih entiteta te "
         "kategorije, tačno onako kako se pojavljuju u rečenici.",
     ),
-    SV: PromptConfig(
+    SWEDISH: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "person",
             "i-per": "person",
@@ -496,7 +496,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Värdena ska vara listor över de namngivna enheterna av den "
         "typen, precis som de förekommer i meningen.",
     ),
-    UK: PromptConfig(
+    UKRAINIAN: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "особа",
             "i-per": "особа",
