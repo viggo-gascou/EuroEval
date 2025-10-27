@@ -25,7 +25,7 @@ def get_all_tasks() -> dict[str, Task]:
     return {
         cfg.name: cfg
         for cfg in globals().values()
-        if isinstance(cfg, Task) and cfg is not SPEED
+        if isinstance(cfg, Task) and cfg != SPEED
     }
 
 
