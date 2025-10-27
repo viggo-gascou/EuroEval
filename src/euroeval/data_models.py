@@ -294,7 +294,7 @@ class DatasetConfig:
     def pretty_name(self) -> str:
         """Post-initialisation checks."""
         if self._pretty_name is not None:
-            return self.pretty_name
+            return self._pretty_name
         if len(self.languages) > 1:
             languages_str = (
                 ", ".join([lang.name for lang in self.languages[:-1]])
