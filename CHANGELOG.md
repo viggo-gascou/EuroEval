@@ -38,6 +38,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   the summarisation dataset LR-Sum-uk, and the knowledge dataset Global-MMLU-uk. This
   was contributed by @oliverkinch ✨
 
+### Changed
+
+- Now returns all the desired results from the `Benchmarker.benchmark` method, rather
+  than only the ones that were newly computed (so we load all previous results from disk
+  as well).
+
 ### Fixed
 
 - Fixed the "double option" problem in Winogrande datasets across all languages. Previously,
