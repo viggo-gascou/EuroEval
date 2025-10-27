@@ -47,6 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The previous fix to close arrow writers in metrics did not work as intended, as the
   "too many open files" error still occurred. We now ensure that the writers are closed
   properly after each metric computation to avoid this issue.
+- Now correctly allows specifying inference provider API keys with the `--api-key`
+  argument. Previously, this conflicted with the Hugging Face API key.
 
 ## [v16.4.0] - 2025-10-21
 
