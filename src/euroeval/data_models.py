@@ -11,6 +11,8 @@ import pydantic
 import torch
 
 from .enums import Device, GenerativeType, ModelType, TaskGroup
+from .exceptions import InvalidBenchmark
+from .languages import ENGLISH, NORWEGIAN, PORTUGUESE
 from .metrics.base import Metric
 from .types import ScoreDict
 from .utils import get_package_version
@@ -291,6 +293,30 @@ class DatasetConfig:
     unofficial: bool = False
 
     @property
+    def main_language(self) -> Language:
+        """Get the main language of the dataset.
+
+        Returns:
+            The main language.
+        """
+        match len(self.languages):
+            case 0:
+                raise InvalidBenchmark(
+                    f"Dataset {self.name!r} must have at least one language."
+                )
+            case 1:
+                return self.languages[0]
+            case _:
+                if ENGLISH in self.languages:
+                    return ENGLISH
+                elif NORWEGIAN in self.languages:
+                    return NORWEGIAN
+                elif PORTUGUESE in self.languages:
+                    return PORTUGUESE
+                else:
+                    return self.languages[0]
+
+    @property
     def pretty_name(self) -> str:
         """Post-initialisation checks."""
         if self._pretty_name is not None:
@@ -316,8 +342,7 @@ class DatasetConfig:
     @property
     def prompt_prefix(self) -> str:
         """The prefix to use in the few-shot prompt."""
-        main_language = self.languages[0]
-        prompt_config = self.task.template_dict[main_language]
+        prompt_config = self.task.template_dict[self.main_language]
         prompt_prefix = (
             prompt_config.default_prompt_prefix
             if self._prompt_prefix is None
@@ -328,8 +353,7 @@ class DatasetConfig:
     @property
     def prompt_template(self) -> str:
         """The template used during few-shot evaluation."""
-        main_language = self.languages[0]
-        prompt_config = self.task.template_dict[main_language]
+        prompt_config = self.task.template_dict[self.main_language]
         prompt_template = (
             prompt_config.default_prompt_template
             if self._prompt_template is None
@@ -340,8 +364,7 @@ class DatasetConfig:
     @property
     def instruction_prompt(self) -> str:
         """The prompt to use when evaluating instruction-tuned models."""
-        main_language = self.languages[0]
-        prompt_config = self.task.template_dict[main_language]
+        prompt_config = self.task.template_dict[self.main_language]
         instruction_prompt = (
             prompt_config.default_instruction_prompt
             if self._instruction_prompt is None
@@ -388,10 +411,7 @@ class DatasetConfig:
             return {label: label for label in self.labels}
         elif self._prompt_label_mapping is not None:
             return self._prompt_label_mapping
-
-        main_language = self.languages[0]
-        prompt_config = self.task.template_dict[main_language]
-
+        prompt_config = self.task.template_dict[self.main_language]
         if prompt_config.default_prompt_label_mapping == "auto":
             return {label: label for label in self.labels}
         else:
@@ -457,12 +477,10 @@ class DatasetConfig:
         Returns:
             The natural string representation of the labels in specified language.
         """
-        main_language = self.languages[0]
-
         if self.task.task_group == TaskGroup.TOKEN_CLASSIFICATION:
-            sep_word = main_language.and_separator
+            sep_word = self.main_language.and_separator
         else:
-            sep_word = main_language.or_separator
+            sep_word = self.main_language.or_separator
 
         if labels is None:
             labels = list()
