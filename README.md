@@ -457,6 +457,13 @@ A huge thank you to all the contributors who have helped make this project a suc
         alt="Contributor avatar for slowwavesleep"
     />
 </a>
+<a href="https://github.com/mrkowalski">
+    <img
+        src="https://avatars.githubusercontent.com/u/6357044"
+        width=50
+        alt="Contributor avatar for mrkowalski"
+    />
+</a>
 
 ### Contribute to EuroEval
 
