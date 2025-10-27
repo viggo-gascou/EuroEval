@@ -70,4 +70,5 @@ SPEED_CONFIG = DatasetConfig(
     task=SPEED,
     languages=list(get_all_languages().values()),
     _pretty_name="the speed estimation benchmark",
+    unofficial=True,
 )
