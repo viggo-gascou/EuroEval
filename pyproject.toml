@@ -103,6 +103,7 @@ dev = [
     "pytest-socket>=0.7.0",
     "pytest-dependency>=0.6.0",
     "pytest-rerunfailures>=16.1",
+    "pytest-order>=1.3.0",
 ]
 
 [tool.ruff]
@@ -173,7 +174,8 @@ addopts = [
     "--cov=src/euroeval",
     "--color=yes",
     "-vvv",
-    "--allow-unix-socket"
+    "--allow-unix-socket",
+    "--order-dependencies",
 ]
 xfail_strict = true
 filterwarnings = [

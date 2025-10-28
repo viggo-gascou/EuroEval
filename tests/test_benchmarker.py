@@ -42,7 +42,7 @@ def test_benchmark_results_is_a_list(benchmarker: Benchmarker) -> None:
     assert isinstance(benchmarker.benchmark_results, list)
 
 
-@pytest.mark.dependency(name="encoder_benchmark")
+@pytest.mark.dependency()
 @pytest.mark.flaky(reruns=3, reruns_delay=5)
 def test_benchmark_encoder(
     benchmarker: Benchmarker, task: Task, language: Language, encoder_model_id: str
@@ -65,7 +65,9 @@ def test_benchmark_encoder(
 @pytest.mark.skipif(
     condition=not torch.cuda.is_available(), reason="CUDA is not available."
 )
-@pytest.mark.dependency(name="generative_benchmark")
+@pytest.mark.dependency(
+    depends=["tests/test_model_loading.py::test_load_generative_model"]
+)
 def test_benchmark_generative(
     benchmarker: Benchmarker, task: Task, language: Language, generative_model_id: str
 ) -> None:
@@ -80,7 +82,9 @@ def test_benchmark_generative(
 @pytest.mark.skipif(
     condition=not torch.cuda.is_available(), reason="CUDA is not available."
 )
-@pytest.mark.dependency(name="generative_adapter_benchmark")
+@pytest.mark.dependency(
+    depends=["tests/test_model_loading.py::test_load_generative_model"]
+)
 def test_benchmark_generative_adapter(
     benchmarker: Benchmarker,
     task: Task,
@@ -413,7 +417,7 @@ def test_prepare_dataset_configs(
 
 
 @pytest.mark.disable_socket
-@pytest.mark.dependency(depends=["encoder_benchmark"])
+@pytest.mark.dependency(depends=["test_benchmark_encoder"])
 @pytest.mark.flaky(reruns=3, reruns_delay=5)
 def test_benchmark_encoder_no_internet(
     task: Task, language: Language, encoder_model_id: str
@@ -433,7 +437,7 @@ def test_benchmark_encoder_no_internet(
 @pytest.mark.skipif(
     condition=not torch.cuda.is_available(), reason="CUDA is not available."
 )
-@pytest.mark.dependency(depends=["generative_benchmark"])
+@pytest.mark.dependency(depends=["test_benchmark_generative"])
 @pytest.mark.flaky(reruns=3, reruns_delay=5)
 def test_benchmark_generative_no_internet(
     task: Task, language: Language, generative_model_id: str
@@ -453,7 +457,7 @@ def test_benchmark_generative_no_internet(
 @pytest.mark.skip(
     "Benchmarking adapter models without internet access are not implemented yet."
 )
-@pytest.mark.dependency(depends=["generative_adapter_benchmark"])
+@pytest.mark.dependency(depends=["test_benchmark_generative_adapter"])
 @pytest.mark.flaky(reruns=3, reruns_delay=5)
 def test_benchmark_generative_adapter_no_internet(
     task: Task, language: Language, generative_adapter_model_id: str
