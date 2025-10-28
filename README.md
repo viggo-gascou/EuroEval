@@ -223,6 +223,7 @@ from euroeval.languages import ENGLISH
 
 MY_CONFIG = DatasetConfig(
     name="my-dataset",
+    pretty_name="My Dataset",
     source=dict(train="train.csv", val="val.csv", test="test.csv"),
     task=TEXT_CLASSIFICATION,
     languages=[ENGLISH],
@@ -313,6 +314,7 @@ sql_generation_task = Task(
 
 MY_SQL_DATASET = DatasetConfig(
     name="my-sql-dataset",
+    pretty_name="My SQL Dataset",
     source=dict(train="train.csv", val="val.csv", test="test.csv"),
     task=sql_generation_task,
     languages=[ENGLISH],
