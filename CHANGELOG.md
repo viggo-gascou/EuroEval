@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v16.5.0] - 2025-10-28
+
 ### Added
 
 - Added better support for evaluating on custom datasets, by allowing `DatasetConfig`
