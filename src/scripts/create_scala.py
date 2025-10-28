@@ -244,7 +244,7 @@ def delete(tokens: List[str], pos_tags: List[str]) -> Union[str, None]:
     indices = [
         idx
         for idx, pos_tag in enumerate(pos_tags)
-        if pos_tag not in ["ADJ", "ADV", "PUNCT", "SYM", "DET", "NUM"]
+        if pos_tag not in ["ADJ", "ADV", "PUNCT", "SYM", "DET", "NUM", "PART"]
         and (
             pos_tag not in ["NOUN", "PROPN"]
             or (
