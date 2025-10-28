@@ -16,7 +16,7 @@ from euroeval.benchmarker import (
     Benchmarker,
     adjust_logging_level,
     clear_model_cache_fn,
-    model_has_been_benchmarked,
+    get_record,
     prepare_dataset_configs,
 )
 from euroeval.data_models import (
@@ -334,7 +334,7 @@ def test_benchmark_ollama(
         "model has been benchmarked twice",
     ],
 )
-def test_model_has_been_benchmarked(
+def test_get_record(
     model_config: ModelConfig,
     dataset_config: DatasetConfig,
     benchmark_config: BenchmarkConfig,
@@ -347,11 +347,14 @@ def test_model_has_been_benchmarked(
     benchmark_config = replace(
         benchmark_config, few_shot=few_shot, evaluate_test_split=evaluate_test_split
     )
-    benchmarked = model_has_been_benchmarked(
-        model_config=model_config,
-        dataset_config=dataset_config,
-        benchmark_config=benchmark_config,
-        benchmark_results=benchmark_results,
+    benchmarked = (
+        get_record(
+            model_config=model_config,
+            dataset_config=dataset_config,
+            benchmark_config=benchmark_config,
+            benchmark_results=benchmark_results,
+        )
+        is not None
     )
     assert benchmarked == expected
 
