@@ -199,5 +199,9 @@ def cli_params() -> Generator[dict[str | None, ParamType], None, None]:
 def dataset_config() -> c.Generator[DatasetConfig, None, None]:
     """Yields a dataset configuration used in tests."""
     yield DatasetConfig(
-        name="dataset", source="dataset_id", task=SENT, languages=[DANISH]
+        name="dataset",
+        pretty_name="Dataset",
+        source="dataset_id",
+        task=SENT,
+        languages=[DANISH],
     )
