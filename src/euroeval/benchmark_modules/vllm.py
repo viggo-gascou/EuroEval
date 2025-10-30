@@ -955,7 +955,12 @@ def load_model_and_tokeniser(
             msg += (
                 (
                     "Since you're running in verbose mode, you might see a descriptive "
-                    "error above already, but if not, then you can try "
+                    "error above already. Note however that if the error message urges "
+                    "you to set the environment variable `VLLM_ATTENTION_BACKEND` to "
+                    "'FLEX_ATTENTION', please try setting it to 'FLASH_ATTN' first, as "
+                    "that often solves the issue, whereas 'FLEX_ATTENTION' usually "
+                    "doesn't. If you don't see any descriptive error above, then you "
+                    "can try "
                 )
                 if benchmark_config.verbose
                 else "Try "
