@@ -934,6 +934,7 @@ def load_model_and_tokeniser(
         elif "See stack trace for root cause." in str(
             e
         ) or "See root cause above." in str(e):
+            breakpoint()
             raise InvalidModel(
                 f"The model {model_id!r} could not be loaded, but vLLM did not mention "
                 "exactly what happened. Try re-running the benchmark with the "
