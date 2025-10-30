@@ -946,12 +946,24 @@ def load_model_and_tokeniser(
         elif "See stack trace for root cause." in str(
             e
         ) or "See root cause above." in str(e):
-            raise InvalidModel(
-                f"The model {model_id!r} could not be loaded, but vLLM did not mention "
-                "exactly what happened. Try re-running the benchmark with the "
-                "environment variable `FULL_LOG` set to `1` to see the full "
-                f"stack trace. E.g., `FULL_LOG=1 euroeval --model {model_id}`."
+            msg = (
+                f"The model {model_id!r} could not be loaded, but vLLM did not "
+                "mention exactly what happened. "
             )
+            msg += (
+                (
+                    "Since you're running in verbose mode, you might see a descriptive "
+                    "error above already, but if not, then you can try "
+                )
+                if benchmark_config.verbose
+                else "Try "
+            )
+            msg += (
+                "re-running the benchmark with the environment variable `FULL_LOG` "
+                "set to `1` to see the full stack trace. E.g., "
+                f"`FULL_LOG=1 euroeval --model {model_id}`."
+            )
+            raise InvalidModel(msg) from e
         raise InvalidModel(
             f"The model {model_id!r} could not be loaded. The error was {e!r}."
         ) from e
