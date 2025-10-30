@@ -26,6 +26,7 @@ from ..languages import (
     PORTUGUESE,
     SERBIAN,
     SLOVAK,
+    SLOVENIAN,
     SPANISH,
     SWEDISH,
     UKRAINIAN,
@@ -209,6 +210,15 @@ LA_TEMPLATES: dict["Language", PromptConfig] = {
         default_instruction_prompt=(
             "Veta: {text}\n\nUrčite, či je veta gramaticky správna alebo nie. "
             "Odpovedzte so {labels_str}, a nič iné."
+        ),
+    ),
+    SLOVENIAN: PromptConfig(
+        default_prompt_label_mapping=dict(correct="da", incorrect="ne"),
+        default_prompt_prefix="Sledeče so stavki in ali so slovnično pravilni.",
+        default_prompt_template="Stavek: {text}\nSlovnično pravilno: {label}",
+        default_instruction_prompt=(
+            "Stavek: {text}\n\nUgotovite, ali je stavek slovnično pravilen ali ne. "
+            "Odgovorite z {labels_str}, in nič drugega."
         ),
     ),
     SERBIAN: PromptConfig(
