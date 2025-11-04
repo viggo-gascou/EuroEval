@@ -22,7 +22,7 @@ from euroeval.tasks import RC
 @pytest.fixture(scope="module")
 def tokeniser_id() -> Generator[str, None, None]:
     """Fixture for the tokeniser ID."""
-    yield "google/gemma-3-27b-it"
+    yield "EuroEval/gemma-3-tokenizer"
 
 
 @pytest.mark.flaky(reruns=3, reruns_delay=5)
@@ -83,7 +83,6 @@ class TestLoadData:
     ],
     ids=lambda dc: dc.name,
 )
-@pytest.mark.flaky(reruns=3, reruns_delay=5)
 class TestAllDatasets:
     """Tests that are run on all datasets."""
 
