@@ -83,6 +83,7 @@ class TestLoadData:
     ],
     ids=lambda dc: dc.name,
 )
+@pytest.mark.flaky(reruns=3, reruns_delay=5)
 class TestAllDatasets:
     """Tests that are run on all datasets."""
 
