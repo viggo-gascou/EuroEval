@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Added support for Croatian 🇭🇷! This includes the sentiment classification dataset
+  MMS-hr, the linguistic acceptability dataset ScaLA-hr, the named entity recognition
+  dataset WikiANN-hr, the reading comprehension dataset MultiWikiQA-hr, the knowledge
+  dataset MMLU-hr, and the common-sense reasoning dataset Winogrande-hr.
 - Added a system dependency check for `nvcc` in the `VLLMModel.__init__` method to
   ensure the CUDA Toolkit is installed. Raises an error with installation instructions
   if NVCC is not available in the system PATH.
@@ -29,6 +33,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Added support for Slovenian 🇸🇮! This includes the sentiment classification dataset
+  Sentinews, the linguistic acceptability dataset ScaLA-sl, the named entity recognition
+  dataset ssj500k-NER, the reading comprehension
+  dataset MultiWikiQA-sl, the knowledge dataset MMLU-sl, and the common-sense reasoning
+  dataset Winogrande-sl.
 - Added better support for evaluating on custom datasets, by allowing `DatasetConfig`
   objects directly in the `Benchmarker.benchmark` method. We also support custom
   datasets with the CLI, by simply defining the desired `DatasetConfig`s in a
