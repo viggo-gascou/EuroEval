@@ -1743,6 +1743,10 @@ def clean_model_id(model_id: str, benchmark_config: BenchmarkConfig) -> str:
     Returns:
         The cleaned model ID.
     """
+    # TODO: This needs to be changed, since if the model IDs might also have slashes in
+    # them, so if we're evaluating `org/model-name` then we *do* want to add the prefix:
+    # `openai/org/model-name`. We need a better way of determining whether a prefix is
+    # used or not - maybe a hardcoded list of known prefixes?
     if (
         benchmark_config.api_base is not None
         and re.search(pattern=r"^[a-zA-Z0-9_-]+\/", string=model_id) is None
