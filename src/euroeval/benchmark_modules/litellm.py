@@ -162,6 +162,7 @@ REASONING_MODELS = [
     r"(gemini/)?gemini.*thinking.*",
     r"(gemini/)?gemini-2.5.*",
     r"(xai/)?grok-3-mini.*",
+    r".*gpt-oss.*",
 ]
 
 BASE_DECODER_MODELS = [
@@ -278,11 +279,15 @@ class LiteLLMModel(BenchmarkModule):
         elif self.model_config.param in {"no-thinking"}:
             type_ = GenerativeType.INSTRUCTION_TUNED
         elif re.fullmatch(
-            pattern="|".join(REASONING_MODELS), string=self.model_config.model_id
+            pattern="|".join(REASONING_MODELS),
+            string=self.model_config.model_id,
+            flags=re.IGNORECASE,
         ):
             type_ = GenerativeType.REASONING
         elif re.fullmatch(
-            pattern="|".join(BASE_DECODER_MODELS), string=self.model_config.model_id
+            pattern="|".join(BASE_DECODER_MODELS),
+            string=self.model_config.model_id,
+            flags=re.IGNORECASE,
         ):
             type_ = GenerativeType.BASE
         elif supports_reasoning(model=self.model_config.model_id):
