@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v16.7.0] - 2025-11-10
+
 ### Added
 
 - Now allows the 'low', 'medium' and 'high' reasoning effort parameters for the GPT-OSS
