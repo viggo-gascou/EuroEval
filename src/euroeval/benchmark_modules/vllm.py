@@ -423,9 +423,9 @@ class VLLMModel(HuggingFaceEncoderModel):
             or (self.dataset_config.task.uses_logprobs and self.dataset_config.labels)
         ) and self.generative_type == GenerativeType.REASONING:
             structured_outputs = None
-            log(
+            log_once(
                 "The dataset uses structured output, but we are not using it as the "
-                "model is a reasoning model.",
+                f"model {self.model_config.model_id!r} is a reasoning model.",
                 level=logging.DEBUG,
             )
         elif self.dataset_config.task.uses_structured_output:
