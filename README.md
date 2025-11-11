@@ -183,6 +183,19 @@ argument:
 euroeval --model my-model --api-base http://localhost:8000 --api-key my-secret-key
 ```
 
+If your model is a reasoning model, then you need to specify this as follows:
+
+```bash
+euroeval --model my-reasoning-model --api-base http://localhost:8000 --generative-type reasoning
+```
+
+Likewise, if it is a pretrained decoder model (aka a completion model), then you specify
+this as follows:
+
+```bash
+euroeval --model my-base-decoder-model --api-base http://localhost:8000 --generative-type base
+```
+
 When using the `Benchmarker` API, the same applies. Here is an example of benchmarking
 an Ollama model hosted locally:
 
