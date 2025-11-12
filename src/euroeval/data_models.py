@@ -268,13 +268,15 @@ class DatasetConfig:
         """The string used to describe evaluation on the dataset in logging."""
         if self._logging_string is not None:
             return self._logging_string
+
         truncated_str = (
             "truncated version of the "
             if isinstance(self.source, str) and self.source.endswith("-mini")
             else ""
         )
+
+        logging_languages = list(deepcopy(self.languages))
         if len(self.languages) > 1:
-            logging_languages = list(deepcopy(self.languages))
             if (
                 NORWEGIAN_BOKMÅL in self.languages
                 and NORWEGIAN_NYNORSK in self.languages
@@ -290,12 +292,14 @@ class DatasetConfig:
             if PORTUGUESE in self.languages and EUROPEAN_PORTUGUESE in self.languages:
                 logging_languages.remove(EUROPEAN_PORTUGUESE)
 
+        if len(logging_languages) > 1:
             languages_str = (
                 ", ".join([lang.name for lang in logging_languages[:-1]])
                 + f" and {logging_languages[-1].name}"
             )
         else:
-            languages_str = self.languages[0].name
+            languages_str = logging_languages[0].name
+
         task_str = self.task.name.replace("-", " ")
         dataset_name_str = (
             self.pretty_name or self.name.replace("-", " ").replace("_", " ").title()
