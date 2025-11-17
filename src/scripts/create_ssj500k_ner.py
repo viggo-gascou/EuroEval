@@ -8,7 +8,7 @@
 # ]
 # ///
 
-"""Create the Slovenian NER dataset from SSJ500k and upload it to the HF Hub."""
+"""Create the Slovene NER dataset from SSJ500k and upload it to the HF Hub."""
 
 import pandas as pd
 from datasets import Dataset, DatasetDict, load_dataset
@@ -16,7 +16,7 @@ from huggingface_hub import HfApi
 
 
 def main() -> None:
-    """Create the Slovenian NER dataset from SSJ500k and upload it to the HF Hub."""
+    """Create the Slovene NER dataset from SSJ500k and upload it to the HF Hub."""
     # Define dataset ID
     repo_id = "cjvt/ssj500k"
 

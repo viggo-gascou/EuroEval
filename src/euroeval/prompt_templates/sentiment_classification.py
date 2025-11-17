@@ -28,7 +28,7 @@ from ..languages import (
     PORTUGUESE,
     SERBIAN,
     SLOVAK,
-    SLOVENIAN,
+    SLOVENE,
     SPANISH,
     SWEDISH,
     UKRAINIAN,
@@ -289,7 +289,7 @@ SENT_TEMPLATES: dict["Language", PromptConfig] = {
         default_instruction_prompt="Dokument: {text}\n\nKlasifikujte pocit v "
         "dokumente. Odpovedzte so {labels_str}, a nič iné.",
     ),
-    SLOVENIAN: PromptConfig(
+    SLOVENE: PromptConfig(
         default_prompt_label_mapping=dict(
             positive="pozitivno", neutral="nevtralno", negative="negativno"
         ),

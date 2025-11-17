@@ -28,7 +28,7 @@ from ..languages import (
     PORTUGUESE,
     SERBIAN,
     SLOVAK,
-    SLOVENIAN,
+    SLOVENE,
     SPANISH,
     SWEDISH,
     UKRAINIAN,
@@ -251,7 +251,7 @@ RC_TEMPLATES: dict["Language", PromptConfig] = {
         "sobre o texto acima num máximo de 3 palavras.\n\nPergunta: {question}",
         default_prompt_label_mapping=dict(),
     ),
-    SLOVENIAN: PromptConfig(
+    SLOVENE: PromptConfig(
         default_prompt_prefix=(
             "Spodaj so besedila z ustreznimi vprašanji in odgovori."
         ),

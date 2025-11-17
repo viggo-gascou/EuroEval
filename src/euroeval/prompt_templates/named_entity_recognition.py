@@ -28,7 +28,7 @@ from ..languages import (
     PORTUGUESE,
     SERBIAN,
     SLOVAK,
-    SLOVENIAN,
+    SLOVENE,
     SPANISH,
     SWEDISH,
     UKRAINIAN,
@@ -508,7 +508,7 @@ NER_TEMPLATES: dict["Language", PromptConfig] = {
         "{labels_str}. Hodnoty by mali byť zoznamy pomenovaných entít danej "
         "kategórie, presne tak, ako sa vyskytujú vo vete.",
     ),
-    SLOVENIAN: PromptConfig(
+    SLOVENE: PromptConfig(
         default_prompt_label_mapping={
             "b-per": "oseba",
             "i-per": "oseba",
