@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v16.7.1] - 2025-11-18
+
 ### Fixed
 
 - The `--no-progress-bar` argument (`progress_bar=False` in the `Benchmarker` API) was
