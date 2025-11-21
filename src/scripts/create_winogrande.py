@@ -47,6 +47,7 @@ LANGUAGES = [
     "lv",
     "nl",
     "no",
+    "ro",
     "pl",
     "pt",
     "sk",
