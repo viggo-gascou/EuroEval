@@ -86,17 +86,11 @@ SUMM_TEMPLATES: dict["Language", PromptConfig] = {
         default_prompt_label_mapping=dict(),
     ),
     HUNGARIAN: PromptConfig(
-        default_prompt_prefix=(
-            "Az alábbi szövegek "
-            "tartalmazzák az eredeti cikkeket "
-            "és azok összefoglalóit."
-        ),
-        default_prompt_template="Szöveg: {text}\nÖsszefoglaló: {label}",
-        default_instruction_prompt=(
-            "Szöveg: {text}\n\n"
-            "Adjon egy rövid összefoglalót a fenti szövegről.\n"
-            "Összefoglaló: {label}"
-        ),
+        default_prompt_prefix="Az alábbiakban összefoglalókkal ellátott szövegek "
+        "találhatók.",
+        default_prompt_template="Szöveg: {text}\nÖsszefoglaló: {target_text}",
+        default_instruction_prompt="Szöveg: {text}\n\nÍrj egy összefoglalót a fenti "
+        "szövegről.",
         default_prompt_label_mapping=dict(),
     ),
     ENGLISH: PromptConfig(
