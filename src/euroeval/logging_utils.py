@@ -117,6 +117,7 @@ def block_terminal_output() -> None:
     # Ignore miscellaneous warnings
     warnings.filterwarnings("ignore", category=UserWarning)
     warnings.filterwarnings("ignore", category=FutureWarning)
+    warnings.filterwarnings("ignore", category=RuntimeWarning)
     logging.getLogger("absl").setLevel(logging.CRITICAL)
 
     # Disable matplotlib logging
