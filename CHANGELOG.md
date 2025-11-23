@@ -37,6 +37,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   API), we now include the full model inputs and outputs in the JSON file stored to the
   current working directory, where we previously only included the model outputs.
 
+### Fixed
+
+- When encountering rate limits for API inference models, we ended up waiting 10 seconds
+  for each request, which was unnecessarily long. We now only wait 10 seconds for each
+  batch of requests.
+
 ## [v16.7.1] - 2025-11-18
 
 ### Fixed
