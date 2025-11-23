@@ -14,12 +14,13 @@ import socket
 import sys
 import typing as t
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, TracebackType
 
 import demjson3
 import huggingface_hub as hf_hub
 import numpy as np
 import torch
+from huggingface_hub.errors import LocalTokenNotFoundError
 
 from .caching_utils import cache_arguments
 from .constants import T
@@ -416,7 +417,7 @@ def get_hf_token(api_key: str | None) -> str | bool:
             level=logging.DEBUG,
         )
         return True
-    except hf_hub.errors.LocalTokenNotFoundError:
+    except LocalTokenNotFoundError:
         log_once(
             "No Hugging Face API key was set and the user is not logged in to Hugging "
             "Face, so no token will be used.",
@@ -553,7 +554,7 @@ class flash_attention_backend:
         self,
         exc_type: t.Type[BaseException] | None,
         exc_value: BaseException | None,
-        traceback: type[BaseException] | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         """Exit the context manager.
 

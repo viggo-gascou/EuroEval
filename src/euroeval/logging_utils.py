@@ -6,6 +6,7 @@ import os
 import sys
 import warnings
 from io import TextIOWrapper
+from types import TracebackType
 
 import litellm
 from datasets.utils import disable_progress_bars as disable_datasets_progress_bars
@@ -138,7 +139,7 @@ def block_terminal_output() -> None:
     logging.getLogger("LiteLLM Proxy").setLevel(logging.CRITICAL)
     logging.getLogger("openai").setLevel(logging.CRITICAL)
     logging.getLogger("httpx").setLevel(logging.CRITICAL)
-    litellm.suppress_debug_info = True
+    litellm.suppress_debug_info = True  # type: ignore[bad-assignment]
 
     # Disable vLLM logging
     logging.getLogger("vllm").setLevel(logging.CRITICAL)
@@ -166,7 +167,7 @@ def block_terminal_output() -> None:
     disable_evaluate_progress_bar()
 
     # Disable most of the `transformers` logging
-    tf_logging._default_log_level = logging.CRITICAL
+    tf_logging._default_log_level = logging.CRITICAL  # type: ignore[bad-assignment]
     tf_logging.set_verbosity(logging.CRITICAL)
     logging.getLogger("transformers.trainer").setLevel(logging.CRITICAL)
     logging.getLogger("accelerate").setLevel(logging.CRITICAL)
@@ -221,7 +222,7 @@ class no_terminal_output:
         self,
         exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
-        exc_tb: type[BaseException] | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         """Re-enable terminal output."""
         if self.disable:

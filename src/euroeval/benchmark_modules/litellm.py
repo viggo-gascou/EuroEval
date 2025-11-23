@@ -1222,7 +1222,7 @@ class LiteLLMModel(BenchmarkModule):
         return -1
 
     @property
-    def data_collator(self) -> c.Callable[[c.Sequence[t.Any]], dict[str, t.Any]]:
+    def data_collator(self) -> c.Callable[[list[dict[str, t.Any]]], dict[str, t.Any]]:
         """The data collator used to prepare samples during finetuning.
 
         Returns:

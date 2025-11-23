@@ -259,6 +259,13 @@ def split_dataset_into_cached_and_non_cached(
 
     cached = dataset.select(cached_ids)
     non_cached = dataset.select(unique_non_cached_ids)
+
+    assert isinstance(cached, Dataset), (
+        f"Expected the cached dataset to be a Dataset, but got {type(cached)}"
+    )
+    assert isinstance(non_cached, Dataset), (
+        f"Expected the non-cached dataset to be a Dataset, but got {type(non_cached)}"
+    )
     return cached, non_cached
 
 
