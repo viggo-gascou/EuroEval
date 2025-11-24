@@ -13,20 +13,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   RoSent, the linguistic acceptability dataset ScaLA-ro, the named entity recognition
   dataset RoNEC, the reading comprehension dataset MultiWikiQA-ro, the summarisation
   dataset SumO-Ro, the knowledge dataset Global-MMLU-ro, and the common-sense
-  reasoning dataset Winogrande-ro.
-- Added support for Catalan! This includes the sentiment classification dataset
-  GuiaCat, the linguistic acceptability dataset ScaLA-ca, the named entity recognition
-  dataset WikiANN-ca, the reading comprehension dataset MultiWikiQA-ca, the summarisation
-  dataset DACSA-ca, the knowledge dataset MMLU-ca, and the common-sense reasoning dataset
-  Winogrande-ca.
-- Added Spanish summarisation dataset DACSA-es as an unofficial dataset.
-- Added Lithuanian sentiment classification dataset Atsiliepimai to replace the now
-  unofficial Lithuanian Emotions dataset.
+  reasoning dataset Winogrande-ro. This was contributed by @oliverkinch ✨
 - Added support for Hungarian 🇭🇺! This includes the sentiment classification dataset
   HuSST, the linguistic acceptability dataset ScaLA-hu, the named entity recognition
   dataset SzegedNER, the reading comprehension dataset MultiWikiQA-hu, the
   summarisation dataset HunSum, the knowledge dataset MMLU-hu, and the common-sense
-  reasoning dataset Winogrande-hu.
+  reasoning dataset Winogrande-hu. This was contributed by @oliverkinch ✨
+- Added support for Catalan! This includes the sentiment classification dataset
+  GuiaCat, the linguistic acceptability dataset ScaLA-ca, the named entity recognition
+  dataset WikiANN-ca, the reading comprehension dataset MultiWikiQA-ca, the summarisation
+  dataset DACSA-ca, the knowledge dataset MMLU-ca, and the common-sense reasoning dataset
+  Winogrande-ca. This was contributed by @oliverkinch ✨
+- Added Spanish summarisation dataset DACSA-es as an unofficial dataset.
+- Added Lithuanian sentiment classification dataset Atsiliepimai to replace the now
+  unofficial Lithuanian Emotions dataset. This was contributed by @oliverkinch ✨
 - Added new `--custom-datasets-file` (`custom_datasets_file` in the `Benchmarker` API)
   argument, which can be used to specify a custom Python file containing custom dataset
   definitions. It defaults to `custom_datasets.py` in the current working directory.
