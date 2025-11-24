@@ -559,14 +559,14 @@ def load_rodt_pos() -> dict[str, pd.DataFrame]:
 
     return load_ud_pos(train_url=train_url, val_url=val_url, test_url=test_url)
 
-  
+
 def load_cadt_pos() -> dict[str, pd.DataFrame]:
     """Load the part-of-speech part of the Catalan Dependency Treebank.
-    
+
     Returns:
         The dataframes, stored in the keys `train`, `val`, and `test`.
     """
-        # Define download URLs
+    # Define download URLs
     base_url = (
         "https://raw.githubusercontent.com/UniversalDependencies/UD_Catalan-AnCora/refs"
         "/heads/master/ca_ancora-ud-{}.conllu"
