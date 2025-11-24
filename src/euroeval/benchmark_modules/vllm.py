@@ -88,8 +88,8 @@ if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
         destroy_model_parallel,
     )
     from vllm.lora.request import LoRARequest  # type: ignore[missing-import]
-    from vllm.sampling_params import (
-        StructuredOutputsParams,  #  type: ignore[missing-import]
+    from vllm.sampling_params import (  #  type: ignore[missing-import]
+        StructuredOutputsParams,
     )
 
 if t.TYPE_CHECKING:

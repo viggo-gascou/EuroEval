@@ -684,7 +684,7 @@ class Benchmarker:
         dataset_configs = benchmark_config.datasets
 
         # Get all the model configs
-        model_configs: list[ModelConfig] = list()
+        model_configs: list["ModelConfig"] = list()
         for model_id in get_pbar(
             iterable=model_ids,
             desc="Fetching model configurations",
@@ -702,7 +702,7 @@ class Benchmarker:
         # we need to benchmark the model on. We initially include all the relevant
         # datasets for each model.
         model_config_to_dataset_configs: dict[
-            ModelConfig, c.Sequence[DatasetConfig]
+            "ModelConfig", c.Sequence["DatasetConfig"]
         ] = {
             model_config: [
                 dataset_config
@@ -719,7 +719,7 @@ class Benchmarker:
             model_config,
             model_dataset_configs,
         ) in model_config_to_dataset_configs.items():
-            new_model_dataset_configs: list[DatasetConfig] = list()
+            new_model_dataset_configs: list["DatasetConfig"] = list()
             for dataset_config in model_dataset_configs:
                 benchmark_record = get_record(
                     model_config=model_config,
@@ -777,7 +777,7 @@ class Benchmarker:
                         level=logging.WARNING,
                     )
 
-            loaded_model: BenchmarkModule | None = None
+            loaded_model: "BenchmarkModule | None" = None
             for dataset_config in model_config_to_dataset_configs[model_config]:
                 # Revert any changes to the benchmark configuration made for the
                 # previous dataset
