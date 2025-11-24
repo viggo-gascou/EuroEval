@@ -9,14 +9,14 @@ import typing as t
 from collections import defaultdict
 from dataclasses import asdict
 
+from datasets import Dataset
+
 from .constants import NUM_GENERATION_TOKENS_FOR_CLASSIFICATION
 from .data_models import GenerativeModelOutput, SingleGenerativeModelOutput
 from .logging_utils import get_pbar, log, log_once
 
 if t.TYPE_CHECKING:
     from pathlib import Path
-
-    from datasets import Dataset
 
 
 class ModelCache:
