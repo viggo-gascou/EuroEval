@@ -421,7 +421,7 @@ class LiteLLMModel(BenchmarkModule):
 
             # Attempt to handle the exceptions, to improve the chance of getting
             # successful generations next time around
-            time_to_wait = 1
+            time_to_wait = 0
             for _, error in failures:
                 generation_kwargs, wait_time = self._handle_exception(
                     error=error, **generation_kwargs
@@ -711,8 +711,7 @@ class LiteLLMModel(BenchmarkModule):
         ):
             retry_seconds = float(retry_match.group(1))
             log_once(
-                f"Bad request error encountered when generating with model "
-                f"{model_id!r}.",
+                f"You have encountered your rate limit for model {model_id!r}.",
                 level=logging.DEBUG,
             )
             return generation_kwargs, int(retry_seconds)
@@ -1652,7 +1651,12 @@ class LiteLLMModel(BenchmarkModule):
                     error=error, **generation_kwargs
                 )
                 time_to_wait = max(time_to_wait, wait_time)
-            sleep(time_to_wait)
+            if time_to_wait > 0:
+                log(
+                    f"Waiting {time_to_wait} second(s) before retrying...",
+                    level=logging.DEBUG,
+                )
+                sleep(time_to_wait)
         else:
             raise InvalidModel(
                 "Failed to get a successful response from the model "
