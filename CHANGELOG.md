@@ -42,6 +42,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - When encountering rate limits for API inference models, we ended up waiting 10 seconds
   for each request, which was unnecessarily long. We now only wait 10 seconds for each
   batch of requests.
+- Uses the `FLASH_ATTN` backend with vLLM for Gemma-3 models now, as their architecture
+  is currently not supported by the default `FLASHINFER` backend. Note that this can
+  always be changed manually with the `VLLM_ATTENTION_BACKEND` environment variable.
 
 ## [v16.7.1] - 2025-11-18
 

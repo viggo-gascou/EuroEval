@@ -100,7 +100,8 @@ if t.TYPE_CHECKING:
 
 
 MODELS_REQUIRING_FLASH_ATTENTION: list[re.Pattern] = [
-    re.compile(r".*gpt-oss.*", flags=re.IGNORECASE)
+    re.compile(r".*gpt-oss.*", flags=re.IGNORECASE),
+    re.compile(r"google/gemma-3.*", flags=re.IGNORECASE),
 ]
 
 
