@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v16.8.0] - 2025-11-25
+
 ### Added
 
 - Added support for Romanian 🇷🇴! This includes the sentiment classification dataset
