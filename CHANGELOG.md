@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Added the Swedish factual knowledge dataset SwedishFacts, which is based on the
+  [liu-nlp/swedish-facts-v1](https://huggingface.co/datasets/liu-nlp/swedish-facts-v1)
+  dataset.
+
 ### Fixed
 
 - When a model has registered the number of parameters wrongly within their safetensors
