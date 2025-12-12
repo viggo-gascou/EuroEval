@@ -106,11 +106,11 @@ if t.TYPE_CHECKING:
 
 
 MODELS_REQUIRING_CUSTOM_ATTENTION_BACKENDS: dict[re.Pattern, str] = {
-    re.compile(r".*gpt-oss.*", flags=re.IGNORECASE): "FLASH_ATTN",
-    re.compile(r"google/gemma-3-1b.*", flags=re.IGNORECASE): "FLASH_ATTN",
-    re.compile(r"google/gemma-3n.*", flags=re.IGNORECASE): "FLASH_ATTN",
+    re.compile(r".*gpt-oss.*", flags=re.IGNORECASE): "TRITON_ATTN",
+    re.compile(r"google/gemma-3-1b.*", flags=re.IGNORECASE): "TRITON_ATTN",
+    re.compile(r"google/gemma-3n.*", flags=re.IGNORECASE): "TRITON_ATTN",
     re.compile(r"google/gemma-3-(4|12|27)b.*", flags=re.IGNORECASE): "TRITON_ATTN",
-    re.compile(r"PleIAs/Pleias-3b-Preview", flags=re.IGNORECASE): "FLASH_ATTN",
+    re.compile(r"PleIAs/Pleias-3b-Preview", flags=re.IGNORECASE): "TRITON_ATTN",
 }
 
 
@@ -1012,8 +1012,8 @@ def load_model_and_tokeniser(
                     "Since you're running in verbose mode, you might see a descriptive "
                     "error above already. Note however that if the error message urges "
                     "you to set the environment variable `VLLM_ATTENTION_BACKEND` to "
-                    "'FLEX_ATTENTION', please try setting it to 'FLASH_ATTN' first, as "
-                    "that often solves the issue, whereas 'FLEX_ATTENTION' usually "
+                    "'FLEX_ATTENTION', please try setting it to 'TRITON_ATTN' first, "
+                    "as that often solves the issue, whereas 'FLEX_ATTENTION' usually "
                     "doesn't. If you don't see any descriptive error above, then you "
                     "can try "
                 )
