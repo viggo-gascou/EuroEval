@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v16.9.0] - 2025-12-16
+
 ### Added
 
 - Added the Swedish factual knowledge dataset SwedishFacts, which is based on the
