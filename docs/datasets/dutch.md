@@ -1034,15 +1034,13 @@ euroeval --model <model-id> --dataset wiki-lingua-nl
 ### Unofficial: Duidelijke Taal
 
 The [Duidelijke Taal dataset](http://hdl.handle.net/10032/tm-a2-y8) was created by
-Instituut voor
-de Nederlandse Taal and published
-in _Human Evaluation of Automated Text Simplification through
-Crowdsourcing_ [(Vandeghinste et al., 2025)](https://scholar.google.com/scholar?oi=bibs&cluster=2894378448414629586&btnI=1&hl=en).
+Instituut voor de Nederlandse Taal and published in _Human Evaluation of Automated Text
+Simplification through Crowdsourcing_ [(Vandeghinste et al.,
+2025)](https://scholar.google.com/scholar?oi=bibs&cluster=2894378448414629586&btnI=1&hl=en).
 It consists of crowd-sourced human evaluations of automated simplifications. The
-original dataset contains 1,071
-sentence pairs with crowdsourced annotations.
-A [pre-split version](https://huggingface.co/datasets/GPT-NL/DuidelijkeTaal-v1.0-split)
-of the dataset is used to ensure consistency and partially reduce the risk of data
+original dataset contains 1,071 sentence pairs with crowdsourced annotations. A
+[pre-split version](https://huggingface.co/datasets/GPT-NL/DuidelijkeTaal-v1.0-split) of
+the dataset is used to ensure consistency and partially reduce the risk of data
 contamination.
 
 After running the filtering and splitting script (
@@ -1100,5 +1098,5 @@ When evaluating generative models, we use the following setup (see the
 You can evaluate this dataset directly as follows:
 
 ```bash
-euroeval --model <model-id> --dataset duidelijke-taal-nl
+euroeval --model <model-id> --dataset duidelijke-taal
 ```

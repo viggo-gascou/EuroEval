@@ -78,7 +78,7 @@ def main() -> None:
             "test": dataset_filtered["test"].remove_columns(drop_columns),
         }
     )
-    processed_dataset_id = "EuroEval/duidelijke-taal-nl"
+    processed_dataset_id = "EuroEval/duidelijke-taal"
 
     # Remove the dataset from Hugging Face Hub if it already exists
     try:
