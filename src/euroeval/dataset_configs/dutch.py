@@ -163,9 +163,9 @@ WINOGRANDE_NL_CONFIG = DatasetConfig(
 )
 
 DUIDELIJKE_TAAL_NL_CONFIG = DatasetConfig(
-    name="duidelijke-taal-nl",
+    name="duidelijke-taal",
     pretty_name="Duidelijke Taal",
-    source="EuroEval/duidelijke-taal-nl",
+    source="EuroEval/duidelijke-taal",
     task=SIMPL,
     languages=[DUTCH],
     unofficial=True,
