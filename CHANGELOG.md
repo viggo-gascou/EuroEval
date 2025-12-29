@@ -19,6 +19,7 @@ Dutch [DUMB benchmark](https://github.com/wietsedv/dumb)
 - Added new task for simplification and Dutch simplification dataset [Duidelijke
   Taal](http://hdl.handle.net/10032/tm-a2-y8). dataset. This was contributed by
   @simonevanbruggen ✨
+- Added metadata for the Gemini-3 models.
 
 ## [v16.9.0] - 2025-12-16
 
