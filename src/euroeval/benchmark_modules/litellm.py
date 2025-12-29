@@ -759,7 +759,6 @@ class LiteLLMModel(BenchmarkModule):
             where the `idx` corresponds to the index of `conversations`, and `content`
             is either the model response or an Exception.
         """
-        breakpoint()
         # Create a LiteLLM router, which will ensure that we only use a single client
         # for all the requests, preventing "too many open files" errors
         router = Router(
@@ -843,6 +842,12 @@ class LiteLLMModel(BenchmarkModule):
         # Close connections
         semaphore.release()
         router.reset()
+        try:
+            loop = asyncio.get_event_loop()
+            if not loop.is_closed():
+                loop.close()
+        except RuntimeError:
+            pass  # Already closed
 
         return successes, failures
 
