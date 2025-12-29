@@ -784,6 +784,7 @@ class LiteLLMModel(BenchmarkModule):
                             model_id=model_id, benchmark_config=self.benchmark_config
                         ),
                         prompt=input_,
+                        no_log=True,
                         **generation_kwargs,
                     ),
                     semaphore=semaphore,
@@ -804,6 +805,7 @@ class LiteLLMModel(BenchmarkModule):
                             model_id=model_id, benchmark_config=self.benchmark_config
                         ),
                         messages=input_,
+                        no_log=True,
                         **generation_kwargs,
                     ),
                     semaphore=semaphore,
