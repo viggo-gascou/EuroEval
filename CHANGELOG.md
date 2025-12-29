@@ -21,11 +21,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   @simonevanbruggen ✨
 - Added metadata for the Gemini-3 models.
 
-### Fixed
-
-- Added `google-auth` to dependencies, as it is required to load the newest Gemini
-  models.
-
 ## [v16.9.0] - 2025-12-16
 
 ### Added
