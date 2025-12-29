@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   @simonevanbruggen ✨
 - Added metadata for the Gemini-3 models.
 
+### Fixed
+
+- Fixed an issue with evaluations of LiteLLM models where asyncio event loops weren't
+  closed properly, leading to a buildup of file descriptors and eventually a "too many
+  open files" error.
+
 ## [v16.9.0] - 2025-12-16
 
 ### Added
