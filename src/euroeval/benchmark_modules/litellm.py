@@ -517,6 +517,7 @@ class LiteLLMModel(BenchmarkModule):
         response_format_messages = [
             "got an unexpected keyword argument 'response_format'",
             "the model returned empty outputs",
+            "'maxitems' is not supported",
         ]
 
         if (
