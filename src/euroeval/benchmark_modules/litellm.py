@@ -840,12 +840,6 @@ class LiteLLMModel(BenchmarkModule):
         # Close connections
         semaphore.release()
         router.reset()
-        try:
-            loop = asyncio.get_event_loop()
-            if not loop.is_closed():
-                loop.close()
-        except RuntimeError:
-            pass  # Event loop was already closed
 
         return successes, failures
 
