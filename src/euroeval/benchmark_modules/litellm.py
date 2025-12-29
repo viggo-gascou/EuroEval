@@ -840,14 +840,6 @@ class LiteLLMModel(BenchmarkModule):
         # Close connections
         semaphore.release()
         router.reset()
-        for request in requests:
-            if hasattr(request, "close"):
-                try:
-                    request.close()
-                except RuntimeError as e:
-                    log(
-                        f"RuntimeError during request.close(): {e}", level=logging.DEBUG
-                    )
 
         return successes, failures
 
