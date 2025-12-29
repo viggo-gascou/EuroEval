@@ -208,8 +208,8 @@ class LiteLLMModel(BenchmarkModule):
             "thinking",
         ],
         # Gemini models
-        re.compile(r"(gemini/)?gemini-2.5-flash-lite.*"): ["no-thinking", "thinking"],
-        re.compile(r"(gemini/)?gemini-2.5-flash.*"): ["no-thinking", "thinking"],
+        re.compile(r"(gemini/)?gemini-2\.5-flash-lite.*"): ["no-thinking", "thinking"],
+        re.compile(r"(gemini/)?gemini-(2\.5|3)-flash.*"): ["no-thinking", "thinking"],
         # xAI models
         re.compile(r"(xai/)?grok-3-mini(-fast)?(-beta)?"): ["low", "medium", "high"],
     }
