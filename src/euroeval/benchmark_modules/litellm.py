@@ -838,6 +838,8 @@ class LiteLLMModel(BenchmarkModule):
         ]
 
         # Close connections
+        semaphore.release()
+        router.reset()
         for request in requests:
             if hasattr(request, "close"):
                 try:
