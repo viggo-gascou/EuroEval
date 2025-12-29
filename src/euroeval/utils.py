@@ -306,13 +306,15 @@ def safe_run(coroutine: t.Coroutine[t.Any, t.Any, T]) -> T:
     Returns:
         The result of the coroutine.
     """
-    loop = asyncio.new_event_loop()
+    loop: asyncio.AbstractEventLoop | None = None
     try:
+        loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         response = loop.run_until_complete(coroutine)
         return response
     finally:
-        loop.close()
+        if loop is not None:
+            loop.close()
         asyncio.set_event_loop(None)
 
 
