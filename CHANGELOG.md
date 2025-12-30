@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Now set the `duidelijke-taal` dataset as official for Dutch simplification, as it is
+  now included on the leaderboards now. It will thus automatically be run when
+  evaluating any generative model in Dutch.
+
 ## [v16.10.0] - 2025-12-30
 
 ### Added

@@ -74,6 +74,14 @@ HELLASWAG_NL_CONFIG = DatasetConfig(
     languages=[DUTCH],
 )
 
+DUIDELIJKE_TAAL_NL_CONFIG = DatasetConfig(
+    name="duidelijke-taal",
+    pretty_name="Duidelijke Taal",
+    source="EuroEval/duidelijke-taal",
+    task=SIMPL,
+    languages=[DUTCH],
+)
+
 VALEU_NL_CONFIG = DatasetConfig(
     name="valeu-nl",
     pretty_name="VaLEU-nl",
@@ -159,14 +167,5 @@ WINOGRANDE_NL_CONFIG = DatasetConfig(
     task=COMMON_SENSE,
     languages=[DUTCH],
     _labels=["a", "b"],
-    unofficial=True,
-)
-
-DUIDELIJKE_TAAL_NL_CONFIG = DatasetConfig(
-    name="duidelijke-taal",
-    pretty_name="Duidelijke Taal",
-    source="EuroEval/duidelijke-taal",
-    task=SIMPL,
-    languages=[DUTCH],
     unofficial=True,
 )
