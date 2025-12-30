@@ -100,6 +100,10 @@ if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
         StructuredOutputsParams,
     )
 
+if t.TYPE_CHECKING or importlib.util.find_spec("ray") is not None:
+    import ray  # type: ignore[missing-import]
+
+
 if t.TYPE_CHECKING:
     from datasets import DatasetDict
     from transformers.trainer import Trainer
@@ -1008,6 +1012,10 @@ def load_model_and_tokeniser(
 
     clear_vllm()
 
+    distributed_executor_backend, tensor_parallel_size, pipeline_parallel_size = (
+        select_backend_and_parallelism()
+    )
+
     try:
         model = LLM(
             model=(
@@ -1026,8 +1034,9 @@ def load_model_and_tokeniser(
             trust_remote_code=benchmark_config.trust_remote_code,
             revision=revision,
             seed=4242,
-            distributed_executor_backend="mp",
-            tensor_parallel_size=torch.cuda.device_count(),
+            distributed_executor_backend=distributed_executor_backend,
+            tensor_parallel_size=tensor_parallel_size,
+            pipeline_parallel_size=pipeline_parallel_size,
             disable_custom_all_reduce=True,
             quantization=quantization,
             dtype=dtype,
@@ -1430,3 +1439,54 @@ def get_vllm_tokenisation_params(
         config_format=config_format,
         load_format=load_format,
     )
+
+
+def select_backend_and_parallelism() -> tuple[str, int, int]:
+    """Determine the distributed backend and parallelism for vLLM.
+
+    Returns:
+        Tuple containing:
+        - backend (str): "ray" if multi-node Ray is available, else "mp".
+        - tensor_parallel_size (int): Number of GPUs per node.
+        - pipeline_parallel_size (int): Number of stages across nodes.
+    """
+    if not ray.is_initialized():
+        try:
+            ray.init(address="auto", ignore_reinit_error=True)
+        except Exception as e:
+            log_once(
+                f"Ray initialisation failed with a {type(e)} exception: {e}",
+                level=logging.DEBUG,
+            )
+
+    is_ray = ray.is_initialized()
+    local_gpu_count = torch.cuda.device_count()
+
+    if is_ray:
+        resources = ray.cluster_resources()
+        total_gpus = int(resources.get("GPU", 0))
+    else:
+        total_gpus = local_gpu_count
+
+    using_multiple_nodes = total_gpus > local_gpu_count
+    if is_ray and using_multiple_nodes:
+        distributed_executor_backend = "ray"
+        tensor_parallel_size = local_gpu_count if local_gpu_count > 0 else 1
+        pipeline_parallel_size = max(1, total_gpus // tensor_parallel_size)
+        log_once(
+            f"Detected a multi-node setup with {pipeline_parallel_size:,} nodes, each "
+            "with {tensor_parallel_size:,} GPUs, so using `ray` as the "
+            "distributed backend.",
+            level=logging.DEBUG,
+        )
+    else:
+        distributed_executor_backend = "mp"
+        tensor_parallel_size = local_gpu_count if local_gpu_count > 0 else 1
+        pipeline_parallel_size = 1
+        log_once(
+            f"Detected a single-node setup with {tensor_parallel_size:,} GPUs, "
+            "so using the multiprocessing distributed backend.",
+            level=logging.DEBUG,
+        )
+
+    return distributed_executor_backend, tensor_parallel_size, pipeline_parallel_size
