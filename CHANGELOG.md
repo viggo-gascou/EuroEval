@@ -13,12 +13,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   MMS-sq, the linguistic acceptability dataset ScaLA-sq, the named entity recognition
   dataset WikiANN-sq, the reading comprehension dataset MultiWikiQA-sq, the
   summarisation dataset LR-Sum-sq, the knowledge dataset Global-MMLU-Lite-sq,
-  and the common-sense reasoning dataset Winogrande-sq.
+  and the common-sense reasoning dataset Winogrande-sq. This was contributed by
+  @oliverkinch ✨
 - Added the Dutch common sense reasoning dataset COPA-NL, which is part of the Dutch
   [DUMB benchmark](https://github.com/wietsedv/dumb). This was contributed by @tvosch ✨
 - Added new task for simplification and Dutch simplification dataset [Duidelijke
   Taal](http://hdl.handle.net/10032/tm-a2-y8). dataset. This was contributed by
   @simonevanbruggen ✨
+- Added multi-node support with Ray as a backend in this case. This was contributed by
+  @tvosch ✨
 - Added metadata for the Gemini-3 models.
 
 ### Fixed
