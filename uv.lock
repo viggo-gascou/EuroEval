@@ -1020,12 +1020,14 @@ dependencies = [
 all = [
     { name = "bitsandbytes", marker = "sys_platform == 'linux'" },
     { name = "fbgemm-gpu", marker = "sys_platform == 'linux'" },
+    { name = "ray", marker = "sys_platform == 'linux'" },
     { name = "timm" },
     { name = "vllm", extra = ["flashinfer"], marker = "sys_platform == 'linux'" },
 ]
 generative = [
     { name = "bitsandbytes", marker = "sys_platform == 'linux'" },
     { name = "fbgemm-gpu", marker = "sys_platform == 'linux'" },
+    { name = "ray", marker = "sys_platform == 'linux'" },
     { name = "timm" },
     { name = "vllm", extra = ["flashinfer"], marker = "sys_platform == 'linux'" },
 ]
@@ -1094,6 +1096,8 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.6.0" },
     { name = "pyinfer", specifier = ">=0.0.3" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "ray", marker = "sys_platform == 'linux' and extra == 'all'", specifier = ">=2.53.0" },
+    { name = "ray", marker = "sys_platform == 'linux' and extra == 'generative'", specifier = ">=2.53.0" },
     { name = "rouge-score", specifier = ">=0.1.2" },
     { name = "sacrebleu", specifier = ">=2.5.1" },
     { name = "sacremoses", specifier = ">=0.1.1" },
