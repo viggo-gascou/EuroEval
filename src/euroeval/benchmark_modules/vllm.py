@@ -1454,10 +1454,11 @@ def select_backend_and_parallelism() -> tuple[str, int, int]:
         try:
             ray.init(address="auto", ignore_reinit_error=True)
         except Exception as e:
-            log_once(
-                f"Ray initialisation failed with a {type(e)} exception: {e}",
-                level=logging.DEBUG,
-            )
+            if "could not find any running ray instance" not in str(e).lower():
+                log_once(
+                    f"Ray initialisation failed with a {type(e)} exception: {e}",
+                    level=logging.DEBUG,
+                )
 
     is_ray = ray.is_initialized()
     local_gpu_count = torch.cuda.device_count()
