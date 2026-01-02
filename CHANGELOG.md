@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v16.10.1] - 2026-01-02
+
 ### Changed
 
 - Now set the `duidelijke-taal` dataset as official for Dutch simplification, as it is
