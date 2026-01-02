@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   now included on the leaderboards now. It will thus automatically be run when
   evaluating any generative model in Dutch.
 
+### Fixed
+
+- Nynorsk datasets were incorrectly not included when evaluating models in Norwegian.
+  This has been fixed now.
+
 ## [v16.10.0] - 2025-12-30
 
 ### Added
