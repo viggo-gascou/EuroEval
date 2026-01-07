@@ -500,7 +500,8 @@ class VLLMModel(HuggingFaceEncoderModel):
                 log_once(
                     f"Using temperature={temperature} with the model "
                     f"{self.model_config.model_id!r} as specified in its "
-                    "generation configuration."
+                    "generation configuration.",
+                    level=logging.DEBUG,
                 )
             if "top_p" in changed_params:
                 top_p = changed_params["top_p"]
@@ -508,7 +509,8 @@ class VLLMModel(HuggingFaceEncoderModel):
                 log_once(
                     f"Using top_p={top_p} with the model "
                     f"{self.model_config.model_id!r} as specified in its "
-                    "generation configuration."
+                    "generation configuration.",
+                    level=logging.DEBUG,
                 )
             if "top_k" in changed_params:
                 top_k = changed_params["top_k"]
@@ -516,7 +518,8 @@ class VLLMModel(HuggingFaceEncoderModel):
                 log_once(
                     f"Using top_k={top_k} with the model "
                     f"{self.model_config.model_id!r} as specified in its "
-                    "generation configuration."
+                    "generation configuration.",
+                    level=logging.DEBUG,
                 )
             if "repetition_penalty" in changed_params:
                 repetition_penalty = changed_params["repetition_penalty"]
@@ -524,8 +527,10 @@ class VLLMModel(HuggingFaceEncoderModel):
                 log_once(
                     f"Using repetition_penalty={repetition_penalty} with the model "
                     f"{self.model_config.model_id!r} as specified in its "
-                    "generation configuration."
+                    "generation configuration.",
+                    level=logging.DEBUG,
                 )
+
         max_tokens: int = (
             REASONING_MAX_TOKENS
             if self.generative_type == GenerativeType.REASONING
@@ -1024,17 +1029,14 @@ def load_model_and_tokeniser(
     )
 
     try:
+        model_location = (
+            model_id
+            if internet_connection_available() or Path(model_id).is_dir()
+            else resolve_model_path(download_dir=download_dir)
+        )
         model = LLM(
-            model=(
-                model_id
-                if internet_connection_available()
-                else resolve_model_path(download_dir=download_dir)
-            ),
-            tokenizer=(
-                model_id
-                if internet_connection_available()
-                else resolve_model_path(download_dir=download_dir)
-            ),
+            model=model_location,
+            tokenizer=model_location,
             gpu_memory_utilization=benchmark_config.gpu_memory_utilization,
             max_model_len=min(true_max_model_len, MAX_CONTEXT_LENGTH),
             download_dir=download_dir,
