@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Added model metadata for GPT 5.2.
+
 ### Fixed
 
 - More robust detection and handling of errors related to too long inputs for vLLM
