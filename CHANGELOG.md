@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Quantized models in vLLM now have their dtype inferred automatically, removing
   explicit dtype casting based on GPU compute capability. This was contributed by
   @tvosch ✨
+- Some API models need the `logprobs` argument to be a Boolean rather than an integer.
+  This has been fixed now.
 
 ## [v16.10.1] - 2026-01-02
 

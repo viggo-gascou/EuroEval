@@ -483,11 +483,13 @@ class LiteLLMModel(BenchmarkModule):
             "you've reached the maximum number of requests with logprobs",
             "logprobs is not supported",
             "logprobs is not enabled",
-            "Invalid value at 'generation_config.response_logprobs' (TYPE_BOOL)",
         ]
         logprobs_pattern = re.compile(
             r"does not support parameters: \[.*'logprobs'.*\]"
         )
+        logprobs_argument_should_be_bool_messages = [
+            "Invalid value at 'generation_config.response_logprobs' (TYPE_BOOL)"
+        ]
         top_logprobs_messages = ["got an unexpected keyword argument 'top_logprobs'"]
         top_logprobs_pattern = re.compile(
             r"does not support parameters: \[.*'top_logprobs'.*\]"
@@ -547,6 +549,17 @@ class LiteLLMModel(BenchmarkModule):
             generation_kwargs.pop("logprobs", None)
             generation_kwargs.pop("top_logprobs", None)
             generation_kwargs.pop("response_format", None)
+            return generation_kwargs, 0
+        elif any(
+            msg.lower() in error_msg
+            for msg in logprobs_argument_should_be_bool_messages
+        ):
+            log_once(
+                f"The model {model_id!r} requires the `logprobs` argument to be a "
+                "Boolean, so setting it to True.",
+                level=logging.DEBUG,
+            )
+            generation_kwargs["logprobs"] = True
             return generation_kwargs, 0
         elif (
             any(msg.lower() in error_msg for msg in top_logprobs_messages)
