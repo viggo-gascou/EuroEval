@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Added model metadata for GPT 5.2.
 
+### Changed
+
+- When evaluating datasets with no validation split, we now set the `validation_split`
+  in the resulting JSONL file to `null` rather than `True`, to avoid confusion.
+
 ### Fixed
 
 - More robust detection and handling of errors related to too long inputs for vLLM
