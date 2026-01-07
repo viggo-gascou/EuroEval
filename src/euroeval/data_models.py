@@ -623,7 +623,7 @@ class BenchmarkResult(pydantic.BaseModel):
     merge: bool
     generative: bool
     generative_type: str | None
-    few_shot: bool
+    few_shot: bool | None
     validation_split: bool | None
     euroeval_version: str | None = get_package_version("euroeval")
     transformers_version: str | None = get_package_version("transformers")

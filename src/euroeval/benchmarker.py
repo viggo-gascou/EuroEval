@@ -1045,7 +1045,11 @@ class Benchmarker:
                         if model.generative_type is not None
                         else None
                     ),
-                    few_shot=benchmark_config.few_shot,
+                    few_shot=(
+                        None
+                        if dataset_config.task.requires_zero_shot
+                        else benchmark_config.few_shot
+                    ),
                     validation_split=(
                         None
                         if "val" not in dataset_config.splits
@@ -1129,6 +1133,7 @@ def get_record(
         same_split = record.validation_split != benchmark_config.evaluate_test_split
         same_num_shots = (
             record.few_shot == benchmark_config.few_shot
+            or record.few_shot is None
             or not record.generative
             or dataset_config.task.requires_zero_shot
         )
