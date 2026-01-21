@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v16.11.0] - 2026-01-21
+
 ### Added
 
 - Added model metadata for GPT 5.2.
