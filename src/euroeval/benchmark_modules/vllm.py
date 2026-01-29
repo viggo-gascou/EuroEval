@@ -553,7 +553,7 @@ class VLLMModel(HuggingFaceEncoderModel):
         if any(len(prompt) == 0 for prompt in prompts):
             log("Found empty prompts, replacing with BOS token.", level=logging.DEBUG)
             prompts = [
-                prompt if len(prompt) > 0 else str(self._tokeniser.bos_token)
+                prompt if len(prompt) > 0 else str(self._tokeniser.bos_token or "x")
                 for prompt in prompts
             ]
 
