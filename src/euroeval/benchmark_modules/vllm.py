@@ -541,7 +541,7 @@ class VLLMModel(HuggingFaceEncoderModel):
             else None,
             temperature=generation_kwargs["temperature"],
             top_p=generation_kwargs["top_p"],
-            top_k=generation_kwargs["top_k"],
+            top_k=int(generation_kwargs["top_k"]),
             repetition_penalty=generation_kwargs["repetition_penalty"],
             stop=[stop_token for stop_token in stop_tokens if stop_token],
             structured_outputs=structured_outputs,
