@@ -635,6 +635,8 @@ class VLLMModel(HuggingFaceEncoderModel):
                             "Truncation of prompts failed, some prompts are still too "
                             "long."
                         )
+                case _:
+                    raise InvalidBenchmark("The model type is not set!")
         else:
             log(
                 f"Truncation of prompts for model {self.model_config.model_id!r} is "
