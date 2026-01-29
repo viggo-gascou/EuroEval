@@ -550,7 +550,7 @@ class VLLMModel(HuggingFaceEncoderModel):
         # If any of the prompts are empty then we need to replace them with a BOS token
         # so that the vLLM model can generate from them
         prompts: c.Sequence[str] = inputs["text"]
-        if any(len(prompt) == 0 for prompt in prompts):
+        if any(len(prompt.strip()) == 0 for prompt in prompts):
             log("Found empty prompts, replacing with BOS token.", level=logging.DEBUG)
             prompts = [
                 prompt if len(prompt) > 0 else str(self._tokeniser.bos_token or "x")
