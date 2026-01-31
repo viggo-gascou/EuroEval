@@ -152,13 +152,13 @@ def test_prepare_languages(
         ),
         (
             ["linguistic-acceptability", "reading-comprehension"],
-            ["scala-da", "multi-wiki-qa-da", "scandiqa-da"],
+            ["scala-da", "multi-wiki-qa-da", "nordjylland-news"],
             list(get_all_languages().values()),
             [SCALA_DA_CONFIG, MULTI_WIKI_QA_DA_CONFIG],
         ),
         (
             ["linguistic-acceptability", "reading-comprehension"],
-            ["scala-da", "multi-wiki-qa-da", "scandiqa-sv"],
+            ["scala-da", "multi-wiki-qa-da", "multi-wiki-qa-sv"],
             [DANISH],
             [SCALA_DA_CONFIG, MULTI_WIKI_QA_DA_CONFIG],
         ),
