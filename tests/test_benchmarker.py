@@ -9,7 +9,6 @@ from pathlib import Path
 from shutil import rmtree
 
 import pytest
-import torch
 from requests.exceptions import RequestException
 
 from euroeval.benchmarker import (
@@ -62,9 +61,6 @@ def test_benchmark_encoder(
     assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
 
 
-@pytest.mark.skipif(
-    condition=not torch.cuda.is_available(), reason="CUDA is not available."
-)
 @pytest.mark.depends(on=["tests/test_model_loading.py::test_load_generative_model"])
 def test_benchmark_generative(
     benchmarker: Benchmarker, task: Task, language: Language, generative_model_id: str
@@ -77,9 +73,6 @@ def test_benchmark_generative(
     assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
 
 
-@pytest.mark.skipif(
-    condition=not torch.cuda.is_available(), reason="CUDA is not available."
-)
 @pytest.mark.depends(on=["tests/test_model_loading.py::test_load_generative_model"])
 def test_benchmark_generative_adapter(
     benchmarker: Benchmarker,
@@ -141,9 +134,6 @@ def test_benchmark_encoder_no_internet(
 
 # Allow localhost since vllm uses it for some things
 @pytest.mark.allow_hosts(["127.0.0.1"])
-@pytest.mark.skipif(
-    condition=not torch.cuda.is_available(), reason="CUDA is not available."
-)
 @pytest.mark.depends(on=["test_benchmark_generative"])
 def test_benchmark_generative_no_internet(
     task: Task, language: Language, generative_model_id: str
