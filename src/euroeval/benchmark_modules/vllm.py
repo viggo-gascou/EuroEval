@@ -97,6 +97,7 @@ if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
     )
     from vllm.lora.request import LoRARequest
     from vllm.sampling_params import StructuredOutputsParams
+    from vllm.utils import DEFAULT_MAX_NUM_BATCHED_TOKENS
 
 if t.TYPE_CHECKING or importlib.util.find_spec("ray") is not None:
     import ray
@@ -1088,13 +1089,15 @@ def load_model_and_tokeniser(
             if internet_connection_available() or Path(model_id).is_dir()
             else resolve_model_path(download_dir=download_dir)
         )
+        max_model_len = min(
+            true_max_model_len, MAX_CONTEXT_LENGTH + REASONING_MAX_TOKENS
+        )
         model = LLM(
             model=model_location,
             tokenizer=model_location,
             gpu_memory_utilization=benchmark_config.gpu_memory_utilization,
-            max_model_len=min(
-                true_max_model_len, MAX_CONTEXT_LENGTH + REASONING_MAX_TOKENS
-            ),
+            max_model_len=max_model_len,
+            max_num_batched_tokens=max(max_model_len, DEFAULT_MAX_NUM_BATCHED_TOKENS),
             download_dir=download_dir,
             trust_remote_code=benchmark_config.trust_remote_code,
             revision=revision,

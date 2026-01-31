@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   isn't integrated into the `transformers` library.
 - Fixed an issue when a model config had no `pad_token_id` and/or `eos_token_id`.
 - There was an error when evaluating local adapter models, which has been fixed now.
+- Now ensures that the vLLM argument `max_num_batched_tokens` is at least as large as the
+  maximum context length of the model, which gave errors with models that had a maximum
+  context length of less than 8,192.
 
 ## [v16.11.0] - 2026-01-21
 
