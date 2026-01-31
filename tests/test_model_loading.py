@@ -27,7 +27,7 @@ def test_load_non_generative_model(
         benchmark_config=benchmark_config,
     )
     assert model is not None
-    rmtree(path=benchmark_config.cache_dir, ignore_errors=True)
+    rmtree(path=Path(benchmark_config.cache_dir, "model_cache"), ignore_errors=True)
 
 
 def test_load_generative_model(
@@ -45,7 +45,7 @@ def test_load_generative_model(
         benchmark_config=benchmark_config,
     )
     assert model is not None
-    rmtree(path=benchmark_config.cache_dir, ignore_errors=True)
+    rmtree(path=Path(benchmark_config.cache_dir, "model_cache"), ignore_errors=True)
 
 
 def test_load_non_generative_model_with_generative_data(
@@ -64,4 +64,4 @@ def test_load_non_generative_model_with_generative_data(
             ),
             benchmark_config=benchmark_config,
         )
-    rmtree(path=benchmark_config.cache_dir, ignore_errors=True)
+    rmtree(path=Path(benchmark_config.cache_dir, "model_cache"), ignore_errors=True)
