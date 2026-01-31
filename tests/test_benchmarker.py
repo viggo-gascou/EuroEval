@@ -69,7 +69,8 @@ def test_benchmark_generative(
 ) -> None:
     """Test that a generative model can be benchmarked."""
     if not torch.cuda.is_available() and (
-        task.task_group == TaskGroup.SEQUENCE_CLASSIFICATION
+        task.task_group
+        in [TaskGroup.SEQUENCE_CLASSIFICATION, TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION]
         or task.uses_structured_output
     ):
         pytest.skip(
@@ -92,7 +93,8 @@ def test_benchmark_generative_adapter(
 ) -> None:
     """Test that a generative adapter model can be benchmarked."""
     if not torch.cuda.is_available() and (
-        task.task_group == TaskGroup.SEQUENCE_CLASSIFICATION
+        task.task_group
+        in [TaskGroup.SEQUENCE_CLASSIFICATION, TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION]
         or task.uses_structured_output
     ):
         pytest.skip(
@@ -158,7 +160,8 @@ def test_benchmark_generative_no_internet(
 ) -> None:
     """Test that generative models can be benchmarked without internet."""
     if not torch.cuda.is_available() and (
-        task.task_group == TaskGroup.SEQUENCE_CLASSIFICATION
+        task.task_group
+        in [TaskGroup.SEQUENCE_CLASSIFICATION, TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION]
         or task.uses_structured_output
     ):
         pytest.skip(
@@ -185,7 +188,8 @@ def test_benchmark_generative_adapter_no_internet(
 ) -> None:
     """Test that generative adapter models can be benchmarked without internet."""
     if not torch.cuda.is_available() and (
-        task.task_group == TaskGroup.SEQUENCE_CLASSIFICATION
+        task.task_group
+        in [TaskGroup.SEQUENCE_CLASSIFICATION, TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION]
         or task.uses_structured_output
     ):
         pytest.skip(
