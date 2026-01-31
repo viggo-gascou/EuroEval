@@ -1547,6 +1547,9 @@ def select_backend_and_parallelism() -> tuple[str, int, int]:
         - tensor_parallel_size (int): Number of GPUs per node.
         - pipeline_parallel_size (int): Number of stages across nodes.
     """
+    if not torch.cuda.is_available():
+        return "mp", 1, 1
+
     if not ray.is_initialized():
         try:
             ray.init(address="auto", ignore_reinit_error=True)
