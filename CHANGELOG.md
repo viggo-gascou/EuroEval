@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Added the bias detection task (`multiple-choice-stereotype-bias`) with bias,
+  ambiguous accuracy, and bias-adjusted accuracy metrics.
+- Added the `BiasMetric` implementation plus unit tests for MBBQ-style scoring.
+- Added the MBBQ-NL dataset (official) and a creation script for publishing it under the
+  EuroEval organisation on Hugging Face.
+- Added task documentation for bias detection.
 - Added support for vLLM Metal, so that generative models can now be evaluated on Apple
   Silicon. Note that this currently does not support structured generation, which means
   that classification and named entity recognitions tasks unfortunately won't work yet.
