@@ -71,7 +71,6 @@ from ..tokenisation_utils import (
 )
 from ..types import ExtractLabelsFunction, Tokeniser
 from ..utils import (
-    attention_backend,
     clear_memory,
     create_model_cache_dir,
     get_hf_token,
@@ -91,6 +90,8 @@ except ImportError:
 
 if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
     from vllm import LLM, SamplingParams
+    from vllm.config.attention import AttentionConfig
+    from vllm.v1.attention.backends.registry import AttentionBackendEnum
     from vllm.distributed.parallel_state import (
         destroy_distributed_environment,
         destroy_model_parallel,
@@ -109,12 +110,12 @@ if t.TYPE_CHECKING:
     from ..data_models import BenchmarkConfig, DatasetConfig, Task
 
 
-MODELS_REQUIRING_CUSTOM_ATTENTION_BACKENDS: dict[re.Pattern, str] = {
-    re.compile(r".*gpt-oss.*", flags=re.IGNORECASE): "TRITON_ATTN",
-    re.compile(r"google/gemma-3-1b.*", flags=re.IGNORECASE): "TRITON_ATTN",
-    re.compile(r"google/gemma-3n.*", flags=re.IGNORECASE): "TRITON_ATTN",
-    re.compile(r"google/gemma-3-(4|12|27)b.*", flags=re.IGNORECASE): "TRITON_ATTN",
-    re.compile(r"PleIAs/Pleias-3b-Preview", flags=re.IGNORECASE): "TRITON_ATTN",
+MODELS_REQUIRING_CUSTOM_ATTENTION_BACKENDS: dict[re.Pattern, "AttentionBackendEnum"] = {
+    re.compile(r".*gpt-oss.*", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
+    re.compile(r"google/gemma-3-1b.*", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
+    re.compile(r"google/gemma-3n.*", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
+    re.compile(r"google/gemma-3-(4|12|27)b.*", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
+    re.compile(r"PleIAs/Pleias-3b-Preview", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
 }
 
 
@@ -180,22 +181,21 @@ class VLLMModel(HuggingFaceEncoderModel):
             model_config=model_config, allowed_params=self.allowed_params
         )
 
-        # See if the model requires a particular attention backend
-        default_flash_attention_backend = None
+        # Determine the attention backend to use:
+        # Override for models that require a specific backend, otherwise use user's
+        # choice from CLI (defaults to FLASHINFER)
         for pattern, backend in MODELS_REQUIRING_CUSTOM_ATTENTION_BACKENDS.items():
             if re.search(pattern=pattern, string=model_config.model_id):
-                default_flash_attention_backend = backend
+                attention_backend = backend
                 break
+        else:
+            attention_backend = benchmark_config.attention_backend
 
-        with (
-            no_terminal_output(disable=benchmark_config.verbose),
-            attention_backend(
-                value=default_flash_attention_backend,
-                disable=not torch.cuda.is_available(),
-            ),
-        ):
+        with no_terminal_output(disable=benchmark_config.verbose):
             model, tokeniser = load_model_and_tokeniser(
-                model_config=model_config, benchmark_config=benchmark_config
+                model_config=model_config,
+                benchmark_config=benchmark_config,
+                attention_backend=attention_backend,
             )
         self._model: "LLM" = model
         self._tokeniser: Tokeniser = tokeniser
@@ -962,7 +962,9 @@ class VLLMModel(HuggingFaceEncoderModel):
 
 
 def load_model_and_tokeniser(
-    model_config: "ModelConfig", benchmark_config: "BenchmarkConfig"
+    model_config: "ModelConfig",
+    benchmark_config: "BenchmarkConfig",
+    attention_backend: "AttentionBackendEnum",
 ) -> tuple["LLM", Tokeniser]:
     """Load the model and tokeniser.
 
@@ -971,6 +973,8 @@ def load_model_and_tokeniser(
             The model configuration.
         benchmark_config:
             The benchmark configuration.
+        attention_backend:
+            The attention backend to use.
 
     Returns:
         A pair (model, tokeniser), with the loaded model and tokeniser
@@ -1103,6 +1107,8 @@ def load_model_and_tokeniser(
             if internet_connection_available() or Path(model_id).is_dir()
             else resolve_model_path(download_dir=download_dir)
         )
+        attention_config = AttentionConfig(backend=attention_backend)
+
         max_model_len = min(
             true_max_model_len, MAX_CONTEXT_LENGTH + REASONING_MAX_TOKENS
         )
@@ -1128,6 +1134,7 @@ def load_model_and_tokeniser(
             enable_prefix_caching=False,
             enable_lora=model_config.adapter_base_model_id is not None,
             max_lora_rank=256,
+            attention_config=attention_config,
             **vllm_tokenisation_params,
         )
     except (RuntimeError, ValueError, OSError) as e:
@@ -1153,10 +1160,10 @@ def load_model_and_tokeniser(
                 (
                     "Since you're running in verbose mode, you might see a descriptive "
                     "error above already. Note however that if the error message urges "
-                    "you to set the environment variable `VLLM_ATTENTION_BACKEND` to "
-                    "'FLEX_ATTENTION', please try setting it to 'TRITON_ATTN' first, "
-                    "as that often solves the issue, whereas 'FLEX_ATTENTION' usually "
-                    "doesn't. If you don't see any descriptive error above, then you "
+                    "you to use the attention backend 'FLEX_ATTENTION', please try "
+                    "setting it to 'TRITON_ATTN' instead using the `--attention-backend` "
+                    "CLI argument, as that often solves the issue, whereas 'FLEX_ATTENTION' "
+                    "usually doesn't. If you don't see any descriptive error above, then you "
                     "can try "
                 )
                 if benchmark_config.verbose
