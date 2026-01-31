@@ -28,9 +28,8 @@ from euroeval.data_models import (
     Task,
 )
 from euroeval.dataset_configs import get_dataset_config
+from euroeval.enums import TaskGroup
 from euroeval.exceptions import HuggingFaceHubDown
-
-from .enums import TaskGroup
 
 
 @pytest.fixture(scope="module")
