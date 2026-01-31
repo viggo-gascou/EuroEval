@@ -22,7 +22,8 @@ def test_load_non_generative_model(
     model = load_model(
         model_config=model_config,
         dataset_config=get_dataset_config(
-            dataset_name="angry-tweets", custom_datasets_file=Path("custom_datasets.py")
+            dataset_name="multi-wiki-qa-da",
+            custom_datasets_file=Path("custom_datasets.py"),
         ),
         benchmark_config=benchmark_config,
     )
@@ -40,7 +41,8 @@ def test_load_generative_model(
     model = load_model(
         model_config=model_config,
         dataset_config=get_dataset_config(
-            dataset_name="angry-tweets", custom_datasets_file=Path("custom_datasets.py")
+            dataset_name="multi-wiki-qa-da",
+            custom_datasets_file=Path("custom_datasets.py"),
         ),
         benchmark_config=benchmark_config,
     )
