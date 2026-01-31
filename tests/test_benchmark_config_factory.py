@@ -151,19 +151,19 @@ def test_prepare_languages(
             [SCALA_DA_CONFIG],
         ),
         (
-            ["linguistic-acceptability", "sentiment-classification"],
+            ["linguistic-acceptability", "reading-comprehension"],
             ["scala-da", "multi-wiki-qa-da", "scandiqa-da"],
             list(get_all_languages().values()),
             [SCALA_DA_CONFIG, MULTI_WIKI_QA_DA_CONFIG],
         ),
         (
-            ["linguistic-acceptability", "sentiment-classification"],
+            ["linguistic-acceptability", "reading-comprehension"],
             ["scala-da", "multi-wiki-qa-da", "scandiqa-sv"],
             [DANISH],
             [SCALA_DA_CONFIG, MULTI_WIKI_QA_DA_CONFIG],
         ),
         (
-            ["linguistic-acceptability", "sentiment-classification"],
+            ["linguistic-acceptability", "reading-comprehension"],
             None,
             [DANISH],
             [SCALA_DA_CONFIG, MULTI_WIKI_QA_DA_CONFIG],
