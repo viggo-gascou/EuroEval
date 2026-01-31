@@ -91,13 +91,13 @@ except ImportError:
 if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
     from vllm import LLM, SamplingParams
     from vllm.config.attention import AttentionConfig
-    from vllm.v1.attention.backends.registry import AttentionBackendEnum
     from vllm.distributed.parallel_state import (
         destroy_distributed_environment,
         destroy_model_parallel,
     )
     from vllm.lora.request import LoRARequest
     from vllm.sampling_params import StructuredOutputsParams
+    from vllm.v1.attention.backends.registry import AttentionBackendEnum
 
 if t.TYPE_CHECKING or importlib.util.find_spec("ray") is not None:
     import ray
@@ -112,10 +112,18 @@ if t.TYPE_CHECKING:
 
 MODELS_REQUIRING_CUSTOM_ATTENTION_BACKENDS: dict[re.Pattern, "AttentionBackendEnum"] = {
     re.compile(r".*gpt-oss.*", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
-    re.compile(r"google/gemma-3-1b.*", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
-    re.compile(r"google/gemma-3n.*", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
-    re.compile(r"google/gemma-3-(4|12|27)b.*", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
-    re.compile(r"PleIAs/Pleias-3b-Preview", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
+    re.compile(
+        r"google/gemma-3-1b.*", flags=re.IGNORECASE
+    ): AttentionBackendEnum.TRITON_ATTN,
+    re.compile(
+        r"google/gemma-3n.*", flags=re.IGNORECASE
+    ): AttentionBackendEnum.TRITON_ATTN,
+    re.compile(
+        r"google/gemma-3-(4|12|27)b.*", flags=re.IGNORECASE
+    ): AttentionBackendEnum.TRITON_ATTN,
+    re.compile(
+        r"PleIAs/Pleias-3b-Preview", flags=re.IGNORECASE
+    ): AttentionBackendEnum.TRITON_ATTN,
 }
 
 
@@ -1161,10 +1169,10 @@ def load_model_and_tokeniser(
                     "Since you're running in verbose mode, you might see a descriptive "
                     "error above already. Note however that if the error message urges "
                     "you to use the attention backend 'FLEX_ATTENTION', please try "
-                    "setting it to 'TRITON_ATTN' instead using the `--attention-backend` "
-                    "CLI argument, as that often solves the issue, whereas 'FLEX_ATTENTION' "
-                    "usually doesn't. If you don't see any descriptive error above, then you "
-                    "can try "
+                    "setting it to 'TRITON_ATTN' instead using the "
+                    "`--attention-backend` CLI argument, as that often solves the "
+                    "issue, whereas 'FLEX_ATTENTION' usually doesn't. If you don't "
+                    "see any descriptive error above, then you can try "
                 )
                 if benchmark_config.verbose
                 else "Try "

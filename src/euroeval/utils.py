@@ -14,7 +14,7 @@ import socket
 import sys
 import typing as t
 from pathlib import Path
-from types import ModuleType, TracebackType
+from types import ModuleType
 
 import demjson3
 import huggingface_hub as hf_hub

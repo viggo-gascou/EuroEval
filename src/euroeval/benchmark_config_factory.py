@@ -258,9 +258,7 @@ def prepare_device(device: Device | None) -> torch.device:
         return torch.device("cpu")
 
 
-def prepare_attention_backend(
-    attention_backend: str,
-) -> "AttentionBackendEnum":
+def prepare_attention_backend(attention_backend: str) -> "AttentionBackendEnum":
     """Prepare the attention backend.
 
     Args:

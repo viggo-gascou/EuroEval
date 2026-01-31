@@ -531,6 +531,13 @@ A huge thank you to all the contributors who have helped make this project a suc
         alt="Contributor avatar for caldaibis"
     />
 </a>
+<a href="https://github.com/SwekeR-463">
+    <img
+        src="https://avatars.githubusercontent.com/u/114919896?v=4"
+        width=50
+        alt="Contributor avatar for SwekeR-463"
+    />
+</a>
 
 ### Contribute to EuroEval
 
