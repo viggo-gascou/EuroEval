@@ -89,8 +89,14 @@ except ImportError:
     )
 
 if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
+    import vllm.config
+
+    # MacOS/CPU installs an older version of vLLM, which doesn't have the attention
+    # config
+    if hasattr(vllm.config, "attention"):
+        from vllm.config.attention import AttentionConfig
+
     from vllm import LLM, SamplingParams
-    from vllm.config.attention import AttentionConfig
     from vllm.distributed.parallel_state import (
         destroy_distributed_environment,
         destroy_model_parallel,
@@ -1115,7 +1121,14 @@ def load_model_and_tokeniser(
             if internet_connection_available() or Path(model_id).is_dir()
             else resolve_model_path(download_dir=download_dir)
         )
-        attention_config = AttentionConfig(backend=attention_backend)
+
+        # MacOS/CPU installs an older version of vLLM, which doesn't have the attention
+        # config
+        attention_config = (
+            AttentionConfig(backend=attention_backend)
+            if hasattr(vllm.config, "attention")
+            else None
+        )
 
         max_model_len = min(
             true_max_model_len, MAX_CONTEXT_LENGTH + REASONING_MAX_TOKENS
