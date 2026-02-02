@@ -1104,9 +1104,14 @@ def load_model_and_tokeniser(
         model_config=model_config,
         token=get_hf_token(api_key=benchmark_config.api_key),
     )
-    vllm_tokenisation_params = get_vllm_tokenisation_params(
+    vllm_params = get_vllm_tokenisation_params(
         tokeniser=tokeniser, model_config=model_config
     )
+
+    # MacOS/CPU installs an older version of vLLM, which doesn't have the attention
+    # config
+    if hasattr(vllm.config, "attention"):
+        vllm_params["attention_config"] = AttentionConfig(backend=attention_backend)
 
     clear_vllm()
 
@@ -1119,14 +1124,6 @@ def load_model_and_tokeniser(
             model_id
             if internet_connection_available() or Path(model_id).is_dir()
             else resolve_model_path(download_dir=download_dir)
-        )
-
-        # MacOS/CPU installs an older version of vLLM, which doesn't have the attention
-        # config
-        attention_config = (
-            AttentionConfig(backend=attention_backend)
-            if hasattr(vllm.config, "attention")
-            else None
         )
 
         max_model_len = min(
@@ -1154,8 +1151,7 @@ def load_model_and_tokeniser(
             enable_prefix_caching=False,
             enable_lora=model_config.adapter_base_model_id is not None,
             max_lora_rank=256,
-            attention_config=attention_config,
-            **vllm_tokenisation_params,
+            **vllm_params,
         )
     except (RuntimeError, ValueError, OSError) as e:
         if "awaiting a review from the repo authors" in str(e):
