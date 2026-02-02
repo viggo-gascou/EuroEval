@@ -21,6 +21,7 @@ from transformers.models.auto.tokenization_auto import AutoTokenizer
 from urllib3.exceptions import RequestError
 
 from ..constants import (
+    ATTENTION_BACKENDS,
     CUSTOM_STOP_TOKENS,
     GENERATION_KWARGS,
     GENERATIVE_PIPELINE_TAGS,
@@ -103,7 +104,6 @@ if t.TYPE_CHECKING or importlib.util.find_spec("vllm") is not None:
     )
     from vllm.lora.request import LoRARequest
     from vllm.sampling_params import StructuredOutputsParams
-    from vllm.v1.attention.backends.registry import AttentionBackendEnum
 
 if t.TYPE_CHECKING or importlib.util.find_spec("ray") is not None:
     import ray
@@ -116,20 +116,14 @@ if t.TYPE_CHECKING:
     from ..data_models import BenchmarkConfig, DatasetConfig, Task
 
 
-MODELS_REQUIRING_CUSTOM_ATTENTION_BACKENDS: dict[re.Pattern, "AttentionBackendEnum"] = {
-    re.compile(r".*gpt-oss.*", flags=re.IGNORECASE): AttentionBackendEnum.TRITON_ATTN,
-    re.compile(
-        r"google/gemma-3-1b.*", flags=re.IGNORECASE
-    ): AttentionBackendEnum.TRITON_ATTN,
-    re.compile(
-        r"google/gemma-3n.*", flags=re.IGNORECASE
-    ): AttentionBackendEnum.TRITON_ATTN,
-    re.compile(
-        r"google/gemma-3-(4|12|27)b.*", flags=re.IGNORECASE
-    ): AttentionBackendEnum.TRITON_ATTN,
-    re.compile(
-        r"PleIAs/Pleias-3b-Preview", flags=re.IGNORECASE
-    ): AttentionBackendEnum.TRITON_ATTN,
+MODELS_REQUIRING_CUSTOM_ATTENTION_BACKENDS: dict[
+    re.Pattern, t.Literal[*ATTENTION_BACKENDS]  # pyrefly: ignore[invalid-literal]
+] = {
+    re.compile(r".*gpt-oss.*", flags=re.IGNORECASE): "TRITON_ATTN",
+    re.compile(r"google/gemma-3-1b.*", flags=re.IGNORECASE): "TRITON_ATTN",
+    re.compile(r"google/gemma-3n.*", flags=re.IGNORECASE): "TRITON_ATTN",
+    re.compile(r"google/gemma-3-(4|12|27)b.*", flags=re.IGNORECASE): "TRITON_ATTN",
+    re.compile(r"PleIAs/Pleias-3b-Preview", flags=re.IGNORECASE): "TRITON_ATTN",
 }
 
 
@@ -198,10 +192,13 @@ class VLLMModel(HuggingFaceEncoderModel):
         # Determine the attention backend to use:
         # Override for models that require a specific backend, otherwise use user's
         # choice from CLI (defaults to FLASHINFER)
-        for pattern, backend in MODELS_REQUIRING_CUSTOM_ATTENTION_BACKENDS.items():
-            if re.search(pattern=pattern, string=model_config.model_id):
-                attention_backend = backend
-                break
+        if hasattr(vllm.config, "attention"):
+            for pattern, backend in MODELS_REQUIRING_CUSTOM_ATTENTION_BACKENDS.items():
+                if re.search(pattern=pattern, string=model_config.model_id):
+                    attention_backend = backend
+                    break
+            else:
+                attention_backend = benchmark_config.attention_backend
         else:
             attention_backend = benchmark_config.attention_backend
 
@@ -978,7 +975,9 @@ class VLLMModel(HuggingFaceEncoderModel):
 def load_model_and_tokeniser(
     model_config: "ModelConfig",
     benchmark_config: "BenchmarkConfig",
-    attention_backend: "AttentionBackendEnum",
+    attention_backend: t.Literal[
+        *ATTENTION_BACKENDS  # pyrefly: ignore[invalid-literal]
+    ],
 ) -> tuple["LLM", Tokeniser]:
     """Load the model and tokeniser.
 
