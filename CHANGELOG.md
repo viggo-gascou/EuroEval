@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- Now allows all attention backends compatible with vLLM to be used, through the
+  `--attention-backend` CLI option. This was already possible through the Python API,
+  but was artificially restricted in the CLI.
+
 ## [v16.12.0] - 2026-02-02
 
 ### Added
