@@ -12,8 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for Belarusian 🇧🇾! This includes the sentiment classification dataset,
   the linguistic acceptability dataset ScaLA-be, the named entity recognition dataset
   WikiANN-be, the reading comprehension dataset MultiWikiQA-be, and the common-sense
-  reasoning dataset BE-WSC.
-  
+  reasoning dataset BE-WSC. This was added by @oliverkinch ✨
+
 ### Fixed
 
 - Now allows all attention backends compatible with vLLM to be used, through the
@@ -24,13 +24,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- Added the bias detection task (`multiple-choice-stereotype-bias`) along with the Dutch
-  dataset MBBQ-NL. This was added by @caldaibis ✨
-- Added support for vLLM Metal, so that generative models can now be evaluated on Apple
-  Silicon. Note that this currently does not support structured generation, which means
-  that classification and named entity recognitions tasks unfortunately won't work yet.
-  This is due to [this xgrammar
-  issue](https://github.com/vllm-project/vllm/issues/31901).
 - Added the bias detection task (`multiple-choice-stereotype-bias`) along with the Dutch
   dataset MBBQ-NL. This was added by @caldaibis ✨
 - Added support for vLLM Metal, so that generative models can now be evaluated on Apple
