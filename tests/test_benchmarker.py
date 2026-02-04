@@ -2,6 +2,7 @@
 
 import logging
 import os
+import sys
 import time
 from collections.abc import Generator
 from dataclasses import replace
@@ -63,6 +64,10 @@ def test_benchmark_encoder(
     assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
 
 
+@pytest.mark.skipif(
+    condition=sys.platform == "linux" and not torch.cuda.is_available(),
+    reason="Running on Ubuntu but no CUDA available",
+)
 @pytest.mark.depends(on=["tests/test_model_loading.py::test_load_generative_model"])
 def test_benchmark_generative(
     benchmarker: Benchmarker, task: Task, language: Language, generative_model_id: str
@@ -84,6 +89,10 @@ def test_benchmark_generative(
     assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
 
 
+@pytest.mark.skipif(
+    condition=sys.platform == "linux" and not torch.cuda.is_available(),
+    reason="Running on Ubuntu but no CUDA available",
+)
 @pytest.mark.depends(on=["tests/test_model_loading.py::test_load_generative_model"])
 def test_benchmark_generative_adapter(
     benchmarker: Benchmarker,
@@ -152,7 +161,10 @@ def test_benchmark_encoder_no_internet(
     assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
 
 
-# Allow localhost since vllm uses it for some things
+@pytest.mark.skipif(
+    condition=sys.platform == "linux" and not torch.cuda.is_available(),
+    reason="Running on Ubuntu but no CUDA available",
+)
 @pytest.mark.allow_hosts(["127.0.0.1"])
 @pytest.mark.depends(on=["test_benchmark_generative"])
 def test_benchmark_generative_no_internet(
@@ -177,7 +189,10 @@ def test_benchmark_generative_no_internet(
     assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
 
 
-# Allow localhost since vllm uses it for some things
+@pytest.mark.skipif(
+    condition=sys.platform == "linux" and not torch.cuda.is_available(),
+    reason="Running on Ubuntu but no CUDA available",
+)
 @pytest.mark.allow_hosts(["127.0.0.1"])
 @pytest.mark.skip(
     "Benchmarking adapter models without internet access are not implemented yet."
