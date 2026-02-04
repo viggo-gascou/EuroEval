@@ -1144,7 +1144,7 @@ def load_model_and_tokeniser(
             pipeline_parallel_size=pipeline_parallel_size,
             disable_custom_all_reduce=True,
             quantization=quantization,
-            dtype=dtype,
+            dtype=dtype,  # pyrefly: ignore[bad-argument-type]
             enforce_eager=True,
             # TEMP: Prefix caching isn't supported with sliding window in vLLM yet,
             # so we disable it for now
