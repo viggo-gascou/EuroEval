@@ -41,7 +41,6 @@ from requests.exceptions import RequestException
 from tqdm.asyncio import tqdm as tqdm_async
 
 from ..async_utils import add_semaphore_and_catch_exception, safe_run
-from ..caching_utils import cache_arguments
 from ..constants import (
     JSON_STRIP_CHARACTERS,
     LITELLM_CLASSIFICATION_OUTPUT_KEY,
@@ -697,10 +696,10 @@ class LiteLLMModel(BenchmarkModule):
         elif isinstance(
             error, (Timeout, ServiceUnavailableError, InternalServerError, SystemError)
         ):
-            log_once(
-                f"Service temporarily unavailable. The error message was: {error}. "
-                "Retrying in 10 seconds...",
-                level=logging.DEBUG,
+            log(
+                "Service temporarily unavailable during generation. The error "
+                f"message was: {error}. Retrying in 10 seconds...",
+                level=logging.INFO,
             )
             return generation_kwargs, 10
         elif isinstance(error, UnsupportedParamsError):
@@ -760,6 +759,20 @@ class LiteLLMModel(BenchmarkModule):
                 script_argument="api_key=<your-api-key>",
                 run_with_cli=self.benchmark_config.run_with_cli,
             ) from error
+
+        if (
+            isinstance(error, (BadRequestError, NotFoundError))
+            and self.benchmark_config.api_base is not None
+            and not self.benchmark_config.api_base.endswith("/v1")
+        ):
+            log_once(
+                f"The API base {self.benchmark_config.api_base!r} is not valid. We "
+                "will try appending '/v1' to it and try again.",
+                level=logging.DEBUG,
+            )
+            self.benchmark_config.api_base += "/v1"
+            generation_kwargs["api_base"] = self.benchmark_config.api_base
+            return generation_kwargs, 0
 
         raise InvalidBenchmark(
             f"Failed to generate text. The error message was: {error}"
@@ -1387,9 +1400,10 @@ class LiteLLMModel(BenchmarkModule):
                 InternalServerError,
             ) as e:
                 log(
-                    f"Service temporarily unavailable. The error message was: {e}. "
+                    "Service temporarily unavailable while checking for model "
+                    f"existence of the model {model_id!r}. The error message was: {e}. "
                     "Retrying in 10 seconds...",
-                    level=logging.DEBUG,
+                    level=logging.INFO,
                 )
                 sleep(10)
             except APIError as e:
@@ -1564,7 +1578,6 @@ class LiteLLMModel(BenchmarkModule):
 
         return dataset
 
-    @cache_arguments()
     def get_generation_kwargs(self, dataset_config: DatasetConfig) -> dict[str, t.Any]:
         """Get the generation arguments for the model.
 
