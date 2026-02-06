@@ -68,9 +68,10 @@ VALEU_ES_CONFIG = DatasetConfig(
     source="EuroEval/european-values-es",
     task=EUROPEAN_VALUES,
     languages=[SPANISH],
-    splits=["test"],
+    train_split=None,
+    val_split=None,
     bootstrap_samples=False,
-    _instruction_prompt="{text}",
+    instruction_prompt="{text}",
 )
 
 
@@ -127,6 +128,6 @@ WINOGRANDE_ES_CONFIG = DatasetConfig(
     source="EuroEval/winogrande-es",
     task=COMMON_SENSE,
     languages=[SPANISH],
-    _labels=["a", "b"],
+    labels=["a", "b"],
     unofficial=True,
 )

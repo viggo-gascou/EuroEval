@@ -18,7 +18,6 @@ from .benchmark_config_factory import build_benchmark_config
 from .constants import ATTENTION_BACKENDS, GENERATIVE_PIPELINE_TAGS
 from .data_loading import load_data, load_raw_data
 from .data_models import BenchmarkConfigParams, BenchmarkResult
-from .dataset_configs import get_all_dataset_configs
 from .enums import Device, GenerativeType, ModelType
 from .exceptions import HuggingFaceHubDown, InvalidBenchmark, InvalidModel
 from .finetuning import finetune
@@ -28,12 +27,9 @@ from .model_config import get_model_config
 from .model_loading import load_model
 from .scores import log_scores
 from .speed_benchmark import benchmark_speed
+from .string_utils import split_model_id
 from .tasks import SPEED
-from .utils import (
-    enforce_reproducibility,
-    internet_connection_available,
-    split_model_id,
-)
+from .utils import enforce_reproducibility, internet_connection_available
 
 if t.TYPE_CHECKING:
     from .benchmark_modules import BenchmarkModule
@@ -348,7 +344,9 @@ class Benchmarker:
             f"Loading data for {dataset_config.logging_string}", level=logging.INFO
         )
         dataset = load_raw_data(
-            dataset_config=dataset_config, cache_dir=benchmark_config.cache_dir
+            dataset_config=dataset_config,
+            cache_dir=benchmark_config.cache_dir,
+            api_key=benchmark_config.api_key,
         )
         del dataset
 
@@ -792,7 +790,7 @@ class Benchmarker:
 
                 # Update the benchmark config if the dataset requires it
                 if (
-                    "val" not in dataset_config.splits
+                    dataset_config.val_split is None
                     and not benchmark_config.evaluate_test_split
                 ):
                     log(
@@ -1068,7 +1066,7 @@ class Benchmarker:
                     ),
                     validation_split=(
                         None
-                        if "val" not in dataset_config.splits
+                        if dataset_config.val_split is None
                         else not benchmark_config.evaluate_test_split
                     ),
                 )
@@ -1181,29 +1179,6 @@ def clear_model_cache_fn(cache_dir: str) -> None:
             for sub_model_dir in model_dir.iterdir():
                 if sub_model_dir.is_dir():
                     rmtree(sub_model_dir)
-
-
-def prepare_dataset_configs(
-    dataset_names: c.Sequence[str], custom_datasets_file: Path
-) -> c.Sequence["DatasetConfig"]:
-    """Prepare the dataset configuration(s) to be benchmarked.
-
-    Args:
-        dataset_names:
-            The dataset names to benchmark.
-        custom_datasets_file:
-            A path to a Python file containing custom dataset configurations.
-
-    Returns:
-        The prepared list of model IDs.
-    """
-    return [
-        cfg
-        for cfg in get_all_dataset_configs(
-            custom_datasets_file=custom_datasets_file
-        ).values()
-        if cfg.name in dataset_names
-    ]
 
 
 def initial_logging(

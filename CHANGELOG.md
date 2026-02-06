@@ -13,12 +13,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   the linguistic acceptability dataset ScaLA-be, the named entity recognition dataset
   WikiANN-be, the reading comprehension dataset MultiWikiQA-be, and the common-sense
   reasoning dataset BE-WSC. This was added by @oliverkinch ✨
+- Added support for evaluating Hugging Face dataset repos directly, if they have a
+  `euroeval_config.py` file. We plan to allow support for a JSON/YAML config file in the
+  future, for simpler datasets.
+
+### Changed
+
+- Replaced all `DatasetConfig` arguments starting with underscores with their
+  non-underscored version (e.g., `_labels` -> `labels`), as this caused some confusion
+  when defining custom datasets. We still maintain the underscored versions for
+  backwards compatibility, but raise a warning when using them.
 
 ### Fixed
 
 - Now allows all attention backends compatible with vLLM to be used, through the
   `--attention-backend` CLI option. This was already possible through the Python API,
   but was artificially restricted in the CLI.
+
+### Deprecated
+
+- All underscored versions of `DatasetConfig` arguments are deprecated. Please use their
+  non-underscored version instead.
 
 ## [v16.12.0] - 2026-02-02
 

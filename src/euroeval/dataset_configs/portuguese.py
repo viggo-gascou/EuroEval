@@ -12,7 +12,7 @@ SST2_PT_CONFIG = DatasetConfig(
     source="EuroEval/sst2-pt-mini",
     task=SENT,
     languages=[PORTUGUESE, EUROPEAN_PORTUGUESE],
-    _labels=["positive", "negative"],
+    labels=["positive", "negative"],
 )
 
 SCALA_PT = DatasetConfig(
@@ -69,9 +69,10 @@ VALEU_PT_CONFIG = DatasetConfig(
     source="EuroEval/european-values-pt",
     task=EUROPEAN_VALUES,
     languages=[PORTUGUESE, EUROPEAN_PORTUGUESE],
-    splits=["test"],
+    train_split=None,
+    val_split=None,
     bootstrap_samples=False,
-    _instruction_prompt="{text}",
+    instruction_prompt="{text}",
 )
 
 
@@ -92,6 +93,6 @@ WINOGRANDE_PT_CONFIG = DatasetConfig(
     source="EuroEval/winogrande-pt",
     task=COMMON_SENSE,
     languages=[PORTUGUESE, EUROPEAN_PORTUGUESE],
-    _labels=["a", "b"],
+    labels=["a", "b"],
     unofficial=True,
 )

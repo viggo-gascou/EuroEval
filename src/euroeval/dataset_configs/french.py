@@ -12,8 +12,8 @@ ALLOCINE_CONFIG = DatasetConfig(
     source="EuroEval/allocine-mini",
     task=SENT,
     languages=[FRENCH],
-    _labels=["negative", "positive"],
-    _prompt_label_mapping=dict(positive="positif", negative="négatif"),
+    labels=["negative", "positive"],
+    prompt_label_mapping=dict(positive="positif", negative="négatif"),
 )
 
 SCALA_FR_CONFIG = DatasetConfig(
@@ -70,9 +70,10 @@ VALEU_FR_CONFIG = DatasetConfig(
     source="EuroEval/european-values-fr",
     task=EUROPEAN_VALUES,
     languages=[FRENCH],
-    splits=["test"],
+    train_split=None,
+    val_split=None,
     bootstrap_samples=False,
-    _instruction_prompt="{text}",
+    instruction_prompt="{text}",
 )
 
 
@@ -111,6 +112,6 @@ WINOGRANDE_FR_CONFIG = DatasetConfig(
     source="EuroEval/winogrande-fr",
     task=COMMON_SENSE,
     languages=[FRENCH],
-    _labels=["a", "b"],
+    labels=["a", "b"],
     unofficial=True,
 )

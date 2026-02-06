@@ -243,11 +243,17 @@ the output column name depends on the type of task:
 - **Reading comprehension**: `answers`
 - **Free-form text generation**: `target_text`
 
-Text and multiple-choice classification tasks are by far the most common. Next, you
-store your three dataset splits as three different CSV files with the desired two
-columns. Finally, you create a file called `custom_datasets.py` script in which you
-define the associated `DatasetConfig` objects for your dataset. Here is an example of a
-simple text classification dataset with two classes:
+Text and multiple-choice classification tasks are by far the most common. Then you can
+decide whether your dataset should be accessible locally (good for testing, and good for
+sensitive datasets), or accessible via the Hugging Face Hub (good for allowing others to
+benchmark on your dataset).
+
+/// tab | Local dataset
+
+For a local dataset, you store your three dataset splits as three different CSV files
+with the desired two columns, and then you create a file called `custom_datasets.py`
+in which you define the associated `DatasetConfig` objects for your dataset. Here
+is an example of a simple text classification dataset with two classes:
 
 ```python title="custom_datasets.py"
 from euroeval import DatasetConfig, TEXT_CLASSIFICATION
@@ -259,7 +265,7 @@ MY_CONFIG = DatasetConfig(
     source=dict(train="train.csv", val="val.csv", test="test.csv"),
     task=TEXT_CLASSIFICATION,
     languages=[ENGLISH],
-    _labels=["positive", "negative"],
+    labels=["positive", "negative"],
 )
 ```
 
@@ -279,18 +285,64 @@ benchmarker = Benchmarker()
 benchmarker.benchmark(model="<model-id>", dataset=MY_CONFIG)
 ```
 
+///
+/// tab | Hugging Face Hub dataset
+
+For a dataset that is accessible via the Hugging Face Hub, you simply need to create a
+file called `euroeval_config.py` in the root of your repository, in which you define
+the associated dataset configuration. Note that you don't need to specify the `name`,
+`pretty_name` or `source` arguments in this case, as these are automatically inferred
+from the repository name. Here is an example of a simple text classification
+dataset with two classes:
+
+```python title="euroeval_config.py"
+from euroeval import DatasetConfig, TEXT_CLASSIFICATION
+from euroeval.languages import ENGLISH
+
+CONFIG = DatasetConfig(
+    task=TEXT_CLASSIFICATION,
+    languages=[ENGLISH],
+    labels=["positive", "negative"],
+)
+```
+
+You can then benchmark your custom dataset by simply running
+
+```bash
+euroeval --dataset <org-id>/<repo-id> --model <model-id>
+```
+
+You can also run the benchmark from a Python script, by simply providing your repo ID to
+the `benchmark` method:
+
+```python
+from euroeval import Benchmarker
+
+benchmarker = Benchmarker()
+benchmarker.benchmark(model="<model-id>", dataset="<org-id>/<repo-id>")
+```
+
+You can try it out with our [test
+dataset](https://huggingface.co/datasets/EuroEval/test_dataset):
+
+```bash
+euroeval --dataset EuroEval/test_dataset --model <model-id>
+```
+
+///
+
 We have included three convenience tasks to make it easier to set up custom datasets:
 
 - `TEXT_CLASSIFICATION`, which is used for text classification tasks. This requires you
-  to set the `_labels` argument in the `DatasetConfig`, and requires the columns `text`
+  to set the `labels` argument in the `DatasetConfig`, and requires the columns `text`
   and `label` to be present in the dataset.
 - `MULTIPLE_CHOICE`, which is used for multiple-choice classification tasks. This
-  also requires you to set the `_labels` argument in the `DatasetConfig`. Note that for
+  also requires you to set the `labels` argument in the `DatasetConfig`. Note that for
   multiple choice tasks, you need to set up your `text` column to also list all the
   choices, and all the samples should have the same number of choices. This requires the
   columns `text` and `label` to be present in the dataset.
 - `TOKEN_CLASSIFICATION`, which is used when classifying individual tokens in a text.
-  This also require you to set the `_labels` argument in the `DatasetConfig`. This
+  This also require you to set the `labels` argument in the `DatasetConfig`. This
   requires the columns `tokens` and `labels` to be present in the dataset, where
   `tokens` is a list of tokens/words in the text, and `labels` is a list of the
   corresponding labels for each token (so the two lists have the same length).
