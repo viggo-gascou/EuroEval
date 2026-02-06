@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Now allows all attention backends compatible with vLLM to be used, through the
   `--attention-backend` CLI option. This was already possible through the Python API,
   but was artificially restricted in the CLI.
+- When intialising a custom `Task` object, we now default the `default_labels` argument
+  to `None`, to not require the user to specify them manually.
 
 ### Deprecated
 
