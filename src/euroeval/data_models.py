@@ -101,7 +101,7 @@ class Task:
             using few-shot evaluation.
         default_labels:
             The default labels for datasets using this task. Can be None if the labels
-            should be set manually in the dataset configs. Defaults to None.
+            should be set manually in the dataset configs. Defaults to an empty tuple.
         requires_zero_shot (optional):
             Whether to only allow zero-shot evaluation for this task. If True, the
             task will not be evaluated using few-shot examples.
@@ -138,7 +138,7 @@ class Task:
     metrics: c.Sequence[Metric]
     default_num_few_shot_examples: int
     default_max_generated_tokens: int
-    default_labels: c.Sequence[str] | None = None
+    default_labels: c.Sequence[str] | None = tuple()
     requires_zero_shot: bool = False
     uses_structured_output: bool = False
     uses_logprobs: bool = False

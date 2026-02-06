@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   `--attention-backend` CLI option. This was already possible through the Python API,
   but was artificially restricted in the CLI.
 - When intialising a custom `Task` object, we now default the `default_labels` argument
-  to `None`, to not require the user to specify them manually.
+  to an empty list.
 
 ### Deprecated
 
