@@ -99,7 +99,7 @@ class Task:
         default_max_generated_tokens:
             The default maximum number of tokens to generate when benchmarking the task
             using few-shot evaluation.
-        default_labels:
+        default_labels (optional):
             The default labels for datasets using this task. Can be None if the labels
             should be set manually in the dataset configs. Defaults to an empty tuple.
         requires_zero_shot (optional):
