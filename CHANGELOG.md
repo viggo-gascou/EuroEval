@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Now also logs the number of skipped and errored benchmarks at the end of the
   benchmarking.
-- Now logs a suggested dataset name if a user specified a dataset that is not found in
-  the benchmark datasets, but a dataset exists with a similar name.
+- Now logs a suggested dataset/task name if a user specified a dataset/task that is not
+  found, but one exists with a similar name.
 
 ## [v16.13.0] - 2026-02-06
 

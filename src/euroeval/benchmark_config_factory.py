@@ -2,6 +2,7 @@
 
 import collections.abc as c
 import importlib.util
+import logging
 import sys
 import typing as t
 from pathlib import Path
@@ -12,8 +13,8 @@ from .closest_match import get_closest_match
 from .data_models import BenchmarkConfig, BenchmarkConfigParams, DatasetConfig, Task
 from .dataset_configs import get_all_dataset_configs
 from .enums import Device
-from .exceptions import InvalidBenchmark
 from .languages import get_all_languages
+from .logging_utils import log
 
 if importlib.util.find_spec("vllm") is not None:
     pass
@@ -185,10 +186,6 @@ def prepare_dataset_configs(
 
     Returns:
         The prepared dataset configs.
-
-    Raises:
-        InvalidBenchmark:
-            If the task or dataset is not found in the benchmark tasks or datasets.
     """
     # Extract the dataset IDs from the `dataset` argument
     dataset_ids: list[str] = list()
@@ -235,7 +232,8 @@ def prepare_dataset_configs(
         msg = f"Dataset {e} not found in the benchmark datasets."
         if closest_distance < 5:
             msg += f" Maybe you meant to use {closest_match!r}?"
-        raise InvalidBenchmark(msg) from e
+        log(msg, level=logging.ERROR)
+        sys.exit(1)
 
     # Create the list of dataset tasks
     task_mapping = {cfg.task.name: cfg.task for cfg in all_dataset_configs.values()}
@@ -249,7 +247,14 @@ def prepare_dataset_configs(
         else:
             tasks = [task_mapping[t] if isinstance(t, str) else t for t in task]
     except KeyError as e:
-        raise InvalidBenchmark(f"Task {e} not found in the benchmark tasks.") from e
+        closest_match, closest_distance = get_closest_match(
+            string=e.args[0], options=list(task_mapping.keys()), case_sensitive=False
+        )
+        msg = f"Task {e} not found in the benchmark tasks."
+        if closest_distance < 5:
+            msg += f" Maybe you meant to use {closest_match!r}?"
+        log(msg, level=logging.ERROR)
+        sys.exit(1)
 
     # Filter the dataset configs based on the specified tasks and languages
     datasets = [
