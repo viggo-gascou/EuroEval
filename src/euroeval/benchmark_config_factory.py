@@ -234,7 +234,7 @@ def prepare_dataset_configs(
         )
         msg = f"Dataset {e} not found in the benchmark datasets."
         if closest_distance < 5:
-            msg += f" Maybe you meant to use {closest_match}?"
+            msg += f" Maybe you meant to use {closest_match!r}?"
         raise InvalidBenchmark(msg) from e
 
     # Create the list of dataset tasks
