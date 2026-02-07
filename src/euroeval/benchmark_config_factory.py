@@ -8,6 +8,7 @@ from pathlib import Path
 
 import torch
 
+from .closest_match import get_closest_match
 from .data_models import BenchmarkConfig, BenchmarkConfigParams, DatasetConfig, Task
 from .dataset_configs import get_all_dataset_configs
 from .enums import Device
@@ -226,9 +227,15 @@ def prepare_dataset_configs(
                 all_dataset_configs[d] if isinstance(d, str) else d for d in dataset
             ]
     except KeyError as e:
-        raise InvalidBenchmark(
-            f"Dataset {e} not found in the benchmark datasets."
-        ) from e
+        closest_match, closest_distance = get_closest_match(
+            string=e.args[0],
+            options=list(all_dataset_configs.keys()),
+            case_sensitive=False,
+        )
+        msg = f"Dataset {e} not found in the benchmark datasets."
+        if closest_distance < 5:
+            msg += f" Maybe you meant to use {closest_match}?"
+        raise InvalidBenchmark(msg) from e
 
     # Create the list of dataset tasks
     task_mapping = {cfg.task.name: cfg.task for cfg in all_dataset_configs.values()}
