@@ -31,7 +31,11 @@ from euroeval.tasks import LA
 
 @pytest.fixture(scope="module")
 def all_official_dataset_configs() -> Generator[list[DatasetConfig], None, None]:
-    """Fixture for all official dataset configurations."""
+    """Fixture for all official dataset configurations.
+
+    Yields:
+        A list of all official dataset configurations.
+    """
     yield [
         cfg
         for cfg in get_all_dataset_configs(
@@ -46,7 +50,11 @@ def all_official_dataset_configs() -> Generator[list[DatasetConfig], None, None]
 
 @pytest.fixture(scope="module")
 def all_official_la_dataset_configs() -> Generator[list[DatasetConfig], None, None]:
-    """Fixture for all linguistic acceptability dataset configurations."""
+    """Fixture for all linguistic acceptability dataset configurations.
+
+    Yields:
+        A list of all linguistic acceptability dataset configurations.
+    """
     yield [
         cfg
         for cfg in get_all_dataset_configs(

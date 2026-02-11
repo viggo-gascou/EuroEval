@@ -4,7 +4,7 @@ from ..data_models import DatasetConfig
 from ..languages import DANISH
 from ..tasks import COMMON_SENSE, EUROPEAN_VALUES, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
-### Official datasets ###
+# Official datasets ###
 
 ANGRY_TWEETS_CONFIG = DatasetConfig(
     name="angry-tweets",
@@ -82,7 +82,7 @@ VALEU_DA_CONFIG = DatasetConfig(
 )
 
 
-### Unofficial datasets ###
+# Unofficial datasets ###
 
 DANE_CONFIG = DatasetConfig(
     name="dane",
