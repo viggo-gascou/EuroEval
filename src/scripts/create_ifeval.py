@@ -25,7 +25,17 @@ LANGUAGES = {
 def stratified_split(
     dataset: Dataset, label_key: str, test_size: float, seed: int
 ) -> DatasetDict:
-    """Split ensuring all label types appear in both splits."""
+    """Split ensuring all label types appear in both splits.
+
+    Args:
+        dataset: The dataset to split.
+        label_key: The key in each row to use for stratification.
+        test_size: The proportion of the dataset to include in the test split.
+        seed: The seed to use for shuffling the dataset.
+
+    Returns:
+        The split dataset.
+    """
     random.seed(seed)
     indices = list(range(len(dataset)))
     random.shuffle(indices)
@@ -59,7 +69,15 @@ def stratified_split(
 
 
 def verify_split(split_ds: DatasetDict, label_key: str) -> bool:
-    """Verify all label types appear in both splits. Returns True if valid."""
+    """Verify all label types appear in both splits. Returns True if valid.
+
+    Args:
+        split_ds: The split dataset.
+        label_key: The key in each row to use for stratification.
+
+    Returns:
+        True if all label types appear in both splits, False otherwise.
+    """
     val_labels: set[str] = set()
     test_labels: set[str] = set()
 
@@ -87,7 +105,21 @@ def stratified_split_with_retry(
     seed: int,
     max_retries: int = 100,
 ) -> DatasetDict:
-    """Split with retry on different seeds until verification passes."""
+    """Split with retry on different seeds until verification passes.
+
+    Args:
+        dataset: The dataset to split.
+        label_key: The key in each row to use for stratification.
+        test_size: The proportion of the dataset to include in the test split.
+        seed: The initial seed to use for the random split.
+        max_retries: The maximum number of times to retry with different seeds.
+
+    Returns:
+        The split dataset.
+
+    Raises:
+        ValueError: If the maximum number of retries is reached without a valid split.
+    """
     for attempt in range(max_retries):
         current_seed = seed + attempt
         split_ds = stratified_split(dataset, label_key, test_size, current_seed)
@@ -112,6 +144,14 @@ def main() -> None:
         )
 
         def transform(row: dict) -> dict:
+            """Transform the dataset to match the expected format.
+
+            Args:
+                row: The row to transform.
+
+            Returns:
+                The transformed row.
+            """
             return {
                 "text": row["prompt"],
                 "target_text": {

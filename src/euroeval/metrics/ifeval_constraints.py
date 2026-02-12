@@ -55,7 +55,24 @@ def check_keyword_existence(response: str, *, keywords: list[str], **_) -> bool:
 def check_keyword_frequency(
     response: str, *, keyword: str, frequency: int, relation: Relation, **_
 ) -> bool:
-    """Check keyword appears with required frequency."""
+    """Check keyword appears with required frequency.
+
+    Args:
+        response:
+            The response string to check.
+        keyword:
+            The keyword pattern to search for (case-insensitive).
+        frequency:
+            The required frequency of the keyword.
+        relation:
+            The relation to compare the actual frequency against the required frequency.
+
+    Returns:
+        True if the keyword appears with the required frequency, False otherwise.
+
+    Raises:
+        ValueError: If keyword or frequency is not provided.
+    """
     if not keyword:
         raise ValueError("keyword must be provided")
     actual = len(re.findall(keyword, response, flags=re.IGNORECASE))
@@ -550,10 +567,6 @@ def check_instruction_following(
     Returns:
         A list of booleans, one per supported instruction, indicating whether
         the response satisfies each instruction. Unsupported instructions are skipped.
-
-    Raises:
-        KeyError: If an instruction_id is not found in instruction_checkers and is
-        not in SKIPPED_INSTRUCTIONS.
     """
     results = []
     for instruction_id, kwargs in zip(instruction_id_list, kwargs_list):
@@ -592,7 +605,18 @@ class IFEvalInstructionAccuracy(Metric):
         dataset_config: "DatasetConfig",
         benchmark_config: "BenchmarkConfig",
     ) -> float | None:
-        """Calculate instruction-level accuracy."""
+        """Calculate instruction-level accuracy.
+
+        Args:
+            predictions: The model's predictions.
+            references: The reference data.
+            dataset: The dataset.
+            dataset_config: The dataset configuration.
+            benchmark_config: The benchmark configuration.
+
+        Returns:
+            The instruction-level accuracy.
+        """
         all_results: list[bool] = []
         for pred, ref in zip(predictions, references):
             results = check_instruction_following(
