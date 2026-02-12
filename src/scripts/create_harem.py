@@ -18,7 +18,6 @@ from collections import Counter
 import pandas as pd
 from datasets import Dataset, DatasetDict, Split
 from huggingface_hub import HfApi
-from requests import HTTPError
 
 logging.basicConfig(format="%(asctime)s ⋅ %(message)s", level=logging.INFO)
 logger = logging.getLogger("create_harem")
@@ -119,11 +118,11 @@ def main() -> None:
         test_size = TEST_SIZE
 
     # Create splits
-    train_df = df[:train_size].reset_index(drop=True)
-    val_df = df[train_size : train_size + val_size].reset_index(drop=True)
-    test_df = df[train_size + val_size : train_size + val_size + test_size].reset_index(
-        drop=True
-    )
+    train_df = df.iloc[:train_size].reset_index(drop=True)
+    val_df = df.iloc[train_size : train_size + val_size].reset_index(drop=True)
+    test_df = df.iloc[
+        train_size + val_size : train_size + val_size + test_size
+    ].reset_index(drop=True)
 
     logger.info("\nDataset splits:")
     logger.info(f"  Train: {len(train_df)} examples")
@@ -149,20 +148,18 @@ def main() -> None:
 
     # Create dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
     # Create dataset ID
     dataset_id = "EuroEval/harem"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     logger.info(f"\nUploading dataset to {dataset_id}...")
@@ -279,7 +276,7 @@ def _reconstruct_text(tokens: list[str]) -> str:
     if not tokens:
         return ""
 
-    result = []
+    result: list[str] = []
     for i, token in enumerate(tokens):
         if i == 0:
             # First token always gets added as-is

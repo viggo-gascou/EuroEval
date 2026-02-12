@@ -1,12 +1,14 @@
 """Command-line interface for benchmarking."""
 
+from pathlib import Path
+
 import click
 
 from .benchmarker import Benchmarker
-from .dataset_configs import get_all_dataset_configs
-from .enums import Device
+from .constants import ATTENTION_BACKENDS
+from .data_models import DatasetConfig
+from .enums import Device, GenerativeType
 from .languages import get_all_languages
-from .tasks import get_all_tasks
 
 
 @click.command()
@@ -23,7 +25,6 @@ from .tasks import get_all_tasks
     default=None,
     show_default=True,
     multiple=True,
-    type=click.Choice(list(get_all_tasks().keys())),
     help="The dataset tasks to benchmark the model(s) on.",
 )
 @click.option(
@@ -38,42 +39,18 @@ from .tasks import get_all_tasks
     models will be benchmarked on all datasets.""",
 )
 @click.option(
-    "--model-language",
-    "-ml",
-    default=None,
-    show_default=True,
-    multiple=True,
-    metavar="ISO 639-1 LANGUAGE CODE",
-    type=click.Choice(["all"] + list(get_all_languages().keys())),
-    help="""The model languages to benchmark. If not specified then this will use the
-    `language` value.""",
-)
-@click.option(
-    "--dataset-language",
-    "-dl",
-    default=None,
-    show_default=True,
-    multiple=True,
-    metavar="ISO 639-1 LANGUAGE CODE",
-    type=click.Choice(["all"] + list(get_all_languages().keys())),
-    help="""The dataset languages to benchmark. If "all" then the models will be
-    benchmarked on all datasets. If not specified then this will use the `language`
-    value.""",
-)
-@click.option(
     "--dataset",
     default=None,
     show_default=True,
     multiple=True,
-    type=click.Choice(list(get_all_dataset_configs().keys())),
     help="""The name of the benchmark dataset. We recommend to use the `task` and
     `language` options instead of this option.""",
 )
 @click.option(
-    "--batch-size",
+    "--finetuning-batch-size",
     default="32",
     type=click.Choice(["1", "2", "4", "8", "16", "32"]),
-    help="The batch size to use.",
+    help="The batch size to use for finetuning.",
 )
 @click.option(
     "--progress-bar/--no-progress-bar",
@@ -188,11 +165,46 @@ from .tasks import get_all_tasks
 )
 @click.option(
     "--gpu-memory-utilization",
-    default=0.9,
+    default=0.8,
     show_default=True,
     help="The GPU memory utilization to use for vLLM. A larger value will result in "
     "faster evaluation, but at the risk of running out of GPU memory. Only reduce this "
     "if you are running out of GPU memory. Only relevant if the model is generative.",
+)
+@click.option(
+    "--attention-backend",
+    default="FLASHINFER",
+    show_default=True,
+    type=click.Choice(ATTENTION_BACKENDS, case_sensitive=True),
+    help="The attention backend to use for vLLM. Only relevant if the model is "
+    "generative.",
+)
+@click.option(
+    "--requires-safetensors",
+    is_flag=True,
+    help="Only allow loading models that have safetensors weights available",
+    default=False,
+)
+@click.option(
+    "--generative-type",
+    type=click.Choice(["base", "instruction_tuned", "reasoning"]),
+    default=None,
+    show_default=True,
+    help="The type of generative model. Only relevant if the model is generative. If "
+    "not specified, the type will be inferred automatically.",
+)
+@click.option(
+    "--custom-datasets-file",
+    type=click.Path(exists=False, dir_okay=False, path_type=Path),
+    default="custom_datasets.py",
+    show_default=True,
+    help="A Python file defining custom datasets to be used in the benchmark.",
+)
+@click.option(
+    "--download-only",
+    is_flag=True,
+    help="Only download the requested model weights and datasets, and exit.",
+    default=False,
 )
 @click.option(
     "--debug/--no-debug",
@@ -203,20 +215,39 @@ from .tasks import get_all_tasks
     "relevant if the model is generative.",
 )
 @click.option(
-    "--only-allow-safetensors",
-    is_flag=True,
-    help="Only allow loading models that have safetensors weights available",
-    default=False,
+    "--model-language",
+    "-ml",
+    default=None,
+    show_default=True,
+    multiple=True,
+    metavar="ISO 639-1 LANGUAGE CODE",
+    type=click.Choice(["all"] + list(get_all_languages().keys())),
+    help="""This option is deprecated - please use --language instead.""",
+)
+@click.option(
+    "--dataset-language",
+    "-dl",
+    default=None,
+    show_default=True,
+    multiple=True,
+    metavar="ISO 639-1 LANGUAGE CODE",
+    type=click.Choice(["all"] + list(get_all_languages().keys())),
+    help="""This option is deprecated - please use --language instead.""",
+)
+@click.option(
+    "--batch-size",
+    default=None,
+    type=click.Choice(["1", "2", "4", "8", "16", "32"]),
+    help="This option is deprecated - please use --finetuning-batch-size instead.",
+    deprecated=True,
 )
 def benchmark(
     model: tuple[str],
-    dataset: tuple[str],
+    dataset: tuple[str | DatasetConfig],
     language: tuple[str],
-    model_language: tuple[str],
-    dataset_language: tuple[str],
     raise_errors: bool,
     task: tuple[str],
-    batch_size: str,
+    finetuning_batch_size: str,
     progress_bar: bool,
     save_results: bool,
     cache_dir: str,
@@ -232,26 +263,22 @@ def benchmark(
     api_base: str | None,
     api_version: str | None,
     gpu_memory_utilization: float,
+    attention_backend: str,
+    requires_safetensors: bool,
+    generative_type: str | None,
+    custom_datasets_file: Path,
+    download_only: bool,
     debug: bool,
-    only_allow_safetensors: bool,
+    model_language: tuple[str],
+    dataset_language: tuple[str],
+    batch_size: str | None,
 ) -> None:
     """Benchmark pretrained language models on language tasks."""
-    models = list(model)
-    datasets = None if len(dataset) == 0 else list(dataset)
-    languages: list[str] = list(language)
-    model_languages = None if len(model_language) == 0 else list(model_language)
-    dataset_languages = None if len(dataset_language) == 0 else list(dataset_language)
-    tasks = None if len(task) == 0 else list(task)
-    batch_size_int = int(batch_size)
-    device = Device[device.upper()] if device is not None else None
-
-    benchmarker = Benchmarker(
-        language=languages,
-        model_language=model_languages,
-        dataset_language=dataset_languages,
-        task=tasks,
-        dataset=datasets,
-        batch_size=batch_size_int,
+    Benchmarker(
+        language=list(language),
+        task=None if len(task) == 0 else list(task),
+        dataset=None if len(dataset) == 0 else list(dataset),
+        finetuning_batch_size=int(finetuning_batch_size),
         progress_bar=progress_bar,
         save_results=save_results,
         raise_errors=raise_errors,
@@ -259,7 +286,7 @@ def benchmark(
         api_key=api_key,
         force=force,
         cache_dir=cache_dir,
-        device=device,
+        device=Device[device.upper()] if device is not None else None,
         trust_remote_code=trust_remote_code,
         clear_model_cache=clear_model_cache,
         evaluate_test_split=evaluate_test_split,
@@ -268,13 +295,19 @@ def benchmark(
         api_base=api_base,
         api_version=api_version,
         gpu_memory_utilization=gpu_memory_utilization,
+        attention_backend=attention_backend,
+        generative_type=GenerativeType[generative_type.upper()]
+        if generative_type
+        else None,
+        custom_datasets_file=custom_datasets_file,
         debug=debug,
         run_with_cli=True,
-        only_allow_safetensors=only_allow_safetensors,
-    )
-
-    # Perform the benchmark evaluation
-    benchmarker.benchmark(model=models)
+        requires_safetensors=requires_safetensors,
+        download_only=download_only,
+        model_language=None if len(model_language) == 0 else list(model_language),
+        dataset_language=None if len(dataset_language) == 0 else list(dataset_language),
+        batch_size=int(batch_size) if batch_size is not None else None,
+    ).benchmark(model=list(model))
 
 
 if __name__ == "__main__":

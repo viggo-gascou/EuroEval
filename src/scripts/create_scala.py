@@ -14,32 +14,47 @@
 import random
 import re
 import warnings
-from typing import List, Tuple, Union
 
 import pandas as pd
-from constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
 from huggingface_hub.hf_api import HfApi
-from load_ud_pos import (
+from pandas.errors import SettingWithCopyWarning
+from tqdm.auto import tqdm
+
+from .constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
+from .load_ud_pos import (
+    load_bgdt_pos,
+    load_cadt_pos,
+    load_csdt_pos,
     load_dadt_pos,
     load_dedt_pos,
+    load_eldt_pos,
     load_endt_pos,
     load_esdt_pos,
+    load_etdt_pos,
     load_fidt_pos,
     load_fodt_pos,
     load_frdt_pos,
+    load_hrdt_pos,
+    load_hudt_pos,
     load_isdt_pos,
     load_itdt_pos,
+    load_ltdt_pos,
+    load_lvdt_pos,
     load_nldt_pos,
     load_nodt_nb_pos,
     load_nodt_nn_pos,
+    load_pldt_pos,
     load_ptdt_pos,
+    load_rodt_pos,
+    load_skdt_pos,
+    load_sldt_pos,
+    load_sqdt_pos,
+    load_srdt_pos,
     load_svdt_pos,
+    load_ukdt_pos,
 )
-from pandas.errors import SettingWithCopyWarning
-from requests.exceptions import HTTPError
-from tqdm.auto import tqdm
 
 
 def main() -> None:
@@ -60,6 +75,22 @@ def main() -> None:
         "es": load_esdt_pos,
         "fi": load_fidt_pos,
         "pt": load_ptdt_pos,
+        "lv": load_lvdt_pos,
+        "et": load_etdt_pos,
+        "pl": load_pldt_pos,
+        "lt": load_ltdt_pos,
+        "cs": load_csdt_pos,
+        "sk": load_skdt_pos,
+        "uk": load_ukdt_pos,
+        "el": load_eldt_pos,
+        "bg": load_bgdt_pos,
+        "sr": load_srdt_pos,
+        "sl": load_sldt_pos,
+        "hr": load_hrdt_pos,
+        "hu": load_hudt_pos,
+        "ro": load_rodt_pos,
+        "ca": load_cadt_pos,
+        "sq": load_sqdt_pos,
     }
 
     # Set up the progress bar and iterate over the languages
@@ -74,28 +105,36 @@ def main() -> None:
             # Merge the DDT POS dataframes to a single dataframe, with columns `ids`,
             # `tokens`, `doc` and `pos_tags`
             df = pd.concat(pos_dataset.values(), ignore_index=True)
+            assert isinstance(df, pd.DataFrame)
 
             # Drop the duplicates
             df = df.drop_duplicates(subset="doc").reset_index(drop=True)
+            assert isinstance(df, pd.DataFrame)
 
             # Remove samples with five or fewer tokens
             df = df[df.tokens.map(lambda lst: len(lst) > 5)]
+            assert isinstance(df, pd.DataFrame)
 
             # Remove samples with five or fewer distinct POS tags
             df = df[df.pos_tags.map(lambda lst: len(set(lst)) > 5)]
+            assert isinstance(df, pd.DataFrame)
 
             # Remove samples with an odd number of quotes
             df = df[df.doc.map(lambda doc: doc.count('"') % 2 == 0)]
+            assert isinstance(df, pd.DataFrame)
 
             # Remove samples which starts with punctuation
             df = df[df.pos_tags.map(lambda lst: lst[0] not in ["PUNCT", "SYM"])]
+            assert isinstance(df, pd.DataFrame)
 
             # Remove samples containing more than one '=' character, as this is used to
             # indicate a tag
             df = df[df.doc.map(lambda doc: doc.count("=") <= 1)]
+            assert isinstance(df, pd.DataFrame)
 
             # Remove samples containing 'SLUTORD', as this is used to indicate a tag
             df = df[~df.doc.str.contains("SLUTORD")]
+            assert isinstance(df, pd.DataFrame)
 
             # Create a training, validation, test and small training set. Note that we
             # will corrupt the data, so this is only half the size of the final
@@ -105,19 +144,25 @@ def main() -> None:
             test_size = 1024
             while test_size >= 128:
                 try:
-                    val_df = df.sample(n=128, random_state=4242)
-                    df_filtered = df[~df.index.isin(val_df.index)]
-                    test_df = df_filtered.sample(n=test_size, random_state=4242)
-                    full_train_df = df_filtered[~df_filtered.index.isin(test_df.index)]
-                    train_df = full_train_df.sample(n=512, random_state=4242)
+                    train_df, val_df, test_df, full_train_df = make_splits(
+                        df=df, train_size=512, val_size=128, test_size=test_size
+                    )
                     break
                 except ValueError:
                     test_size //= 2
             else:
-                raise ValueError(
-                    f"Not enough samples to create the splits. Found {len(df):,} "
-                    f"samples, but need at least 768."
+                train_size = 64
+                val_size = 32
+                test_size = len(df) - train_size - val_size
+                assert test_size > 0, "Not enough samples to create the splits."
+                train_df, val_df, test_df, full_train_df = make_splits(
+                    df=df, train_size=train_size, val_size=val_size, test_size=test_size
                 )
+
+            assert isinstance(train_df, pd.DataFrame)
+            assert isinstance(val_df, pd.DataFrame)
+            assert isinstance(test_df, pd.DataFrame)
+            assert isinstance(full_train_df, pd.DataFrame)
 
             # Only work with samples where the document is not very large or small We do
             # it after we have made the splits to ensure that the dataset is minimally
@@ -152,24 +197,16 @@ def main() -> None:
 
             # Collect datasets in a dataset dictionary
             dataset = DatasetDict(
-                train=train, val=val, test=test, full_train=full_train
+                {"train": train, "val": val, "test": test, "full_train": full_train}
             )
 
-            # Create dataset ID
-            dataset_id = f"EuroEval/scala-{lang}"
-
-            # Remove the dataset from Hugging Face Hub if it already exists
-            try:
-                api = HfApi()
-                api.delete_repo(dataset_id, repo_type="dataset")
-            except HTTPError:
-                pass
-
             # Push the dataset to the Hugging Face Hub
+            dataset_id = f"EuroEval/scala-{lang}"
+            HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
             dataset.push_to_hub(dataset_id, private=True)
 
 
-def join_tokens(tokens: List[str]) -> str:
+def join_tokens(tokens: list[str]) -> str:
     """Joins a list of tokens into a string.
 
     Args:
@@ -206,7 +243,7 @@ def join_tokens(tokens: List[str]) -> str:
     return doc
 
 
-def delete(tokens: List[str], pos_tags: List[str]) -> Union[str, None]:
+def delete(tokens: list[str], pos_tags: list[str]) -> str | None:
     """Delete a random token from a list of tokens.
 
     The POS tags are used to prevent deletion of a token which does not make the
@@ -233,7 +270,7 @@ def delete(tokens: List[str], pos_tags: List[str]) -> Union[str, None]:
     indices = [
         idx
         for idx, pos_tag in enumerate(pos_tags)
-        if pos_tag not in ["ADJ", "ADV", "PUNCT", "SYM", "DET", "NUM"]
+        if pos_tag not in ["ADJ", "ADV", "PUNCT", "SYM", "DET", "NUM", "PART"]
         and (
             pos_tag not in ["NOUN", "PROPN"]
             or (
@@ -260,7 +297,7 @@ def delete(tokens: List[str], pos_tags: List[str]) -> Union[str, None]:
     return join_tokens(new_tokens)
 
 
-def flip_neighbours(tokens: List[str], pos_tags: List[str]) -> Union[str, None]:
+def flip_neighbours(tokens: list[str], pos_tags: list[str]) -> str | None:
     """Flip a pair of neighbouring tokens.
 
     The POS tags are used to prevent flipping of tokens which does not make the
@@ -337,8 +374,8 @@ def flip_neighbours(tokens: List[str], pos_tags: List[str]) -> Union[str, None]:
 
 
 def corrupt(
-    tokens: List[str], pos_tags: List[str], num_corruptions: int = 1
-) -> List[Tuple[str, str]]:
+    tokens: list[str], pos_tags: list[str], num_corruptions: int = 1
+) -> list[tuple[str, str]]:
     """Corrupt a list of tokens.
 
     This randomly either flips two neighbouring tokens or deletes a random token.
@@ -355,7 +392,7 @@ def corrupt(
         The list of (corrupted_string, corruption_type)
     """
     # Define the list of corruptions
-    corruptions: List[Tuple[str, str]] = list()
+    corruptions: list[tuple[str, str]] = list()
 
     # Continue until we have achieved the desired number of corruptions
     while len(corruptions) < num_corruptions:
@@ -426,7 +463,34 @@ def prepare_df(df: pd.DataFrame, split: str) -> Dataset:
     df = df.sample(frac=1.0, random_state=4242).reset_index(drop=True)
 
     # Convert the dataframe to a Hugging Face Dataset and return it
-    return Dataset.from_pandas(df, split=split)
+    return Dataset.from_pandas(df, split=split)  # type: ignore[bad-argument-type]
+
+
+def make_splits(
+    df: pd.DataFrame, train_size: int, val_size: int, test_size: int
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Make the splits.
+
+    Args:
+        df:
+            The dataframe to make the splits from.
+        train_size:
+            The size of the training split.
+        val_size:
+            The size of the validation split.
+        test_size:
+            The size of the test split.
+
+    Returns:
+        The train, validation, test, and full training splits.
+    """
+    val_df = df.sample(n=val_size, random_state=4242)
+    df_filtered = df[~df.index.isin(val_df.index)]
+    test_df = df_filtered.sample(n=test_size, random_state=4242)
+    full_train_df = df_filtered[~df_filtered.index.isin(test_df.index)]
+    assert isinstance(full_train_df, pd.DataFrame)
+    train_df = full_train_df.sample(n=train_size, random_state=4242)
+    return train_df, val_df, test_df, full_train_df
 
 
 if __name__ == "__main__":

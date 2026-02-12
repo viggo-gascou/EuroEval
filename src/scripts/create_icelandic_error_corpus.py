@@ -8,16 +8,15 @@
 # ]
 # ///
 
-"""Create the Icelandic Error Corpus dataset  and upload it to the HF Hub."""
+"""Create the Icelandic Error Corpus dataset and upload it to the HF Hub."""
 
 import re
-from typing import List
 
 import pandas as pd
-from constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
-from requests.exceptions import HTTPError
+
+from .constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 
 
 def main() -> None:
@@ -32,7 +31,7 @@ def main() -> None:
     # Make validation split
     val_size = 1024
     val_df = train_df.sample(n=val_size, random_state=4242)
-    train_df = train_df.drop(val_df.index)
+    train_df = train_df.drop(val_df.index.tolist())
 
     # Only work with samples where the document is not very large or small
     # We do it after we have made the splits to ensure that the dataset is minimally
@@ -53,28 +52,38 @@ def main() -> None:
         "text_len <= @MAX_NUM_CHARS_IN_DOCUMENT"
     )
 
+    assert isinstance(new_train_df, pd.DataFrame)
+    assert isinstance(new_val_df, pd.DataFrame)
+    assert isinstance(new_test_df, pd.DataFrame)
+
     dataset = DatasetDict(
-        train=Dataset.from_pandas(
-            new_train_df, split=Split.TRAIN, preserve_index=False
-        ),
-        val=Dataset.from_pandas(
-            new_val_df, split=Split.VALIDATION, preserve_index=False
-        ),
-        test=Dataset.from_pandas(new_test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(
+                new_train_df, split=Split.TRAIN, preserve_index=False
+            ),
+            "val": Dataset.from_pandas(
+                new_val_df, split=Split.VALIDATION, preserve_index=False
+            ),
+            "test": Dataset.from_pandas(
+                new_test_df, split=Split.TEST, preserve_index=False
+            ),
+        }
     )
 
     # Make subset of the dataset. We use `head` instead of `sample` here as the
     # dataframes have already been shuffled.
     dataset_subset = DatasetDict(
-        train=Dataset.from_pandas(
-            new_train_df.head(1024), split=Split.TRAIN, preserve_index=False
-        ),
-        val=Dataset.from_pandas(
-            new_val_df.head(256), split=Split.VALIDATION, preserve_index=False
-        ),
-        test=Dataset.from_pandas(
-            new_test_df.head(2048), split=Split.TEST, preserve_index=False
-        ),
+        {
+            "train": Dataset.from_pandas(
+                new_train_df.head(1024), split=Split.TRAIN, preserve_index=False
+            ),
+            "val": Dataset.from_pandas(
+                new_val_df.head(256), split=Split.VALIDATION, preserve_index=False
+            ),
+            "test": Dataset.from_pandas(
+                new_test_df.head(2048), split=Split.TEST, preserve_index=False
+            ),
+        }
     )
 
     # Create dataset IDs
@@ -86,11 +95,7 @@ def main() -> None:
         (dataset_subset, dataset_subset_id),
     ]:
         # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api = HfApi()
-            api.delete_repo(dataset_id_, repo_type="dataset")
-        except HTTPError:
-            pass
+        HfApi().delete_repo(dataset_id_, repo_type="dataset", missing_ok=True)
 
         # Push the dataset to the Hugging Face Hub
         dataset_.push_to_hub(dataset_id_, private=True)
@@ -133,7 +138,7 @@ def prepare_dataframe(dataset: Dataset) -> pd.DataFrame:
     return df
 
 
-def join_tokens(tokens: List[str]) -> str:
+def join_tokens(tokens: list[str]) -> str:
     """Joins a list of tokens into a string.
 
     Args:

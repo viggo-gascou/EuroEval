@@ -1,5 +1,6 @@
 """Functions related to the loading of models."""
 
+import logging
 import typing as t
 
 from .benchmark_modules import (
@@ -10,6 +11,7 @@ from .benchmark_modules import (
 )
 from .enums import InferenceBackend, ModelType
 from .exceptions import InvalidModel
+from .logging_utils import log_once
 
 if t.TYPE_CHECKING:
     from .benchmark_modules import BenchmarkModule
@@ -33,10 +35,16 @@ def load_model(
 
     Returns:
         The model.
+
+    Raises:
+        InvalidModel:
+            If the model is not a supported model type.
     """
+    log_once(f"\nLoading the model {model_config.model_id}...", level=logging.INFO)
+
     # The order matters; the first model type that matches will be used. For this
     # reason, they have been ordered in terms of the most common model types.
-    model_class: t.Type[BenchmarkModule]
+    model_class: t.Type["BenchmarkModule"]
     match (model_config.model_type, model_config.inference_backend, model_config.fresh):
         case (ModelType.GENERATIVE, InferenceBackend.VLLM, False):
             model_class = VLLMModel

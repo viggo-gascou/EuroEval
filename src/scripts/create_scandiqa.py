@@ -11,19 +11,19 @@
 """Create the ScandiQA-mini datasets and upload them to the HF Hub."""
 
 import pandas as pd
-from constants import (
-    MAX_NUM_CHARS_IN_CONTEXT,
-    MAX_NUM_CHARS_IN_QUESTION,
-    MIN_NUM_CHARS_IN_CONTEXT,
-    MIN_NUM_CHARS_IN_QUESTION,
-)
 from datasets.arrow_dataset import Dataset
 from datasets.combine import concatenate_datasets
 from datasets.dataset_dict import DatasetDict
 from datasets.load import load_dataset
 from datasets.splits import Split
 from huggingface_hub.hf_api import HfApi
-from requests.exceptions import HTTPError
+
+from .constants import (
+    MAX_NUM_CHARS_IN_CONTEXT,
+    MAX_NUM_CHARS_IN_QUESTION,
+    MIN_NUM_CHARS_IN_CONTEXT,
+    MIN_NUM_CHARS_IN_QUESTION,
+)
 
 
 def main() -> None:
@@ -57,6 +57,7 @@ def main() -> None:
         df_with_no_outliers = df[
             lengths.between(MIN_NUM_CHARS_IN_QUESTION, MAX_NUM_CHARS_IN_QUESTION)
         ]
+        assert isinstance(df_with_no_outliers, pd.DataFrame)
 
         # Only work with the questions having answers in the context
         has_answer: pd.Series = df_with_no_outliers.answers.map(
@@ -88,23 +89,17 @@ def main() -> None:
 
         # Collect datasets in a dataset dictionary
         dataset = DatasetDict(
-            train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-            val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-            test=Dataset.from_pandas(test_df, split=Split.TEST),
+            {
+                "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+                "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+                "test": Dataset.from_pandas(test_df, split=Split.TEST),
+            }
         )
 
-        # Create dataset ID
-        mini_dataset_id = f"EuroEval/scandiqa-{language}-mini"
-
-        # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api: HfApi = HfApi()
-            api.delete_repo(mini_dataset_id, repo_type="dataset")
-        except HTTPError:
-            pass
-
         # Push the dataset to the Hugging Face Hub
-        dataset.push_to_hub(mini_dataset_id, private=True)
+        dataset_id = f"EuroEval/scandiqa-{language}-mini"
+        HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
+        dataset.push_to_hub(dataset_id, private=True)
 
 
 if __name__ == "__main__":

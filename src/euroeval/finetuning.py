@@ -1,12 +1,12 @@
 """Functions related to the finetuning of models."""
 
+import collections.abc as c
 import logging
 import sys
 import typing as t
 from functools import partial
 
 import torch
-from tqdm.auto import tqdm
 from transformers.trainer_callback import (
     EarlyStoppingCallback,
     PrinterCallback,
@@ -18,13 +18,9 @@ from transformers.training_args import OptimizerNames, TrainingArguments
 from .callbacks import NeverLeaveProgressCallback
 from .enums import DataType
 from .exceptions import InvalidBenchmark, NaNValueInModelOutput
+from .logging_utils import block_terminal_output, get_pbar, log, log_once
 from .model_loading import load_model
-from .utils import (
-    block_terminal_output,
-    clear_memory,
-    enforce_reproducibility,
-    log_once,
-)
+from .utils import clear_memory, enforce_reproducibility
 
 if t.TYPE_CHECKING:
     from datasets import DatasetDict
@@ -32,16 +28,14 @@ if t.TYPE_CHECKING:
     from .benchmark_modules import BenchmarkModule
     from .data_models import BenchmarkConfig, DatasetConfig, ModelConfig
 
-logger = logging.getLogger("euroeval")
-
 
 def finetune(
     model: "BenchmarkModule",
-    datasets: list["DatasetDict"],
+    datasets: c.Sequence["DatasetDict"],
     model_config: "ModelConfig",
     dataset_config: "DatasetConfig",
     benchmark_config: "BenchmarkConfig",
-) -> list[dict[str, float]]:
+) -> c.Sequence[dict[str, float]]:
     """Evaluate a model on a dataset through finetuning.
 
     Args:
@@ -58,6 +52,10 @@ def finetune(
 
     Returns:
         A list of dicts containing the scores for each metric for each iteration.
+
+    Raises:
+        InvalidBenchmark:
+            If the benchmark could not be completed.
     """
     # Set the data type to use for the model weights
     using_cuda = benchmark_config.device == torch.device("cuda")
@@ -68,9 +66,9 @@ def finetune(
     else:
         dtype = DataType.FP32
 
-    bs: int = benchmark_config.batch_size
+    bs: int = benchmark_config.finetuning_batch_size
     scores: list[dict[str, float]] = list()
-    for idx in tqdm(
+    for idx in get_pbar(
         iterable=range(benchmark_config.num_iterations),
         desc="Benchmarking",
         disable=not benchmark_config.progress_bar,
@@ -80,7 +78,7 @@ def finetune(
         model_already_initialized = idx == 0
 
         # Run a loop here to deal with automatic reduction of batch size
-        while True:
+        for _ in range(num_attempts := 10):
             # Clear GPU memory
             if not model_already_initialized:
                 try:
@@ -103,7 +101,7 @@ def finetune(
                 )
 
                 itr_scores = finetune_single_iteration(
-                    model=model if model_already_initialized else None,
+                    model=model if model_already_initialized else None,  # type: ignore[unbound-name]
                     dataset=datasets[idx],
                     training_args=training_args,
                     model_config=model_config,
@@ -112,30 +110,34 @@ def finetune(
                 )
 
                 scores.append(itr_scores)
-                logger.debug(f"Test scores for iteration {idx}: {itr_scores}")
+                log(
+                    f"Test scores for iteration {idx}: {itr_scores}",
+                    level=logging.DEBUG,
+                )
 
                 break
 
             # NaN values can appear in the model output when using mixed precision, as
             # the hidden states get overflowed. In this case we try to disable mixed
             # precision and try again.
-            except NaNValueInModelOutput:
+            except NaNValueInModelOutput as e:
                 if dtype != DataType.FP32:
                     dtype = DataType.FP32
                     model_already_initialized = False
-                    logger.debug(
+                    log(
                         "NaN value detected in model outputs while using mixed "
-                        "precision. Retrying with full fp32 precision."
+                        "precision. Retrying with full fp32 precision.",
+                        level=logging.DEBUG,
                     )
                 else:
                     raise InvalidBenchmark(
                         "NaN value detected in model outputs, even with mixed "
                         "precision disabled."
-                    )
+                    ) from e
 
             except Exception as e:
                 if "CUDA" not in str(e) and "out of memory" not in str(e):
-                    raise InvalidBenchmark(str(e))
+                    raise InvalidBenchmark(str(e)) from e
 
                 if bs <= 1:
                     msg = "Could not benchmark the model, even with a batch size of 1!"
@@ -146,12 +148,17 @@ def finetune(
                             "environment variable set, as this removes the upper bound "
                             "on the memory usage."
                         )
-                    raise InvalidBenchmark(msg)
+                    raise InvalidBenchmark(msg) from e
 
                 model_already_initialized = False
 
                 bs //= 2
-                logger.debug(f"Reduced batch size to {bs}")
+                log(f"Reduced batch size to {bs}", level=logging.DEBUG)
+
+        else:
+            raise InvalidBenchmark(
+                f"Could not benchmark the model after {num_attempts} attempts!"
+            )
 
     return scores
 
@@ -182,6 +189,12 @@ def finetune_single_iteration(
 
     Returns:
         The scores for the test dataset.
+
+    Raises:
+        NaNValueInModelOutput:
+            If the model output contains NaN values.
+        InvalidBenchmark:
+            If the model evaluation failed.
     """
     # Set random seeds to enforce reproducibility of the randomly initialised weights
     enforce_reproducibility(seed=training_args.seed)
@@ -195,7 +208,7 @@ def finetune_single_iteration(
 
     trainer = model.trainer_class(
         model=model.get_pytorch_module(),
-        processing_class=model.get_tokenizer(),
+        processing_class=model.get_tokeniser(),
         args=training_args,
         train_dataset=dataset["train"],
         eval_dataset=dataset["val"],
@@ -231,13 +244,14 @@ def finetune_single_iteration(
     with torch.inference_mode():
         try:
             test_scores = trainer.evaluate(
-                eval_dataset=dataset["test"],
-                orig_eval_dataset=dataset["original_test"],
+                eval_dataset=dataset["test"],  # type: ignore[bad-argument-type]
+                orig_eval_dataset=dataset["original_test"],  # type: ignore[unexpected-keyword]
                 metric_key_prefix="test",
             )
         except TypeError:
             test_scores = trainer.evaluate(
-                eval_dataset=dataset["test"], metric_key_prefix="test"
+                eval_dataset=dataset["test"],  # type: ignore[bad-argument-type]
+                metric_key_prefix="test",
             )
         except NaNValueInModelOutput as e:
             del trainer
@@ -245,7 +259,7 @@ def finetune_single_iteration(
             clear_memory()
             raise e
         except (RuntimeError, ValueError, IndexError) as e:
-            raise InvalidBenchmark(str(e))
+            raise InvalidBenchmark(str(e)) from e
 
     return test_scores
 
@@ -284,7 +298,7 @@ def get_training_args(
         logging_strategy = IntervalStrategy.NO
 
     if batch_size is None:
-        batch_size = benchmark_config.batch_size
+        batch_size = benchmark_config.finetuning_batch_size
 
     training_args = TrainingArguments(
         output_dir=model_config.model_cache_dir,

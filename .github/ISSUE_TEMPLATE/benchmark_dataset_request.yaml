@@ -14,7 +14,9 @@ body:
 - type: input
   attributes:
     label: Dataset link
-    description: Please give a link to where the dataset is hosted (doesn't have to be on the Hugging Face Hub)
+    description: >
+      Please give a link to where the dataset is hosted (doesn't have to be on the
+      Hugging Face Hub)
   validations:
     required: true
 - type: checkboxes
@@ -22,25 +24,45 @@ body:
     label: Dataset languages
     description: What languages is the dataset in?
     options:
+      - label: Albanian
+      - label: Belarusian
+      - label: Bulgarian
+      - label: Bosnian
+      - label: Catalan
+      - label: Croatian
+      - label: Czech
       - label: Danish
       - label: Dutch
       - label: English
+      - label: Estonian
       - label: Faroese
       - label: Finnish
       - label: French
       - label: German
+      - label: Greek
+      - label: Hungarian
       - label: Icelandic
       - label: Italian
+      - label: Latvian
+      - label: Lithuanian
       - label: Norwegian (Bokmål or Nynorsk)
+      - label: Polish
       - label: Portuguese
+      - label: Romanian
+      - label: Serbian
+      - label: Slovak
+      - label: Slovenian
       - label: Spanish
       - label: Swedish
+      - label: Ukrainian
   validations:
     required: true
 - type: textarea
   attributes:
     label: Describe the dataset
-    description: Describe what the dataset is measuring, and why you think it is important to include it as a benchmark dataset in EuroEval.
+    description: >
+      Describe what the dataset is measuring, and why you think it is important to
+      include it as a benchmark dataset in EuroEval.
   validations:
     required: true
 - type: markdown

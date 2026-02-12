@@ -20,6 +20,8 @@ from datasets import Dataset, DatasetDict, Split
 from huggingface_hub import HfApi
 from sklearn.model_selection import train_test_split
 
+from .constants import CHOICES_MAPPING
+
 
 def main() -> None:
     """Create the Danske Talemåder dataset and upload it to the HF Hub."""
@@ -59,7 +61,7 @@ def main() -> None:
         "Hvad betyder udtrykket '"
         + row.talemaade_udtryk.replace("\n", " ").strip()
         + "'?\n"
-        "Svarmuligheder:\n"
+        f"{CHOICES_MAPPING['da']}:\n"
         "a. " + row.A.replace("\n", " ").strip() + "\n"
         "b. " + row.B.replace("\n", " ").strip() + "\n"
         "c. " + row.C.replace("\n", " ").strip() + "\n"
@@ -94,20 +96,18 @@ def main() -> None:
 
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
     # Create dataset ID
     dataset_id = "EuroEval/danske-talemaader"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except rq.HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(dataset_id, private=True)

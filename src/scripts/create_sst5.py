@@ -11,10 +11,10 @@
 """Create the SST5-mini sentiment dataset and upload it to the HF Hub."""
 
 import pandas as pd
-from constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
-from requests import HTTPError
+
+from .constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 
 
 def main() -> None:
@@ -90,22 +90,16 @@ def main() -> None:
 
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train:": Dataset.from_pandas(new_train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(new_val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(new_test_df, split=Split.TEST),
+        }
     )
 
-    # Create dataset ID
-    dataset_id = "EuroEval/sst5-mini"
-
-    # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
-
     # Push the dataset to the Hugging Face Hub
+    dataset_id = "EuroEval/sst5-mini"
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
     dataset.push_to_hub(dataset_id, private=True)
 
 

@@ -14,29 +14,18 @@
 from collections import Counter
 
 import pandas as pd
-from constants import (
+from datasets import Dataset, DatasetDict, Split, load_dataset
+from huggingface_hub import HfApi
+from sklearn.model_selection import train_test_split
+
+from .constants import (
+    CHOICES_MAPPING,
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
     MAX_REPETITIONS,
     MIN_NUM_CHARS_IN_INSTRUCTION,
     MIN_NUM_CHARS_IN_OPTION,
 )
-from datasets import Dataset, DatasetDict, Split, load_dataset
-from huggingface_hub import HfApi
-from requests import HTTPError
-from sklearn.model_selection import train_test_split
-
-OPTIONS_MAPPING = {
-    "da": "Svarmuligheder",
-    "de": "Antwortmöglichkeiten",
-    "es": "Opciones",
-    "fi": "Vastausvaihtoehdot",
-    "fr": "Choix",
-    "it": "Scelte",
-    "nl": "Antwoordopties",
-    "sv": "Svarsalternativ",
-    "pt": "Opções",
-}
 
 
 def main() -> None:
@@ -53,6 +42,7 @@ def main() -> None:
         "IT": "it",
         "NL": "nl",
         "SV": "sv",
+        "PL": "pl",
         "PT-PT": "pt",
     }
 
@@ -60,11 +50,13 @@ def main() -> None:
         val_dataset = load_dataset(
             path=repo_id, name=subset_name, token=True, split="validation"
         )
+        assert isinstance(val_dataset, Dataset)
         val_df = process_(dataset=val_dataset, language_code=language_code)
 
         train_dataset = load_dataset(
             path=repo_id, name=subset_name, token=True, split="train"
         )
+        assert isinstance(train_dataset, Dataset)
         train_df = process_(dataset=train_dataset, language_code=language_code)
 
         total_dataset = pd.concat([train_df, val_df])
@@ -84,19 +76,17 @@ def main() -> None:
 
         # Collect datasets in a dataset dictionary
         dataset = DatasetDict(
-            train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-            val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-            test=Dataset.from_pandas(test_df, split=Split.TEST),
+            {
+                "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+                "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+                "test": Dataset.from_pandas(test_df, split=Split.TEST),
+            }
         )
 
         dataset_id = f"EuroEval/goldenswag-{language_code}-mini"
 
         # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api = HfApi()
-            api.delete_repo(dataset_id, repo_type="dataset")
-        except HTTPError:
-            pass
+        HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
         # Push the dataset to the Hugging Face Hub
         dataset.push_to_hub(dataset_id, private=True)
@@ -107,6 +97,7 @@ def process_(dataset: Dataset, language_code: str) -> pd.DataFrame:
 
     Args:
         dataset: HuggingFace Dataset to process.
+        language_code: Language code for the dataset
 
     Returns:
         pandas.DataFrame with columns 'text', 'label', and 'activity_label'.
@@ -122,9 +113,10 @@ def process_(dataset: Dataset, language_code: str) -> pd.DataFrame:
         (df.ctx.str.len() >= MIN_NUM_CHARS_IN_INSTRUCTION)
         & (df.ctx.str.len() <= MAX_NUM_CHARS_IN_INSTRUCTION)
         & df.endings.map(
-            lambda endings: min(len(ending) for ending in endings)
-            >= MIN_NUM_CHARS_IN_OPTION
-            and max(len(ending) for ending in endings) <= MAX_NUM_CHARS_IN_OPTION
+            lambda endings: (
+                min(len(ending) for ending in endings) >= MIN_NUM_CHARS_IN_OPTION
+                and max(len(ending) for ending in endings) <= MAX_NUM_CHARS_IN_OPTION
+            )
         )
     ]
 
@@ -141,7 +133,7 @@ def process_(dataset: Dataset, language_code: str) -> pd.DataFrame:
         return max_repetitions > MAX_REPETITIONS
 
     # Remove overly repetitive samples
-    df = df[
+    df = df.loc[
         ~df.ctx.apply(is_repetitive)
         & ~df.endings.map(
             lambda endings: any(is_repetitive(ending) for ending in endings)
@@ -151,7 +143,7 @@ def process_(dataset: Dataset, language_code: str) -> pd.DataFrame:
     # Make a `text` column with all the options in it
     df["text"] = [
         row.ctx.replace("\n", " ").strip() + "\n"
-        f"{OPTIONS_MAPPING[language_code]}:\n"
+        f"{CHOICES_MAPPING[language_code]}:\n"
         "a. " + row.endings[0].replace("\n", " ").strip() + "\n"
         "b. " + row.endings[1].replace("\n", " ").strip() + "\n"
         "c. " + row.endings[2].replace("\n", " ").strip() + "\n"
@@ -179,7 +171,7 @@ def process_(dataset: Dataset, language_code: str) -> pd.DataFrame:
     df.label = df.label.str.lower()
 
     # Only keep the columns `text`, `label` and `activity_label`
-    df = df[["text", "label", "activity_label"]]
+    df = df.loc[["text", "label", "activity_label"]]
     return df
 
 

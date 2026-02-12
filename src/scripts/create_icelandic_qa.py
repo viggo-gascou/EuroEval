@@ -16,12 +16,6 @@ import os
 import re
 
 import pandas as pd
-from constants import (
-    MAX_NUM_CHARS_IN_CONTEXT,
-    MAX_NUM_CHARS_IN_QUESTION,
-    MIN_NUM_CHARS_IN_CONTEXT,
-    MIN_NUM_CHARS_IN_QUESTION,
-)
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
 from datasets.load import load_dataset
@@ -29,7 +23,13 @@ from datasets.splits import Split
 from dotenv import load_dotenv
 from huggingface_hub.hf_api import HfApi
 from openai import OpenAI
-from requests.exceptions import HTTPError
+
+from .constants import (
+    MAX_NUM_CHARS_IN_CONTEXT,
+    MAX_NUM_CHARS_IN_QUESTION,
+    MIN_NUM_CHARS_IN_CONTEXT,
+    MIN_NUM_CHARS_IN_QUESTION,
+)
 
 load_dotenv()
 
@@ -41,8 +41,11 @@ def main() -> None:
     repo_id = "mideind/icelandic_qa_scandeval"
 
     dataset = load_dataset(path=repo_id, token=True, split="train")
+    assert isinstance(dataset, Dataset)
 
-    df = dataset.to_pandas().rename(columns={"example_id": "id"})
+    df = dataset.to_pandas()
+    assert isinstance(df, pd.DataFrame)
+    df = df.rename(columns={"example_id": "id"})
 
     # Change all the answers on format "Árið xxxx." to "xxxx", e.g. only keep the year.
     df["answer"] = df["answer"].apply(lambda x: re.sub(r"^Árið (\d{4}).?$", r"\1", x))
@@ -53,7 +56,7 @@ def main() -> None:
 
     # Only work with samples where the question is not very large or small
     lengths = df.question.str.len()
-    df_with_no_outliers = df[
+    df_with_no_outliers = df.loc[
         lengths.between(MIN_NUM_CHARS_IN_QUESTION, MAX_NUM_CHARS_IN_QUESTION)
     ]
 
@@ -71,6 +74,9 @@ def main() -> None:
         Returns:
             The rephrased answer (if the answer is already in the context, it is
             returned as is).
+
+        Raises:
+            ValueError: If the answer is not in the context.
         """
         answer = answer[:-1] if answer.endswith(".") else answer
 
@@ -160,22 +166,24 @@ def main() -> None:
     test_df = test_df.reset_index(drop=True)
     train_df = train_df.reset_index(drop=True)
 
+    assert isinstance(train_df, pd.DataFrame)
+    assert isinstance(val_df, pd.DataFrame)
+    assert isinstance(test_df, pd.DataFrame)
+
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
     # Create dataset ID
     dataset_id = "EuroEval/icelandic-qa"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api: HfApi = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(dataset_id, private=True)

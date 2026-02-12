@@ -13,16 +13,19 @@
 from collections import Counter
 
 import pandas as pd
-from constants import (
+from datasets import Dataset, DatasetDict, Split, load_dataset
+from huggingface_hub import HfApi
+
+from .constants import (
+    CHOICES_MAPPING,
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
     MAX_REPETITIONS,
     MIN_NUM_CHARS_IN_INSTRUCTION,
     MIN_NUM_CHARS_IN_OPTION,
 )
-from datasets import Dataset, DatasetDict, Split, load_dataset
-from huggingface_hub import HfApi
-from requests import HTTPError
+
+LANGUAGES = ["da", "de", "en", "es", "fr", "is", "it", "nl", "no", "pt", "sv"]
 
 
 def main() -> None:
@@ -30,25 +33,10 @@ def main() -> None:
     # Define the base download URL
     repo_id = "alexandrainst/m_arc"
 
-    # Create a mapping with the word "Choices" in different languages
-    choices_mapping = {
-        "da": "Svarmuligheder",
-        "no": "Svaralternativer",
-        "sv": "Svarsalternativ",
-        "de": "Antwortmöglichkeiten",
-        "nl": "Antwoordopties",
-        "en": "Choices",
-    }
-
-    for language in choices_mapping.keys():
-        # Download the dataset
-        try:
-            dataset = load_dataset(path=repo_id, name=language, token=True)
-        except ValueError as e:
-            if language == "no":
-                dataset = load_dataset(path=repo_id, name="nb", token=True)
-            else:
-                raise e
+    for language in LANGUAGES:
+        dataset = load_dataset(
+            path=repo_id, name=language.replace("no", "nb"), token=True
+        )
         assert isinstance(dataset, DatasetDict)
 
         def prepare_dataframe(dataset: Dataset) -> pd.DataFrame:
@@ -68,11 +56,11 @@ def main() -> None:
             df.rename(columns=dict(answer="label"), inplace=True)
 
             # Remove all samples with a non-null value of `option_e`
-            df = df[df["option_e"].isnull()]
+            df = df.loc[df["option_e"].isnull()]
 
             # Remove all samples with a null value of `option_a`, `option_b`,
             # `option_c` or `option_d`
-            df = df[
+            df = df.loc[
                 df["option_a"].notnull()
                 & df["option_b"].notnull()
                 & df["option_c"].notnull()
@@ -80,7 +68,7 @@ def main() -> None:
             ]
 
             # Remove the samples with overly short or long texts
-            df = df[
+            df = df.loc[
                 (df.instruction.str.len() >= MIN_NUM_CHARS_IN_INSTRUCTION)
                 & (df.instruction.str.len() <= MAX_NUM_CHARS_IN_INSTRUCTION)
                 & (df.option_a.str.len() >= MIN_NUM_CHARS_IN_OPTION)
@@ -99,7 +87,7 @@ def main() -> None:
                 return max_repetitions > MAX_REPETITIONS
 
             # Remove overly repetitive samples
-            df = df[
+            df = df.loc[
                 ~df.instruction.apply(is_repetitive)
                 & ~df.option_a.apply(is_repetitive)
                 & ~df.option_b.apply(is_repetitive)
@@ -110,7 +98,7 @@ def main() -> None:
             # Make a `text` column with all the options in it
             df["text"] = [
                 row.instruction.replace("\n", " ").strip() + "\n"
-                f"{choices_mapping[language]}:\n"
+                f"{CHOICES_MAPPING[language]}:\n"
                 "a. " + row.option_a.replace("\n", " ").strip() + "\n"
                 "b. " + row.option_b.replace("\n", " ").strip() + "\n"
                 "c. " + row.option_c.replace("\n", " ").strip() + "\n"
@@ -155,9 +143,11 @@ def main() -> None:
 
         # Collect datasets in a dataset dictionary
         dataset = DatasetDict(
-            train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-            val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-            test=Dataset.from_pandas(test_df, split=Split.TEST),
+            {
+                "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+                "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+                "test": Dataset.from_pandas(test_df, split=Split.TEST),
+            }
         )
 
         # Create dataset ID
@@ -167,11 +157,7 @@ def main() -> None:
             dataset_id = f"EuroEval/arc-{language}-mini"
 
         # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api = HfApi()
-            api.delete_repo(dataset_id, repo_type="dataset")
-        except HTTPError:
-            pass
+        HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
         # Push the dataset to the Hugging Face Hub
         dataset.push_to_hub(dataset_id, private=True)

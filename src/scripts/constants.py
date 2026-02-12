@@ -23,3 +23,37 @@ MAX_NUM_CHARS_IN_INSTRUCTION = 2000
 MIN_NUM_CHARS_IN_OPTION = 1
 MAX_NUM_CHARS_IN_OPTION = 1000
 MAX_REPETITIONS = 50
+
+
+CHOICES_MAPPING = {
+    "bg": "Възможности",
+    "be": "Варыянты",
+    "ca": "Opcions",
+    "cs": "Výběr",
+    "da": "Svarmuligheder",
+    "de": "Antwortmöglichkeiten",
+    "el": "Επιλογές",
+    "en": "Choices",
+    "es": "Opciones",
+    "et": "Vastusevariandid",
+    "fi": "Vastausvaihtoehdot",
+    "fo": "Svarmøguleikar",
+    "fr": "Choix",
+    "hr": "Izbori",
+    "hu": "Válaszlehetőségek",
+    "is": "Svarmöguleikar",
+    "it": "Scelte",
+    "lt": "Pasirinkimai",
+    "lv": "Izvēles",
+    "nl": "Antwoordopties",
+    "no": "Svaralternativer",
+    "ro": "Opțiuni",
+    "pl": "Opcje",
+    "pt": "Opções",
+    "sk": "Možnosti",
+    "sl": "Možnosti",
+    "sr": "Opcije",
+    "sv": "Svarsalternativ",
+    "sq": "Opsione",
+    "uk": "Варіанти",
+}

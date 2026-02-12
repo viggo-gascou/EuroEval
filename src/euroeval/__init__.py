@@ -1,7 +1,7 @@
 """EuroEval - A benchmarking framework for language models."""
 
-### STAGE 1 ###
-### Block unwanted terminal output that happens on importing external modules ###
+# STAGE 1 ###
+# Block unwanted terminal output that happens on importing external modules ###
 
 import importlib.util
 import logging
@@ -12,14 +12,17 @@ import warnings
 from termcolor import colored
 
 # Block specific warnings before importing anything else, as they can be noisy
-warnings.filterwarnings("ignore", category=UserWarning)
-logging.getLogger("httpx").setLevel(logging.CRITICAL)
-logging.getLogger("datasets").setLevel(logging.CRITICAL)
-logging.getLogger("vllm").setLevel(logging.CRITICAL)
-os.environ["VLLM_CONFIGURE_LOGGING"] = "0"
+if os.getenv("FULL_LOG") != "1":
+    warnings.filterwarnings("ignore", category=UserWarning)
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    logging.getLogger("httpx").setLevel(logging.CRITICAL)
+    logging.getLogger("datasets").setLevel(logging.CRITICAL)
+    logging.getLogger("vllm").setLevel(logging.CRITICAL)
+    os.environ["VLLM_CONFIGURE_LOGGING"] = "0"
 
 # Set up logging
-fmt = colored("%(asctime)s", "light_blue") + " ⋅ " + colored("%(message)s", "green")
+# fmt = colored("%(asctime)s", "light_blue") + " ⋅ " + colored("%(message)s", "green")
+fmt = colored("%(message)s", "light_yellow")
 logging.basicConfig(
     level=logging.CRITICAL if hasattr(sys, "_called_from_test") else logging.INFO,
     format=fmt,
@@ -27,8 +30,8 @@ logging.basicConfig(
 )
 
 
-### STAGE 2 ###
-### Check for incompatible packages ###
+# STAGE 2 ###
+# Check for incompatible packages ###
 
 # Throw informative error if `flash_attn` is installed ###
 if importlib.util.find_spec("flash_attn") is not None:
@@ -40,15 +43,21 @@ if importlib.util.find_spec("flash_attn") is not None:
     sys.exit(1)
 
 
-### STAGE 3 ###
-### Set the rest up ###
+# STAGE 3 ###
+# Set the rest up ###
 
 import importlib.metadata  # noqa: E402
 
 from dotenv import load_dotenv  # noqa: E402
 
 from .benchmarker import Benchmarker  # noqa: E402
-from .utils import block_terminal_output  # noqa: E402
+from .data_models import DatasetConfig  # noqa: E402
+from .logging_utils import block_terminal_output  # noqa: E402
+from .tasks import (  # noqa: E402
+    MULTIPLE_CHOICE,
+    TEXT_CLASSIFICATION,
+    TOKEN_CLASSIFICATION,
+)
 
 # Block unwanted terminal outputs. This blocks way more than the above, but since it
 # relies on importing from the `utils` module, external modules are already imported
@@ -77,10 +86,6 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 
 
-# Disable a warning from Ray regarding the detection of the number of CPUs
-os.environ["RAY_DISABLE_DOCKER_CPU_WARNING"] = "1"
-
-
 # Avoid the "Cannot re-initialize CUDA in forked subprocess" error - see
 # https://github.com/vllm-project/vllm/issues/6152 for more
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
@@ -100,9 +105,9 @@ os.environ["VLLM_ALLOW_LONG_MAX_MODEL_LEN"] = "1"
 os.environ["DISABLE_AIOHTTP_TRANSPORT"] = "True"
 
 
-# Use older version v0 of vLLM, as the newer one requires XGrammar as decoding backend,
-# but XGrammar does not support having a maximal amount of elements in lists
-os.environ["VLLM_USE_V1"] = "0"
+# Enable the newer vLLM V1 engine, which is faster and offers more compatibility with
+# newer models
+os.environ["VLLM_USE_V1"] = "1"
 
 
 # Set the HF_TOKEN env var to copy the HUGGINGFACE_API_KEY env var, as vLLM uses the

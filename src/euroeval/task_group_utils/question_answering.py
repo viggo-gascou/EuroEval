@@ -1,16 +1,19 @@
 """Utility functions related to the question-answering task group."""
 
 import collections.abc as c
-import logging
 import typing as t
 from collections import defaultdict
 
 import numpy as np
-from transformers.tokenization_utils_base import PreTrainedTokenizerBase
+from transformers.tokenization_utils_base import (
+    PreTrainedTokenizerBase,
+    TruncationStrategy,
+)
 from transformers.trainer import Trainer
 
 from ..exceptions import InvalidBenchmark
-from ..tokenization_utils import get_special_token_metadata
+from ..tokenisation_utils import get_special_token_metadata
+from ..types import Predictions
 from ..utils import raise_if_model_output_contains_nan_values
 
 if t.TYPE_CHECKING:
@@ -23,10 +26,8 @@ if t.TYPE_CHECKING:
     from transformers.trainer_utils import EvalPrediction
     from transformers.training_args import TrainingArguments
 
-    from ..data_models import DatasetConfig, GenerativeModelOutput
-    from ..types import Labels, Predictions
-
-logger = logging.getLogger("euroeval")
+    from ..data_models import BenchmarkConfig, DatasetConfig, GenerativeModelOutput
+    from ..types import Labels
 
 
 class QuestionAnsweringTrainer(Trainer):
@@ -40,7 +41,7 @@ class QuestionAnsweringTrainer(Trainer):
         train_dataset: "Dataset",
         eval_dataset: "Dataset",
         compute_metrics: "c.Callable[[EvalPrediction], dict[str, float]]",
-        callbacks: "list[TrainerCallback]",
+        callbacks: "c.Sequence[TrainerCallback]",
         data_collator: "c.Callable",
         **kwargs,
     ) -> None:
@@ -57,7 +58,7 @@ class QuestionAnsweringTrainer(Trainer):
             **kwargs,
         )
 
-        # Get the CLS token id for the tokenizer
+        # Get the CLS token id for the tokeniser
         if self.tokenizer is not None:
             assert isinstance(self.tokenizer, PreTrainedTokenizerBase)
             special_token_metadata = get_special_token_metadata(self.tokenizer)
@@ -90,7 +91,7 @@ class QuestionAnsweringTrainer(Trainer):
         Returns:
             The metrics computed on the evaluation dataset.
         """
-        eval_dataloader = self.get_eval_dataloader(eval_dataset)
+        eval_dataloader = self.get_eval_dataloader(eval_dataset)  # type: ignore[bad-argument-type]
 
         # Temporarily disable metric computation, we will do it in the loop here.
         compute_metrics = self.compute_metrics  # type: ignore[has-type]
@@ -117,7 +118,7 @@ class QuestionAnsweringTrainer(Trainer):
         metrics = output.metrics
         assert metrics is not None
 
-        if orig_eval_dataset is not None:
+        if orig_eval_dataset is not None and eval_dataset is not None:
             preds_and_labels = postprocess_predictions_and_labels(
                 predictions=predictions,  # type: ignore[arg-type]
                 dataset=orig_eval_dataset,
@@ -138,10 +139,7 @@ class QuestionAnsweringTrainer(Trainer):
             self.log(metrics)
 
         self.control = self.callback_handler.on_evaluate(
-            self.args,
-            self.state,
-            self.control,  # type: ignore[has-type]
-            metrics,
+            args=self.args, state=self.state, control=self.control, metrics=metrics
         )
         return metrics
 
@@ -149,6 +147,7 @@ class QuestionAnsweringTrainer(Trainer):
 def compute_metrics(
     model_outputs_and_labels: "tuple[Predictions, Labels] | EvalPrediction",
     dataset_config: "DatasetConfig",
+    benchmark_config: "BenchmarkConfig",
     dataset: "Dataset",
 ) -> dict[str, float]:
     """Compute the metrics needed for evaluation.
@@ -159,6 +158,8 @@ def compute_metrics(
             contains the true labels.
         dataset_config:
             The configuration of the dataset.
+        benchmark_config:
+            The configuration of the benchmark.
         dataset:
             The dataset used for evaluation. This is only used in case any additional
             metadata is used to compute the metrics.
@@ -174,8 +175,7 @@ def compute_metrics(
     if isinstance(model_outputs, tuple) and len(model_outputs) == 2:
         model_outputs = model_outputs[0]
 
-    assert not isinstance(model_outputs, tuple)
-    raise_if_model_output_contains_nan_values(model_output=model_outputs)
+    raise_if_model_output_contains_nan_values(model_output=model_outputs)  # type: ignore[bad-argument-type]
 
     model_output_dtype = np.asarray(model_outputs).dtype
     if model_output_dtype in [np.float16, np.float32, np.float64]:
@@ -186,7 +186,11 @@ def compute_metrics(
     results: dict[str, float] = dict()
     for metric in dataset_config.task.metrics:
         score: float | None = metric(
-            predictions=predictions, references=labels, dataset=dataset
+            predictions=predictions,  # type: ignore[bad-argument-type]
+            references=labels,  # type: ignore[bad-argument-type]
+            dataset=dataset,
+            dataset_config=dataset_config,
+            benchmark_config=benchmark_config,
         )
 
         # The metric returns None if we are running on multi-GPU and the current
@@ -199,7 +203,7 @@ def compute_metrics(
 
 def extract_labels_from_generation(
     input_batch: dict[str, list], model_output: "GenerativeModelOutput"
-) -> list[t.Any]:
+) -> c.Sequence[t.Any]:
     """Extract the predicted labels from the generated output.
 
     Args:
@@ -221,15 +225,15 @@ def extract_labels_from_generation(
 
 
 def prepare_train_examples(
-    examples: "BatchEncoding", tokenizer: "PreTrainedTokenizer"
+    examples: "BatchEncoding", tokeniser: "PreTrainedTokenizer"
 ) -> "BatchEncoding":
     """Prepare the features for training.
 
     Args:
         examples:
             The examples to prepare.
-        tokenizer:
-            The tokenizer to use to prepare the examples.
+        tokeniser:
+            The tokeniser to use to prepare the examples.
 
     Returns:
         The prepared examples.
@@ -237,39 +241,42 @@ def prepare_train_examples(
     # Some of the questions have lots of whitespace on the left, which is not useful
     # and will make the truncation of the context fail (the tokenized question will
     # take a lots of space). So we remove that left whitespace
-    examples["question"] = [q.lstrip() for q in examples["question"]]
+    examples["question"] = [q.lstrip() for q in examples["question"]]  # type: ignore[not-iterable]
 
-    # Extract special token metadata from the tokenizer
-    special_token_metadata = get_special_token_metadata(tokenizer=tokenizer)
+    # Extract special token metadata from the tokeniser
+    special_token_metadata = get_special_token_metadata(tokeniser=tokeniser)
     has_cls_token = special_token_metadata["has_cls_token"]
     has_sep_token = special_token_metadata["has_sep_token"]
     cls_token_id = special_token_metadata["cls_token_id"]
     cls_token = special_token_metadata["cls_token"]
     sep_token = special_token_metadata["sep_token"]
 
-    # If the tokenizer is not adding special tokens, then we add them manually
+    # If the tokeniser is not adding special tokens, then we add them manually
     if not has_cls_token and not has_sep_token:
         examples["question"] = [
             f"{cls_token}{q}{sep_token}" for q in examples["question"]
         ]
-        examples["context"] = [f"{c}{sep_token}" for c in examples["context"]]
+        examples["context"] = [f"{c}{sep_token}" for c in examples["context"]]  # type: ignore[not-iterable]
 
-    # Set the stride used during tokenization, when the context is long enough to be
+    # Set the stride used during tokenisation, when the context is long enough to be
     # split into several features. Since we are always keeping the question tokens, we
     # need to make sure that the stride does not exceed the resulting maximum context
     # length.
-    max_question_tokens = max(len(tokenizer(q).input_ids) for q in examples["question"])
+    max_question_tokens = max(len(tokeniser(q).input_ids) for q in examples["question"])
     num_special_tokens = int(has_cls_token) + int(has_sep_token)
-    stride = tokenizer.model_max_length // 4
-    max_length = tokenizer.model_max_length - stride
-    stride = min(stride, max_length - max_question_tokens - num_special_tokens)
-    max_length = tokenizer.model_max_length - stride
+    stride = tokeniser.model_max_length // 4
+    stride = min(
+        stride,
+        tokeniser.model_max_length - stride - max_question_tokens - num_special_tokens,
+    )
+    stride = max(stride, 0)
+    max_length = tokeniser.model_max_length - stride
 
-    # Tokenize our examples with truncation and padding, but keep the overflows using a
+    # Tokenise our examples with truncation and padding, but keep the overflows using a
     # stride. This results in one example possible giving several features when a
     # context is long, each of those features having a context that overlaps a bit the
     # context of the previous feature.
-    tokenized_examples = tokenizer(
+    tokenised_examples = tokeniser(
         text=examples["question"],
         text_pair=examples["context"],
         truncation="only_second",
@@ -283,32 +290,32 @@ def prepare_train_examples(
     # Since one example might give us several features if it has a long context, we
     # need a map from a feature to its corresponding example. This key gives us just
     # that
-    sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
+    sample_mapping = tokenised_examples.pop("overflow_to_sample_mapping")
 
     # The offset mappings will give us a map from token to character position in the
     # original context. This will help us compute the start_positions and
     # end_positions.
-    offset_mapping = tokenized_examples.pop("offset_mapping")
+    offset_mapping = tokenised_examples.pop("offset_mapping")
 
     # Initialise the start- and end positions of the answers
-    tokenized_examples["start_positions"] = list()
-    tokenized_examples["end_positions"] = list()
+    tokenised_examples["start_positions"] = list()
+    tokenised_examples["end_positions"] = list()
 
     for i, offsets in enumerate(offset_mapping):
         # Get the input IDs for the current example
-        input_ids = tokenized_examples.input_ids[i]
+        input_ids = tokenised_examples.input_ids[i]
 
         # We will label impossible answers with the index of the CLS token
         cls_index = input_ids.index(cls_token_id)
 
         # Grab the sequence corresponding to that example (to know what is the context
         # and what is the question).
-        sequence_ids = tokenized_examples.sequence_ids(i)
+        sequence_ids = tokenised_examples.sequence_ids(i)
 
         # Manually ensure that the special tokens are set to None in `sequence_ids`
-        for special_token in tokenizer.special_tokens_map.keys():
-            if hasattr(tokenizer, f"{special_token}_id"):
-                special_token_id = getattr(tokenizer, f"{special_token}_id")
+        for special_token in tokeniser.special_tokens_map.keys():
+            if hasattr(tokeniser, f"{special_token}_id"):
+                special_token_id = getattr(tokeniser, f"{special_token}_id")
                 if special_token_id is not None:
                     sequence_ids = [
                         None if token_id == special_token_id else seq_id
@@ -318,12 +325,12 @@ def prepare_train_examples(
         # One example can give several spans, this is the index of the example
         # containing this span of text.
         sample_index = sample_mapping[i]
-        answers = examples["answers"][sample_index]
+        answers = examples["answers"][sample_index]  # type: ignore[bad-index]
 
         # If no answers are given, set the cls_index as answer.
         if len(answers["answer_start"]) == 0:
-            tokenized_examples.start_positions.append(cls_index)
-            tokenized_examples.end_positions.append(cls_index)
+            tokenised_examples.start_positions.append(cls_index)
+            tokenised_examples.end_positions.append(cls_index)
 
         else:
             # Start/end character index of the answer in the text.
@@ -331,9 +338,17 @@ def prepare_train_examples(
             end_char = start_char + len(answers["text"][0])
 
             # Start token index of the current span in the text.
-            token_start_index = 0
-            while sequence_ids[token_start_index] != 1:
-                token_start_index += 1
+            try:
+                token_start_index = 0
+                while sequence_ids[token_start_index] != 1:
+                    token_start_index += 1
+
+            # If it turns out that we cannot find the context in the span, then we
+            # treat this as an impossible case
+            except IndexError:
+                tokenised_examples.start_positions.append(cls_index)
+                tokenised_examples.end_positions.append(cls_index)
+                continue
 
             # End token index of the current span in the text.
             token_end_index = len(input_ids) - 1
@@ -346,8 +361,8 @@ def prepare_train_examples(
                 offsets[token_start_index][0] <= start_char
                 and offsets[token_end_index][1] >= end_char
             ):
-                tokenized_examples.start_positions.append(cls_index)
-                tokenized_examples.end_positions.append(cls_index)
+                tokenised_examples.start_positions.append(cls_index)
+                tokenised_examples.end_positions.append(cls_index)
 
             # Otherwise move the token_start_index and token_end_index to the two ends
             # of the answer. Note: we could go after the last offset if the answer is
@@ -359,71 +374,75 @@ def prepare_train_examples(
                 ):
                     token_start_index += 1
                 token_start_index -= 1
-                tokenized_examples.start_positions.append(token_start_index)
+                tokenised_examples.start_positions.append(token_start_index)
                 while (
                     token_start_index <= token_end_index
                     and offsets[token_end_index][1] >= end_char
                 ):
                     token_end_index -= 1
                 token_end_index += 1
-                tokenized_examples.end_positions.append(token_end_index)
+                tokenised_examples.end_positions.append(token_end_index)
                 assert token_end_index >= token_start_index
 
-    return tokenized_examples
+    return tokenised_examples
 
 
 def prepare_test_examples(
-    examples: "BatchEncoding", tokenizer: "PreTrainedTokenizer"
+    examples: "BatchEncoding", tokeniser: "PreTrainedTokenizer"
 ) -> "BatchEncoding":
     """Prepare test examples.
 
     Args:
         examples:
             Dictionary of test examples.
-        tokenizer:
-            The tokenizer used to preprocess the examples.
+        tokeniser:
+            The tokeniser used to preprocess the examples.
 
     Returns:
         The prepared test examples.
     """
     # Some of the questions have lots of whitespace on the left, which is not useful
-    # and will make the truncation of the context fail (the tokenized question will
+    # and will make the truncation of the context fail (the tokenised question will
     # take a lots of space). So we remove that left whitespace
-    examples["question"] = [q.lstrip() for q in examples["question"]]
+    examples["question"] = [q.lstrip() for q in examples["question"]]  # type: ignore[not-iterable]
 
-    # Extract special token metadata from the tokenizer
-    special_token_metadata = get_special_token_metadata(tokenizer=tokenizer)
+    # Extract special token metadata from the tokeniser
+    special_token_metadata = get_special_token_metadata(tokeniser=tokeniser)
     has_cls_token = special_token_metadata["has_cls_token"]
     has_sep_token = special_token_metadata["has_sep_token"]
     cls_token = special_token_metadata["cls_token"]
     sep_token = special_token_metadata["sep_token"]
 
-    # If the tokenizer is not adding special tokens, then we add them manually
+    # If the tokeniser is not adding special tokens, then we add them manually
     if not has_cls_token and not has_sep_token:
         examples["question"] = [
             f"{cls_token}{q}{sep_token}" for q in examples["question"]
         ]
-        examples["context"] = [f"{c}{sep_token}" for c in examples["context"]]
+        examples["context"] = [f"{c}{sep_token}" for c in examples["context"]]  # type: ignore[not-iterable]
 
-    # Set the stride used during tokenization, when the context is long enough to be
+    # Set the stride used during tokenisation, when the context is long enough to be
     # split into several features. Since we are always keeping the question tokens, we
     # need to make sure that the stride does not exceed the resulting maximum context
     # length.
-    max_question_tokens = max(len(tokenizer(q).input_ids) for q in examples["question"])
+    max_question_tokens = max(len(tokeniser(q).input_ids) for q in examples["question"])
     num_special_tokens = int(has_cls_token) + int(has_sep_token)
-    stride = tokenizer.model_max_length // 4
-    max_length = tokenizer.model_max_length - stride
-    stride = min(stride, max_length - max_question_tokens - num_special_tokens)
-    max_length = tokenizer.model_max_length - stride
+    stride = tokeniser.model_max_length // 4
+    stride = min(
+        stride,
+        tokeniser.model_max_length - stride - max_question_tokens - num_special_tokens,
+    )
+    stride = max(stride, 0)
+    max_length = tokeniser.model_max_length - stride
+    max_length = max(max_length, 0)
 
-    # Tokenize our examples with truncation and maybe padding, but keep the overflows
+    # Tokenise our examples with truncation and maybe padding, but keep the overflows
     # using a stride. This results in one example possible giving several features when
     # a context is long, each of those features having a context that overlaps a bit
     # the context of the previous feature.
-    tokenized_examples = tokenizer(
+    tokenised_examples = tokeniser(
         text=examples["question"],
         text_pair=examples["context"],
-        truncation="only_second",
+        truncation=TruncationStrategy.LONGEST_FIRST,
         max_length=max_length,
         stride=stride,
         return_overflowing_tokens=True,
@@ -434,30 +453,30 @@ def prepare_test_examples(
     # Since one example might give us several features if it has a long context, we
     # need a map from a feature to its corresponding example. This key gives us just
     # that.
-    sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
+    sample_mapping = tokenised_examples.pop("overflow_to_sample_mapping")
 
     # We keep the id that gave us this feature and we will store the offset mappings.
-    tokenized_examples["id"] = list()
+    tokenised_examples["id"] = list()
 
-    for i in range(len(tokenized_examples.input_ids)):
+    for i in range(len(tokenised_examples.input_ids)):
         # Grab the sequence corresponding to that example (to know what is the context
         # and what is the question).
-        sequence_ids = tokenized_examples.sequence_ids(i)
+        sequence_ids = tokenised_examples.sequence_ids(i)
         context_index = 1
 
         # One example can give several spans, this is the index of the example
         # containing this span of text.
         sample_index = sample_mapping[i]
-        tokenized_examples.id.append(examples["id"][sample_index])
+        tokenised_examples.id.append(examples["id"][sample_index])  # type: ignore[bad-index]
 
         # Set to (-1, -1) the offset_mapping that are not part of the context so it's
         # easy to determine if a token position is part of the context or not.
-        tokenized_examples.offset_mapping[i] = [
+        tokenised_examples.offset_mapping[i] = [
             (o if sequence_ids[k] == context_index else (-1, -1))
-            for k, o in enumerate(tokenized_examples.offset_mapping[i])
+            for k, o in enumerate(tokenised_examples.offset_mapping[i])
         ]
 
-    return tokenized_examples
+    return tokenised_examples
 
 
 def postprocess_predictions_and_labels(
@@ -465,7 +484,7 @@ def postprocess_predictions_and_labels(
     dataset: "Dataset",
     prepared_dataset: "Dataset",
     cls_token_index: int,
-) -> tuple[list[dict], list[dict]]:
+) -> tuple[c.Sequence[dict], c.Sequence[dict]]:
     """Postprocess the predictions and labels, to allow easier metric computation.
 
     Args:
@@ -480,6 +499,11 @@ def postprocess_predictions_and_labels(
 
     Returns:
         The postprocessed predictions and labels.
+
+    Raises:
+        InvalidBenchmark:
+            If the predictions are not a tuple with the first two elements being
+            (start_logits, end_logits).
     """
     if len(predictions) < 2:
         raise InvalidBenchmark(
@@ -496,6 +520,10 @@ def postprocess_predictions_and_labels(
     id_to_index = {k: i for i, k in enumerate(dataset["id"])}
     features_per_example = defaultdict(list)
     for i, feature in enumerate(prepared_dataset):
+        assert isinstance(feature, dict), (
+            "Each feature in the prepared dataset should be a dictionary, "
+            f"but got {type(feature)} instead."
+        )
         id = feature["id"]
         example_index = id_to_index[id]
         features_per_example[example_index].append(i)
@@ -504,13 +532,23 @@ def postprocess_predictions_and_labels(
     prediction_list: list[dict[str, t.Any]] = list()
     labels = list()
     for example_index, example in enumerate(dataset):
+        assert isinstance(example, dict), (
+            "Each example in the dataset should be a dictionary, but got "
+            f"{type(example)} instead."
+        )
+        context = example["context"]
+        assert isinstance(context, str), (
+            f"Each example's context should be a string, but got {type(context)} "
+            "instead."
+        )
+
         # Extract the best valid answer associated with the current example
         best_answer = find_best_answer(
             all_start_logits=all_start_logits,
             all_end_logits=all_end_logits,
             prepared_dataset=prepared_dataset,
             feature_indices=features_per_example[example_index],
-            context=example["context"],
+            context=context,
             max_answer_length=30,
             num_best_logits=20,
             min_null_score=0.0,
@@ -546,7 +584,7 @@ def find_best_answer(
     all_start_logits: np.ndarray,
     all_end_logits: np.ndarray,
     prepared_dataset: "Dataset",
-    feature_indices: list[int],
+    feature_indices: c.Sequence[int],
     context: str,
     max_answer_length: int,
     num_best_logits: int,
@@ -579,7 +617,7 @@ def find_best_answer(
         The best answer for the example.
     """
     # Loop through all the features associated to the current example
-    valid_answers = list()
+    valid_answers: list[dict] = list()
     for feature_index in feature_indices:
         # Get the features associated with the current example
         features = prepared_dataset[feature_index]
@@ -620,12 +658,12 @@ def find_best_answer(
 def find_valid_answers(
     start_logits: np.ndarray,
     end_logits: np.ndarray,
-    offset_mapping: list[tuple[int, int]],
+    offset_mapping: c.Sequence[tuple[int, int]],
     context: str,
     max_answer_length: int,
     num_best_logits: int,
     min_null_score: float,
-) -> list[dict]:
+) -> c.Sequence[dict]:
     """Find the valid answers from the start and end indexes.
 
     Args:

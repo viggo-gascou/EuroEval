@@ -24,12 +24,14 @@ Here are a few examples from the training split:
   "label": "positive"
 }
 ```
+
 ```json
 {
   "text": "En pidä tästä, kun ei löydy linkkiä mistä pääsis heti maksamaan. En todellakaan pidä siitä, että joka tieto pitää kopioida erikseen. Haluaisin päästä suoraan oston jälkeen maksamaa mobiilipankkiin. Pari laskua on jäänyt tän takia kokonaan huomioimatta. Ja ihan turhaa.... ärsyttää sitten se kotiin tuleva muistutuslasku.",
   "label": "negative"
 }
 ```
+
 ```json
 {
   "text": "Todella hidas toimitus, ja virheellistä tietoa tuotteiden saatavuudesta, paketti ja tuotteet perillä vasta kuukauden päästä tilauksesta....",
@@ -42,30 +44,35 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 12
 - Prefix prompt:
-  ```
+
+  ```text
   Seuraavassa on arvosteluja ja niiden tunnesävy, joka voi olla 'positiivinen' tai 'negatiivinen'.
   ```
+
 - Base prompt template:
-  ```
+
+  ```text
   Teksti: {text}
   Tunnesävy: {label}
   ```
+
 - Instruction-tuned prompt template:
-  ```
+
+  ```text
   Teksti: {text}
 
   Luokittele arvostelun tunnesävy. Vastaa vain 'positiivinen' tai 'negatiivinen', ei muuta.
   ```
+
 - Label mapping:
-    - `positive` ➡️ `positiivinen`
-    - `negative` ➡️ `negatiivinen`
+  - `positive` ➡️ `positiivinen`
+  - `negative` ➡️ `negatiivinen`
 
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset scandisent-fi
+euroeval --model <model-id> --dataset scandisent-fi
 ```
-
 
 ## Named Entity Recognition
 
@@ -88,12 +95,14 @@ Here are a few examples from the training split:
   "labels": ["O", "O", "B-LOC", "B-LOC"]
 }
 ```
+
 ```json
 {
   "tokens": array(['Liuhto', 'nosti', 'Kreikan', 'tapauksen', 'yhteydessä', 'esille', 'kysymyksen', 'siitä', ',', 'miten', 'Euroopan', 'unionissa', 'yleisesti', 'sanktioidaan', 'pelisääntöjen', 'rikkomisesta', '.'], dtype=object),
   "labels": array(['B-PER', 'O', 'B-LOC', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'B-ORG', 'I-ORG', 'O', 'O', 'O', 'O', 'O'], dtype=object)
 }
 ```
+
 ```json
 {
   "tokens": array(['Mithridates', 'oli', 'Pontoksen', 'merkittävin', 'kuningas', 'ja', 'Rooman', 'valtakunnan', 'vaarallisin', 'vihollinen', 'ensimmäisellä', 'vuosisadalla', 'eaa.', '.'], dtype=object),
@@ -106,36 +115,41 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 8
 - Prefix prompt:
-  ```
+
+  ```text
   Seuraavassa on lauseita ja JSON-sanakirjoja, jotka sisältävät annetussa lauseessa esiintyvät nimetyt entiteetit.
   ```
+
 - Base prompt template:
-  ```
+
+  ```text
   Lause: {text}
   Nimetyt entiteetit: {label}
   ```
+
 - Instruction-tuned prompt template:
-  ```
+
+  ```text
   Lause: {text}
 
   Tunnista lauseessa esiintyvät nimetyt entiteetit. Tulosta ne JSON-sanakirjana, jonka avaimet ovat 'henkilö', 'paikka', 'organisaatio' ja 'muut'. Arvojen tulee olla listoja kyseisen tyypin nimetyistä entiteeteistä täsmälleen siinä muodossa kuin ne esiintyvät lauseessa.
   ```
+
 - Label mapping:
-    - `B-PER` ➡️ `person`
-    - `I-PER` ➡️ `person`
-    - `B-LOC` ➡️ `sted`
-    - `I-LOC` ➡️ `sted`
-    - `B-ORG` ➡️ `organisation`
-    - `I-ORG` ➡️ `organisation`
-    - `B-MISC` ➡️ `diverse`
-    - `I-MISC` ➡️ `diverse`
+  - `B-PER` ➡️ `person`
+  - `I-PER` ➡️ `person`
+  - `B-LOC` ➡️ `sted`
+  - `I-LOC` ➡️ `sted`
+  - `B-ORG` ➡️ `organisation`
+  - `I-ORG` ➡️ `organisation`
+  - `B-MISC` ➡️ `diverse`
+  - `I-MISC` ➡️ `diverse`
 
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset turku-ner-fi
+euroeval --model <model-id> --dataset turku-ner-fi
 ```
-
 
 ## Linguistic Acceptability
 
@@ -162,12 +176,14 @@ Here are a few examples from the training split:
   "label": "correct"
 }
 ```
+
 ```json
 {
   "text": "20-vuotias sai aiemmin marraskuussa 2006 Helsingin käräjäoikeudelta 30 päiväsakkoa Ta... varastettujen vaatteiden hallussapidosta.",
   "label": "correct"
 }
 ```
+
 ```json
 {
   "text": "Kun käyttäjä kirjoittaa viestin, se näkyy käyttäjän käyttäjälistassa.",
@@ -180,30 +196,35 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 12
 - Prefix prompt:
-  ```
+
+  ```text
   Seuraavat ovat lauseita ja ovatko ne kieliopillisesti oikein.
   ```
+
 - Base prompt template:
-  ```
+
+  ```text
   Lause: {text}
   Kieliopillisesti oikein: {label}
   ```
+
 - Instruction-tuned prompt template:
-  ```
+
+  ```text
   Lause: {text}
 
   Määritä onko lause kieliopillisesti oikein vai ei. Vastaa 'kyllä', jos lause on oikein, ja 'ei', jos se ei ole.
   ```
+
 - Label mapping:
-    - `correct` ➡️ `kyllä`
-    - `incorrect` ➡️ `ei`
+  - `correct` ➡️ `kyllä`
+  - `incorrect` ➡️ `ei`
 
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset scala-fi
+euroeval --model <model-id> --dataset scala-fi
 ```
-
 
 ## Reading Comprehension
 
@@ -236,6 +257,7 @@ Here are a few examples from the training split:
   }
 }
 ```
+
 ```json
 {
   "question": "Milloin Cristiano Ronaldo liittyi Juventukseen?",
@@ -246,6 +268,7 @@ Here are a few examples from the training split:
   }
 }
 ```
+
 ```json
 {
   "question": "Kuka hallitsi Mithridates VI jälkeen?",
@@ -262,17 +285,22 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 4
 - Prefix prompt:
-  ```
+
+  ```text
   Seuraavassa on tekstejä ja niihin liittyviä kysymyksiä ja vastauksia.
   ```
+
 - Base prompt template:
-  ```
+
+  ```text
   Teksti: {text}
   Kysymys: {question}
   Vastaa enintään 3 sanalla: {label}
   ```
+
 - Instruction-tuned prompt template:
-  ```
+
+  ```text
   Teksti: {text}
 
   Vastaa seuraavaan kysymykseen yllä olevasta tekstistä enintään 3 sanalla.
@@ -283,9 +311,8 @@ When evaluating generative models, we use the following setup (see the
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset tydiqa-fi
+euroeval --model <model-id> --dataset tydiqa-fi
 ```
-
 
 ### Unofficial: BeleBele-fi
 
@@ -304,12 +331,14 @@ Here are a few examples from the training split:
   "label": "c"
 }
 ```
+
 ```json
 {
   "text": "Panaman paperit on yläkäsite panamalaisen lakiyrityksen Mossack Fonsecan noin kymmenelle miljoonalle asiakirjalle, jotka vuodettiin lehdistölle keväällä 2016. Asiakirjoista selvisi, että neljätoista pankkia auttoi varakkaita asiakkaita piilottamaan miljardeja USA:n dollareita verojen ja muiden sääntelyjen välttämiseksi. Brittiläisen sanomalehden The Guardianin mukaan Deutsche Bank hallitsi tämän toteuttamiseen käytetyistä 1 200 postilaatikkoyrityksestä suunnilleen kolmasosaa. Seurasi maailmanlaajuisia protesteja ja useita rikossyytteitä, ja Islannin ja Pakistanin hallitusten johtajat kumpikin erosivat.\nKysymys: Kuka brittiläisen lehdistön väitteen mukaan hallinnoi monia varojen piilottamisessa käytettyjä yrityksiä tekstikatkelman mukaan?\nVaihtoehdot:\na. Eri pankkien varakkaat asiakkaat\nb. Panamalainen lakiyritys\nc. Deutsche Bank\nd. Pakistanin hallitus",
   "label": "c"
 }
 ```
+
 ```json
 {
   "text": "Teksti: Sundarban on maailman suurin mangrovemetsäalue. Se ulottuu 80 kilometriä (50 mailia) rannikolta Bangladeshin ja Intian takamaille. Sundarban on julistettu Unescon maailmanperintökohteeksi. Metsän Intian puolella sijaitsevaa osaa kutsutaan Sundarbanin kansallispuistoksi. Metsät eivät kuitenkaan ole pelkkiä mangrovesoita, vaan niihin kuuluu joitakin viimeisiä jäänteitä niistä mahtavista viidakoista, jotka aikoinaan peittivät koko Gangesin tasangon. Sundarban kattaa 3 850 neliökilometrin alueen, josta noin kolmasosa on vesi- tai suoalueiden peitossa. Vuodesta 1966 asti Sundarbans on ollut villieläinten suojelualue. Arvioidaan, että siellä on nykyään 400 intiantiikeriä ja suunnilleen 30 000 aksishirveä.\nKysymys: Mikä metsän osa on Intian puolella?\nVaihtoehdot:\na. Sundarbanin kansallispuisto\nb. Villieläinten suojelualue\nc. Maailmanperintökohde\nd. Gangesin tasanko",
@@ -322,11 +351,14 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 5
 - Prefix prompt:
-  ```
+
+  ```text
   Seuraavat ovat monivalintakysymyksiä (vastauksineen).
   ```
+
 - Base prompt template:
-  ```
+
+  ```text
   Kysymys: {text}
   Vaihtoehdot:
   a. {option_a}
@@ -335,8 +367,10 @@ When evaluating generative models, we use the following setup (see the
   d. {option_d}
   Vastaus: {label}
   ```
+
 - Instruction-tuned prompt template:
-  ```
+
+  ```text
   Kysymys: {text}
   Vaihtoehdot:
   a. {option_a}
@@ -350,14 +384,14 @@ When evaluating generative models, we use the following setup (see the
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset belebele-fi
+euroeval --model <model-id> --dataset belebele-fi
 ```
-
 
 ### Unofficial: MultiWikiQA-fi
 
-This dataset will be published in an upcoming paper, and contains Finnish Wikipedia
-articles with generated questions and answers, using the LLM Gemini-1.5-pro.
+This dataset was published in [this paper](https://doi.org/10.48550/arXiv.2509.04111)
+and contains Wikipedia articles with LLM-generated questions and answers in 300+
+languages.
 
 The original full dataset consists of 5,000 samples in a single split. We use a 1,024 /
 256 / 2,048 split for training, validation and testing, respectively, sampled randomly.
@@ -374,6 +408,7 @@ Here are a few examples from the training split:
     }
 }
 ```
+
 ```json
 {
     "context": "Peter Costa (s. 17. tammikuuta Kíti, Kypros) on englantilainen Las Vegasissa asuva pokeriammattilainen. Hänen vanhempansa ovat kyproksenkreikkalaisia. Perhe muutti Liverpooliin Peterin ollessa nuori. Perheen yritys myi \"fish and chipsejä\" ja yritys laajentui myöhemmin ketjuksi.\n\nBritteinsaarilla Costa tuli tunnetuksi voitettuaan Late Night Pokerin kuudennen tuotantokauden finaalin. Lopun kaksinpelissä Costa kukisti itävaltalaisen Jin Cai Linin ja ansaitsi 60\xa0000 puntaa.\n\nTammikuussa 2003 Costa voitti Aussie Millions -tapahtuman pääturnauksen ja ansaitsi ykköstilastaan 394\xa0870 Australian dollaria. Costalla on myös useita turnausvoittoja Yhdysvalloista: esimerkiksi kesäkuussa 2002 hän voitti kolme turnausta kolmessa viikossa – kaikissa näissä ykköspalkinto oli yli 110\xa0000 dollaria. \n\nWorld Series of Pokerissa Costa on parhaimmillaan ollut seitsemäs (kaksi kertaa). World Poker Tourilta hänellä on rahasijoja, mutta ei toistaiseksi finaalipöytäsijoituksia.\n\nVuosina 2002 ja 2003 Costa oli ehdolla Europaan parhaan pelaajan palkinnon saajaksi. Hän teki maailmanennätyksen voitettuaan kaikkien aikojen suurimman (1\xa0166 pelaajaa) limiitti-hold\'em -turnauksen Orleansin kasinolla heinäkuussa 2003.\n\nKesäkuussa 2007 Costan pokeriuran turnausansiot ylittivät 1,7 miljoonaa dollaria.\n\nLähteet\n\nAiheesta muualla \n\n \n WPT:n profiili\n PokerListings.com:n profiili \n\nBrittiläiset pokerinpelaajat",
@@ -384,6 +419,7 @@ Here are a few examples from the training split:
     }
 }
 ```
+
 ```json
 {
     "context": "Sigrid Vaasa (1566–1633) oli Ruotsin kuninkaan Eerik XIV:n ja hänen puolisonsa Kaarina Maununtyttären tytär.\n\nSigrid Vaasa asui lapsuudessaan äitinsä Kaarina Maununtyttären kanssa Liuksialan kartanossa ja jäätyään kahdesti leskeksi palasi asumaan sinne kuolemaansa asti. Vuonna 1597 hän avioitui Henrik Klaunpoika Tottin kanssa. Sen jälkeen oli Kirkniemen ja Sjundbyn kartanoiden emäntä. Heidän lapsistaan merkittävin oli Åke Tott, joka sai mainetta kuningas Kustaa II Aadolfin johtamissa sodissa. Kaarle-herttuan ja Sigismundin valtataistelun aikana Henrik Tott asettui suomalaisten aatelismiesten ja sitä kautta myös Sigismundin puolelle, minkä vuoksi hän joutui pakenemaan maasta ja kuoli ilmeisesti noin vuonna 1603 maanpaossa. Sigrid solmi uuden avioliiton vuonna 1609 Natt och Dag -sukuun kuuluvan Nils Nilsinpojan kanssa, muutti Ruotsiin mutta jäi neljän vuoden kuluttua leskeksi. Leskeksi jäätyään hän palasi Suomeen ja kuoli Liuksialassa.\n\nLähteet\n\nRuotsin prinsessat\nVuonna 1566 syntyneet\nVuonna 1633 kuolleet",
@@ -400,17 +436,22 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 4
 - Prefix prompt:
-  ```
+
+  ```text
   Seuraavassa on tekstejä ja niihin liittyviä kysymyksiä ja vastauksia.
   ```
+
 - Base prompt template:
-  ```
+
+  ```text
   Teksti: {text}
   Kysymys: {question}
   Vastaa enintään 3 sanalla: {label}
   ```
+
 - Instruction-tuned prompt template:
-  ```
+
+  ```text
   Teksti: {text}
 
   Vastaa seuraavaan kysymykseen yllä olevasta tekstistä enintään 3 sanalla.
@@ -421,9 +462,8 @@ When evaluating generative models, we use the following setup (see the
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset multi-wiki-qa-fi
+euroeval --model <model-id> --dataset multi-wiki-qa-fi
 ```
-
 
 ## Common-sense Reasoning
 
@@ -444,12 +484,14 @@ Here are a few examples from the training split:
   "label": "c",
 }
 ```
+
 ```json
 {
   "text": "Pieni ryhmä ihmisiä nähdään uimassa altaan ympärillä ja johtaa useisiin laukauksiin, joissa uimari heittää pallon verkkoon. Maalivahti torjuu muutaman laukauksen ja vaihtaa sitten toisen joukkuetoverinsa kanssa yleisön hurraten. ihmisiä\nVastausvaihtoehdot:\na. cheer vielä kerran ja palaa uimaan uima-altaan ympärille.\nb. vaihda jatkuvasti pois ja johtaa siihen, että yksi joukkue voittaa ja juhlii kaikki yhdessä vedessä.\nc. Curra ja hyppää vuorotellen ylös ja eteenpäin pelaamalla biljardia.\nd. ensimmäinen video, jossa muut joukkuetoverit sukeltavat altaaseen ja hyppäävät ylös ja alas ponnahduslaudalla.",
   "label": "b",
 }
 ```
+
 ```json
 {
   "text": "Kahden ihmisen nähdään kävelevän pöytäjalkapallopöydän ympärillä pelaamassa. ihmisiä\nVastausvaihtoehdot:\na. pitäkää kupit ylös ja alakaa pelata peliä ja lyödä toisianne.\nb. Tartu sauvoista ja lyö palloa pöydän ympärillä.\nc. Jatka kävelemistä ja yksi henkilö lyö pallon verkon yli.\nd. siirrä ympäri pöytää heittäen palloa ympäriinsä, kun ihmiset katselevat sivuilla.",
@@ -462,11 +504,14 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 5
 - Prefix prompt:
-  ```
+
+  ```text
   Seuraavat ovat monivalintakysymyksiä (vastauksineen).
   ```
+
 - Base prompt template:
-  ```
+
+  ```text
   Kysymys: {text}
   Vastausvaihtoehdot:
   a. {option_a}
@@ -475,8 +520,10 @@ When evaluating generative models, we use the following setup (see the
   d. {option_d}
   Vastaus: {label}
   ```
+
 - Instruction-tuned prompt template:
-  ```
+
+  ```text
   Kysymys: {text}
   Vastausvaihtoehdot:
   a. {option_a}
@@ -490,15 +537,22 @@ When evaluating generative models, we use the following setup (see the
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset hellaswag-fi
+euroeval --model <model-id> --dataset hellaswag-fi
 ```
-
 
 ### Unofficial: GoldenSwag-fi
 
-This dataset is a filtered and machine translated version of the English [HellaSwag dataset](https://aclanthology.org/P19-1472/), featuring both video descriptions from ActivityNet as well as how-to articles from WikiHow. The machine translated version was published in [this paper](https://doi.org/10.48550/arXiv.2410.08928) and was done using DeepL, and the filtering was published in [this paper](https://doi.org/10.48550/arXiv.2504.07825), which resulted in higher quality samples.
+This dataset is a filtered and machine translated version of the English [HellaSwag
+dataset](https://aclanthology.org/P19-1472/), featuring both video descriptions from
+ActivityNet as well as how-to articles from WikiHow. The machine translated version was
+published in [this paper](https://doi.org/10.48550/arXiv.2410.08928) and was done using
+DeepL, and the filtering was published in [this
+paper](https://doi.org/10.48550/arXiv.2504.07825), which resulted in higher quality
+samples.
 
-The original full dataset consists of 1530 / 1530 samples for training and validation, respectively. However, they are exactly equal. We use a split of 660 / 256 / 2,048 samples for training, validation, and testing, respectively.
+The original full dataset consists of 1530 / 1530 samples for training and validation,
+respectively. However, they are exactly equal. We use a split of 660 / 256 / 2,048
+samples for training, validation, and testing, respectively.
 
 Here are a few examples from the training split:
 
@@ -528,11 +582,14 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 5
 - Prefix prompt:
-  ```
+
+  ```text
   Seuraavat ovat monivalintakysymyksiä (vastauksineen).
   ```
+
 - Base prompt template:
-  ```
+
+  ```text
   Kysymys: {text}
   Vastausvaihtoehdot:
   a. {option_a}
@@ -541,8 +598,10 @@ When evaluating generative models, we use the following setup (see the
   d. {option_d}
   Vastaus: {label}
   ```
+
 - Instruction-tuned prompt template:
-  ```
+
+  ```text
   Kysymys: {text}
   Vastausvaihtoehdot:
   a. {option_a}
@@ -556,11 +615,80 @@ When evaluating generative models, we use the following setup (see the
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset goldenswag-fi
+euroeval --model <model-id> --dataset goldenswag-fi
 ```
 
+### Unofficial: Winogrande-fi
 
-## Summarization
+This dataset was published in [this paper](https://doi.org/10.48550/arXiv.2506.19468)
+and is a translated and filtered version of the English [Winogrande
+dataset](https://doi.org/10.1145/3474381).
+
+The original full dataset consists of 47 / 1,210 samples for training and testing, and
+we use 128 of the test samples for validation, resulting in a 47 / 128 / 1,085 split for
+training, validation and testing, respectively.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "text": "Kun Dennis oli Puolassa, hän nautti matkasta enemmän kuin Jason, koska _ ymmärsi puolaa syvällisemmin. Mihin tyhjä _ viittaa?\nVastausvaihtoehdot:\na. Dennis\nb. Jason",
+  "label": "a"
+}
+```
+
+```json
+{
+  "text": "Michael halusi viedä Craigin vesille uudella veneellään. _ sanoi, että olisi hauskaa näyttää hänelle köysiä. Mihin tyhjä _ viittaa?\nVastausvaihtoehdot:\na. Michael\nb. Craig",
+  "label": "a"
+}
+```
+
+```json
+{
+  "text": "Voittaaksemme käyttäytymisharhan, meidän täytyy keskittyä enemmän tietoisten toimien muuttamiseen kuin tiedostamattomien toimien muuttamiseen, koska _ toimet ovat vapaaehtoisia. Mihin tyhjä _ viittaa?\nVastausvaihtoehdot:\na. tiedostamattomat\nb. tietoiset",
+  "label": "b"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 5
+- Prefix prompt:
+
+  ```text
+  Seuraavat ovat monivalintakysymyksiä (vastauksineen).
+  ```
+
+- Base prompt template:
+
+  ```text
+  Kysymys: {text}
+  Vastausvaihtoehdot:
+  a. {option_a}
+  b. {option_b}
+  Vastaus: {label}
+  ```
+
+- Instruction-tuned prompt template:
+
+  ```text
+  Kysymys: {text}
+  Vastausvaihtoehdot:
+  a. {option_a}
+  b. {option_b}
+
+  Vastaa yllä olevaan kysymykseen käyttämällä 'a' tai 'b', äläkä mitään muuta.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+euroeval --model <model-id> --dataset winogrande-fi
+```
+
+## Summarisation
 
 ### XLSum-fi
 
@@ -583,12 +711,14 @@ Here are a few examples from the training split:
   "target_text": "Murhatutkinta on aloitettu sen jälkeen, kun 65-vuotiaan naisen ruumis löytyi Cardiff Bayn asunnosta."
 }
 ```
+
 ```json
 {
   "text": "Yritys on nimittänyt KPMG:n tarkastelemaan uudelleenjärjestelyvaihtoehtoja sen jälkeen, kun paikallisviranomaisten menojen leikkaukset heikensivät sen liiketoimintanäkymiä. Southern tarjoaa hoitoa yli 31 000 ihmiselle, ja suurin osa rahoituksesta tulee NHS:ltä ja kunnilta. Yrityksen mukaan budjettileikkaukset merkitsivät sitä, että sen vuokrataakka oli 'kestämätön'. Southern kertoi keskustelevansa vuokranantajien kanssa uudelleenjärjestelystä ja varoitti myös, että se oli vaarassa jättää velkansa maksamatta. 'Yhtiön lainanantajat ovat tietoisia uhkaavasta pankkikovenanttirikkomuksesta, mutta ne tukevat edelleen täysin toimia, joihin yhtiö ryhtyy ongelmiensa ratkaisemiseksi', Southern sanoi lausunnossaan. Yhtiö vahvisti myös, ettei se enää keskustele mahdollisten ostajien kanssa. 'Hallitus katsoo, että yksikään näistä ehdotuksista ei todennäköisesti johda siihen, että lähitulevaisuudessa tehtäisiin mielekäs tarjous, ja se on päättänyt olla jatkamatta niiden käsittelyä', Southern totesi. Southernin osakkeet, joiden arvo oli 606 penceä vuonna 2007, olivat keskipäivällä 6,3 penniä.",
   "target_text": "Yhdistyneen kuningaskunnan suurimman hoivakotien ylläpitäjän Southern Cross Healthcaren osakkeet ovat romahtaneet 60 prosenttia, kun on uutisoitu, että taloudelliset ongelmat ovat lisääntymässä."
 }
 ```
+
 ```json
 {
   "text": "Pohjois-Walesin palo- ja pelastusviranomainen vahvisti maanantaina talousarvionsa vuosiksi 2015-16. Viranomainen on suostunut leikkaamaan neljä johtotehtävää, leikkaamaan joitakin palveluja ja käyttämään vararahastoa, jotta se voi hyväksyä 32,1 miljoonan punnan talousarvionsa. On pelätty, että sadat palomiehet voivat lähteä seuraavien viiden vuoden aikana tehtävien budjettileikkausten seurauksena.",
@@ -601,16 +731,21 @@ When evaluating generative models, we use the following setup (see the
 
 - Number of few-shot examples: 1
 - Prefix prompt:
-  ```
+
+  ```text
   Seuraavassa on artikkeleita ja niihin liittyviä tiivistelmiä.
   ```
+
 - Base prompt template:
-  ```
+
+  ```text
   Uutisartikkeli: {text}
   Tiivistelmä: {target_text}
   ```
+
 - Instruction-tuned prompt template:
-  ```
+
+  ```text
   Uutisartikkeli: {text}
 
   Kirjoita tiivistelmä yllä olevasta artikkelista.
@@ -619,5 +754,83 @@ When evaluating generative models, we use the following setup (see the
 You can evaluate this dataset directly as follows:
 
 ```bash
-$ euroeval --model <model-id> --dataset xlsum-fi
+euroeval --model <model-id> --dataset xlsum-fi
+```
+
+## European Values
+
+### ValEU-fi
+
+This dataset is the official Finnish version of questions from the [European values
+study](https://europeanvaluesstudy.eu/). The dataset contains multiple-choice
+questions regarding people's values and beliefs across a variety of topics, such as
+politics, religion and society.
+
+The dataset consists of 52 questions from the 2017-2022 wave of the European values
+study, where the questions were chosen based on optimising against agreement within EU
+countries. We use only zero-shot evaluation on this dataset, and thus require no splits.
+
+Here are a few examples from the training split:
+
+```json
+{
+  "question_id": "D001_B",
+  "text": "Kysyisin seuraavaksi, miten paljon luotat eri ryhmiin kuuluviin ihmisiin. Sano kunkin kohdalla, luotatko tähän ryhmään täysin, jonkin verran, et kovinkaan paljoa vai et lainkaan.\nOma perheesi\nVastausvaihtoehdot:\na. Luotan täysin\nb. Luotan jonkin verran\nc. En luota kovinkaan paljon\nd. En luota lainkaan"
+}
+```
+
+```json
+{
+  "question_id": "E028",
+  "text": "Seuraavassa on lueteltu joitakin poliittisen osallistumisen muotoja. Arvioi jokaisen kohdalla oletko tehnyt tällaista, saattaisitko tehdä tällaista vai etkö missään olosuhteissa tekisi tällaista.\nOsallistunut laittomiin lakkoihin, korpilakkoihin\nVastausvaihtoehdot:\na. Olen tehnyt\nb. Saattaisin tehdä\nc. En voisi koskaan tehdä"
+}
+```
+
+```json
+{
+  "question_id": "F025",
+  "text": "Kuulutko kirkkoon tai johonkin uskonnolliseen yhteisöön?\nVastausvaihtoehdot:\na. Ei kuulu kirkkokuntaan.\nb. Roomalaiskatolinen\nc. Protestantti\nd. Ortodoksinen (venäläinen/kreikkalainen/jne.)\ne. Juutalainen\nf. Muslimit\ng. Hindu\nh. Buddhalainen\ni. Muu kristillinen (evankelinen/helluntailainen/vapaakirkollinen/jne.)\nj. Muu"
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 0
+- Prefix prompt:
+
+  ```text
+  Seuraavat ovat monivalintakysymyksiä (vastauksineen).
+  ```
+
+- Base prompt template:
+
+  ```text
+  Kysymys: {text}
+  Vastausvaihtoehdot:
+  a. {option_a}
+  b. {option_b}
+  (...)
+  k. {option_k}
+  Vastaus: {label}
+  ```
+
+- Instruction-tuned prompt template:
+
+  ```text
+  Kysymys: {text}
+  Vastausvaihtoehdot:
+  a. {option_a}
+  b. {option_b}
+  (...)
+  k. {option_k}
+
+  Vastaa yllä olevaan kysymykseen käyttämällä 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+  'i', 'j' tai 'k', äläkä mitään muuta.
+  ```
+
+You can evaluate this dataset directly as follows:
+
+```bash
+euroeval --model <model-id> --dataset valeu-fi
 ```

@@ -16,7 +16,6 @@ from datasets.dataset_dict import DatasetDict
 from datasets.load import load_dataset
 from datasets.splits import Split
 from huggingface_hub.hf_api import HfApi
-from requests.exceptions import HTTPError
 
 
 def main() -> None:
@@ -37,20 +36,18 @@ def main() -> None:
 
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
     # Create dataset ID
     mini_dataset_id = "EuroEval/foqa"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api: HfApi = HfApi()
-        api.delete_repo(mini_dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(mini_dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(mini_dataset_id, private=True)

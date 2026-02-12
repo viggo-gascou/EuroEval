@@ -1,4 +1,4 @@
-"""Unit tests for the `callbacks` module."""
+"""Tests for the `callbacks` module."""
 
 from dataclasses import dataclass
 from typing import Generator
@@ -23,7 +23,7 @@ class FakeState(TrainerState):
 class FakeEvalDataloader(DataLoader):
     """Dummy evaluation dataloader class for testing."""
 
-    dataset: Dataset = Dataset.from_dict({"value": [1, 2, 3]})
+    dataset: Dataset = Dataset.from_dict({"value": [1, 2, 3]})  # type: ignore[bad-override]
 
     def __len__(self) -> int:
         """Return the length of the dataloader."""

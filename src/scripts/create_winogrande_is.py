@@ -14,16 +14,17 @@
 from collections import Counter
 
 import pandas as pd
-from constants import (
+from datasets import Dataset, DatasetDict, Split, load_dataset
+from huggingface_hub import HfApi
+from sklearn.model_selection import train_test_split
+
+from .constants import (
+    CHOICES_MAPPING,
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
     MAX_REPETITIONS,
     MIN_NUM_CHARS_IN_OPTION,
 )
-from datasets import Dataset, DatasetDict, Split, load_dataset
-from huggingface_hub import HfApi
-from requests import HTTPError
-from sklearn.model_selection import train_test_split
 
 
 def main() -> None:
@@ -73,11 +74,12 @@ def main() -> None:
         & ~df.option_a.apply(is_repetitive)
         & ~df.option_b.apply(is_repetitive)
     ]
+    assert isinstance(df, pd.DataFrame)
 
     # Make a `text` column with all the options in it
     df["text"] = [
         row.instruction.replace("\n", " ").strip() + "\n"
-        "Svarmöguleikar:\n"
+        f"{CHOICES_MAPPING['is']}:\n"
         "a. " + row.option_a.replace("\n", " ").strip() + "\n"
         "b. " + row.option_b.replace("\n", " ").strip()
         for _, row in df.iterrows()
@@ -114,22 +116,16 @@ def main() -> None:
 
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
-    # Create dataset ID
-    dataset_id = "EuroEval/winogrande-is"
-
-    # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
-
     # Push the dataset to the Hugging Face Hub
+    dataset_id = "EuroEval/winogrande-is"
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
     dataset.push_to_hub(dataset_id, private=True)
 
 

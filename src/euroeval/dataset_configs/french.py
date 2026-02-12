@@ -1,103 +1,117 @@
 """All French dataset configurations used in EuroEval."""
 
 from ..data_models import DatasetConfig
-from ..languages import FR
-from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
+from ..languages import FRENCH
+from ..tasks import COMMON_SENSE, EUROPEAN_VALUES, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
-### Official datasets ###
+# Official datasets ###
 
 ALLOCINE_CONFIG = DatasetConfig(
     name="allocine",
-    pretty_name="the truncated version of the French sentiment classification "
-    "dataset AlloCiné",
-    huggingface_id="EuroEval/allocine-mini",
+    pretty_name="AlloCiné",
+    source="EuroEval/allocine-mini",
     task=SENT,
-    languages=[FR],
-    _labels=["negative", "positive"],
-    _prompt_label_mapping=dict(positive="positif", negative="négatif"),
+    languages=[FRENCH],
+    labels=["negative", "positive"],
+    prompt_label_mapping=dict(positive="positif", negative="négatif"),
 )
 
 SCALA_FR_CONFIG = DatasetConfig(
     name="scala-fr",
-    pretty_name="the French part of the linguistic acceptability dataset ScaLA",
-    huggingface_id="EuroEval/scala-fr",
+    pretty_name="ScaLA-fr",
+    source="EuroEval/scala-fr",
     task=LA,
-    languages=[FR],
+    languages=[FRENCH],
 )
 
 ELTEC_CONFIG = DatasetConfig(
     name="eltec",
-    pretty_name="the truncated version of the French named entity recognition "
-    "dataset ELTeC",
-    huggingface_id="EuroEval/eltec-mini",
+    pretty_name="ELTeC",
+    source="EuroEval/eltec-mini",
     task=NER,
-    languages=[FR],
+    languages=[FRENCH],
 )
 
 FQUAD_CONFIG = DatasetConfig(
     name="fquad",
-    pretty_name="the truncated version of the French reading comprehension dataset "
-    "FQuAD",
-    huggingface_id="EuroEval/fquad-mini",
+    pretty_name="FQuAD",
+    source="EuroEval/fquad-mini",
     task=RC,
-    languages=[FR],
+    languages=[FRENCH],
 )
 
 ORANGE_SUM_CONFIG = DatasetConfig(
     name="orange-sum",
-    pretty_name="the truncated version of the French summarisation dataset OrangeSum",
-    huggingface_id="EuroEval/orange-sum-mini",
+    pretty_name="OrangeSum",
+    source="EuroEval/orange-sum-mini",
     task=SUMM,
-    languages=[FR],
+    languages=[FRENCH],
 )
 
 MMLU_FR_CONFIG = DatasetConfig(
     name="mmlu-fr",
-    pretty_name="the truncated version of the French knowledge dataset MMLU-fr, "
-    "translated from the English MMLU dataset",
-    huggingface_id="EuroEval/mmlu-fr-mini",
+    pretty_name="MMLU-fr",
+    source="EuroEval/mmlu-fr-mini",
     task=KNOW,
-    languages=[FR],
+    languages=[FRENCH],
 )
 
 HELLASWAG_FR_CONFIG = DatasetConfig(
     name="hellaswag-fr",
-    pretty_name="the truncated version of the French common-sense reasoning dataset "
-    "HellaSwag-fr, translated from the English HellaSwag dataset",
-    huggingface_id="EuroEval/hellaswag-fr-mini",
+    pretty_name="HellaSwag-fr",
+    source="EuroEval/hellaswag-fr-mini",
     task=COMMON_SENSE,
-    languages=[FR],
+    languages=[FRENCH],
+)
+
+VALEU_FR_CONFIG = DatasetConfig(
+    name="valeu-fr",
+    pretty_name="VaLEU-fr",
+    source="EuroEval/european-values-fr",
+    task=EUROPEAN_VALUES,
+    languages=[FRENCH],
+    train_split=None,
+    val_split=None,
+    bootstrap_samples=False,
+    instruction_prompt="{text}",
 )
 
 
-### Unofficial datasets ###
+# Unofficial datasets ###
 
 BELEBELE_FR_CONFIG = DatasetConfig(
     name="belebele-fr",
-    pretty_name="the French multiple choice reading comprehension dataset BeleBele-fr, "
-    "translated from the English BeleBele dataset",
-    huggingface_id="EuroEval/belebele-fr-mini",
+    pretty_name="Belebele-fr",
+    source="EuroEval/belebele-fr-mini",
     task=MCRC,
-    languages=[FR],
+    languages=[FRENCH],
     unofficial=True,
 )
 
 MULTI_WIKI_QA_FR_CONFIG = DatasetConfig(
     name="multi-wiki-qa-fr",
-    pretty_name="the truncated version of the French part of the reading "
-    "comprehension dataset MultiWikiQA",
-    huggingface_id="EuroEval/multi-wiki-qa-fr-mini",
+    pretty_name="MultiWikiQA-fr",
+    source="EuroEval/multi-wiki-qa-fr-mini",
     task=RC,
-    languages=[FR],
+    languages=[FRENCH],
     unofficial=True,
 )
 
 GOLDENSWAG_FR_CONFIG = DatasetConfig(
     name="goldenswag-fr",
-    pretty_name="the truncated version of the French common-sense reasoning "
-    "dataset GoldenSwag-fr, translated from the English GoldenSwag dataset",
-    huggingface_id="EuroEval/goldenswag-fr-mini",
+    pretty_name="GoldenSwag-fr",
+    source="EuroEval/goldenswag-fr-mini",
     task=COMMON_SENSE,
-    languages=[FR],
+    languages=[FRENCH],
+    unofficial=True,
+)
+
+WINOGRANDE_FR_CONFIG = DatasetConfig(
+    name="winogrande-fr",
+    pretty_name="Winogrande-fr",
+    source="EuroEval/winogrande-fr",
+    task=COMMON_SENSE,
+    languages=[FRENCH],
+    labels=["a", "b"],
     unofficial=True,
 )

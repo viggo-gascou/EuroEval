@@ -15,17 +15,18 @@ import re
 from collections import Counter
 
 import pandas as pd
-from constants import (
+from datasets import Dataset, DatasetDict, Split, load_dataset
+from huggingface_hub import HfApi
+from sklearn.model_selection import train_test_split
+
+from .constants import (
+    CHOICES_MAPPING,
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
     MAX_REPETITIONS,
     MIN_NUM_CHARS_IN_INSTRUCTION,
     MIN_NUM_CHARS_IN_OPTION,
 )
-from datasets import Dataset, DatasetDict, Split, load_dataset
-from huggingface_hub import HfApi
-from requests import HTTPError
-from sklearn.model_selection import train_test_split
 
 
 def main() -> None:
@@ -71,21 +72,8 @@ def main() -> None:
         "it": "Domanda",
         "es": "Pregunta",
     }
-    choices_mapping = {
-        "da": "Svarmuligheder",
-        "no": "Svaralternativer",
-        "sv": "Svarsalternativ",
-        "is": "Svarmöguleikar",
-        "de": "Antwortmöglichkeiten",
-        "nl": "Antwoordopties",
-        "en": "Choices",
-        "fr": "Choix",
-        "fi": "Vaihtoehdot",
-        "it": "Opzioni",
-        "es": "Opciones",
-    }
 
-    for language in choices_mapping.keys():
+    for language in CHOICES_MAPPING.keys():
         # Download the dataset
         dataset = load_dataset(
             path=repo_id, name=language_mapping[language], split="test", token=True
@@ -143,7 +131,7 @@ def main() -> None:
             return max_repetitions > MAX_REPETITIONS
 
         # Remove overly repetitive samples
-        df = df[
+        df = df.loc[
             ~df.instruction.apply(is_repetitive)
             & ~df.option_a.apply(is_repetitive)
             & ~df.option_b.apply(is_repetitive)
@@ -154,7 +142,7 @@ def main() -> None:
         # Make a `text` column with all the options in it
         df["text"] = [
             re.sub(r"\n+", "\n", row.instruction).strip() + "\n"
-            f"{choices_mapping[language]}:\n"
+            f"{CHOICES_MAPPING[language]}:\n"
             "a. " + re.sub(r"\n+", "\n", row.option_a).strip() + "\n"
             "b. " + re.sub(r"\n+", "\n", row.option_b).strip() + "\n"
             "c. " + re.sub(r"\n+", "\n", row.option_c).strip() + "\n"
@@ -192,9 +180,11 @@ def main() -> None:
 
         # Collect datasets in a dataset dictionary
         dataset = DatasetDict(
-            train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-            val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-            test=Dataset.from_pandas(test_df, split=Split.TEST),
+            {
+                "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+                "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+                "test": Dataset.from_pandas(test_df, split=Split.TEST),
+            }
         )
 
         # Create dataset ID
@@ -204,11 +194,7 @@ def main() -> None:
             dataset_id = f"EuroEval/belebele-{language}-mini"
 
         # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api = HfApi()
-            api.delete_repo(dataset_id, repo_type="dataset")
-        except HTTPError:
-            pass
+        HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
         # Push the dataset to the Hugging Face Hub
         dataset.push_to_hub(dataset_id, private=True)

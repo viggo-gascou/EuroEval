@@ -15,11 +15,11 @@ import logging
 
 import pandas as pd
 import requests
-from constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 from datasets import Dataset, DatasetDict, Split
 from huggingface_hub import HfApi
-from requests import HTTPError
 from sklearn.model_selection import train_test_split
+
+from .constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 
 logging.basicConfig(format="%(asctime)s ⋅ %(message)s", level=logging.INFO)
 logger = logging.getLogger("create_no_cola")
@@ -103,24 +103,24 @@ def main() -> None:
 
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(
-            new_train_df, split=Split.TRAIN, preserve_index=False
-        ),
-        val=Dataset.from_pandas(
-            new_val_df, split=Split.VALIDATION, preserve_index=False
-        ),
-        test=Dataset.from_pandas(new_test_df, split=Split.TEST, preserve_index=False),
+        {
+            "train": Dataset.from_pandas(
+                new_train_df, split=Split.TRAIN, preserve_index=False
+            ),
+            "val": Dataset.from_pandas(
+                new_val_df, split=Split.VALIDATION, preserve_index=False
+            ),
+            "test": Dataset.from_pandas(
+                new_test_df, split=Split.TEST, preserve_index=False
+            ),
+        }
     )
 
     # Create dataset ID
     dataset_id = "EuroEval/no-cola-mini"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api: HfApi = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(dataset_id, private=True)
@@ -135,6 +135,9 @@ def build_dataframe(url: str) -> pd.DataFrame:
 
     Returns:
         A dataframe containing the NoCoLa dataset.
+
+    Raises:
+        ValueError: If the number of components in a line is not 1 or 2.
     """
     # Get the raw data
     response = requests.get(url=url)

@@ -16,15 +16,15 @@ from pathlib import Path
 
 import click
 import pandas as pd
-from constants import (
+from datasets import Dataset, DatasetDict, Split
+from huggingface_hub import HfApi
+
+from .constants import (
     MAX_NUM_CHARS_IN_CONTEXT,
     MAX_NUM_CHARS_IN_QUESTION,
     MIN_NUM_CHARS_IN_CONTEXT,
     MIN_NUM_CHARS_IN_QUESTION,
 )
-from datasets import Dataset, DatasetDict, Split
-from huggingface_hub import HfApi
-from requests import HTTPError
 
 
 @click.command(
@@ -42,7 +42,14 @@ def main(data_dir: str) -> None:
     valtest_df = pd.read_json(valtest_path)
 
     def set_up_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-        """Set up the dataframe."""
+        """Set up the dataframe.
+
+        Args:
+            df: The input DataFrame.
+
+        Returns:
+            The set up DataFrame.
+        """
         data_dict: dict[str, list] = defaultdict(list)
         for article_dict in df.data:
             for paragraph_dict in article_dict["paragraphs"]:
@@ -74,10 +81,10 @@ def main(data_dir: str) -> None:
     # Only work with samples where the context is not very large or small
     train_lengths = train_df.context.str.len()
     valtest_lengths = valtest_df.context.str.len()
-    train_df = train_df[
+    train_df = train_df.loc[
         train_lengths.between(MIN_NUM_CHARS_IN_CONTEXT, MAX_NUM_CHARS_IN_CONTEXT)
     ]
-    valtest_df = valtest_df[
+    valtest_df = valtest_df.loc[
         valtest_lengths.between(MIN_NUM_CHARS_IN_CONTEXT, MAX_NUM_CHARS_IN_CONTEXT)
     ]
 
@@ -127,9 +134,11 @@ def main(data_dir: str) -> None:
 
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
     def add_answer_start(example: dict) -> dict:
@@ -154,11 +163,7 @@ def main(data_dir: str) -> None:
     mini_dataset_id = "EuroEval/fquad-mini"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api: HfApi = HfApi()
-        api.delete_repo(mini_dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(mini_dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(mini_dataset_id, private=True)

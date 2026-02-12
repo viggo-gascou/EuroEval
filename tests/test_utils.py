@@ -1,16 +1,15 @@
-"""Unit tests for the `utils` module."""
+"""Tests for the `utils` module."""
 
 import random
 
 import numpy as np
-import pytest
 import torch
 
-from euroeval.utils import enforce_reproducibility, scramble, unscramble
+from euroeval.utils import enforce_reproducibility
 
 
 class TestEnforceReproducibility:
-    """Unit tests for the `enforce_reproducibility` function."""
+    """Tests for the `enforce_reproducibility` function."""
 
     def test_random_arrays_not_equal(self) -> None:
         """Test that two random arrays are not equal."""
@@ -53,15 +52,3 @@ class TestEnforceReproducibility:
         enforce_reproducibility()
         second_random_numbers = torch.rand(10)
         assert torch.equal(first_random_numbers, second_random_numbers)
-
-
-@pytest.mark.parametrize(
-    argnames=["text"],
-    argvalues=[("abc",), ("hasd_asd2w",), ("a",), ("",)],
-    ids=["short_text", "long_text", "single_char_text", "empty_text"],
-)
-def test_scrambling(text: str) -> None:
-    """Test that a text can be scrambled and unscrambled."""
-    scrambled = scramble(text=text)
-    unscrambled = unscramble(scrambled_text=scrambled)
-    assert unscrambled == text

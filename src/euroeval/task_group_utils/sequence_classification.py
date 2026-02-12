@@ -1,29 +1,36 @@
 """Utility functions related to the sequence-classification task group."""
 
+import collections.abc as c
 import logging
 import re
 import typing as t
 
-import Levenshtein
 import numpy as np
 
+from ..closest_match import get_closest_match
+from ..enums import TaskGroup
 from ..exceptions import InvalidBenchmark
+from ..string_utils import extract_multiple_choice_labels
+from ..types import Predictions
 from ..utils import log_once, raise_if_model_output_contains_nan_values
 
 if t.TYPE_CHECKING:
     from datasets.arrow_dataset import Dataset
     from transformers.trainer_utils import EvalPrediction
 
-    from ..data_models import DatasetConfig, GenerativeModelOutput
-    from ..types import Labels, Predictions
-
-
-logger = logging.getLogger("euroeval")
+    from ..data_models import (
+        BenchmarkConfig,
+        DatasetConfig,
+        GenerativeModelOutput,
+        ModelConfig,
+    )
+    from ..types import Labels
 
 
 def compute_metrics(
     model_outputs_and_labels: "tuple[Predictions, Labels] | EvalPrediction",
     dataset_config: "DatasetConfig",
+    benchmark_config: "BenchmarkConfig",
     dataset: "Dataset",
 ) -> dict[str, float]:
     """Compute the metrics needed for evaluation.
@@ -34,6 +41,8 @@ def compute_metrics(
             contains the true labels.
         dataset_config:
             The configuration of the dataset.
+        benchmark_config:
+            The configuration of the benchmark.
         dataset:
             The dataset used for evaluation. This is only used in case any additional
             metadata is used to compute the metrics.
@@ -56,8 +65,7 @@ def compute_metrics(
     else:
         predictions = model_outputs
 
-    assert not isinstance(model_outputs, tuple)
-    raise_if_model_output_contains_nan_values(model_output=model_outputs)
+    raise_if_model_output_contains_nan_values(model_output=model_outputs)  # type: ignore[bad-argument-type]
 
     prompt_label_to_label_mapping = {
         prompt_label: label
@@ -69,7 +77,7 @@ def compute_metrics(
             if isinstance(pred, str)
             else pred
         )
-        for pred in predictions
+        for pred in predictions  # type: ignore[not-iterable]
     ]
 
     label_ids = [
@@ -79,7 +87,11 @@ def compute_metrics(
     results: dict[str, float] = dict()
     for metric in dataset_config.task.metrics:
         score: float | None = metric(
-            predictions=predictions, references=label_ids, dataset=dataset
+            predictions=predictions,
+            references=label_ids,
+            dataset=dataset,
+            dataset_config=dataset_config,
+            benchmark_config=benchmark_config,
         )
 
         # The metric returns None if we are running on multi-GPU and the current
@@ -94,8 +106,9 @@ def extract_labels_from_generation(
     input_batch: dict[str, list],
     model_output: "GenerativeModelOutput",
     dataset_config: "DatasetConfig",
+    model_config: "ModelConfig",
     first_label_token_mapping: dict[str, str] | bool,
-) -> list[str]:
+) -> c.Sequence[str]:
     """Extract the predicted labels from the generated output.
 
     Args:
@@ -106,6 +119,8 @@ def extract_labels_from_generation(
             The raw generated output of the model.
         dataset_config:
             The configuration of the dataset.
+        model_config:
+            The configuration of the model.
         first_label_token_mapping:
             A mapping from labels to the first token in each label, or alternatively a
             Boolean value indicating whether the model should output scores (if the
@@ -113,7 +128,28 @@ def extract_labels_from_generation(
 
     Returns:
         The predicted labels.
+
+    Raises:
+        InvalidBenchmark:
+            If the task requires log probabilities, but the model did not output them,
+            or if the model outputted log probabilities but the first label token
+            mapping is not provided.
     """
+    # Get the candidate labels, which are the labels that the model can predict
+    default_labels = [
+        dataset_config.prompt_label_mapping[lbl]
+        for lbl in dataset_config.id2label.values()
+    ]
+    if dataset_config.task.task_group == TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION:
+        sample_candidate_labels = [
+            extract_multiple_choice_labels(
+                prompt=prompt, candidate_labels=default_labels
+            )
+            for prompt in input_batch["prompt"]
+        ]
+    else:
+        sample_candidate_labels = [default_labels] * len(input_batch["prompt"])
+
     if model_output.scores is not None:
         if first_label_token_mapping is False:
             raise InvalidBenchmark(
@@ -122,39 +158,98 @@ def extract_labels_from_generation(
             )
         labels = get_closest_logprobs_labels(
             generation_logprobs=model_output.scores,
-            dataset_config=dataset_config,
             first_label_token_mapping=first_label_token_mapping,
+            candidate_labels=sample_candidate_labels,
         )
         if labels is not None:
             return labels
+        elif dataset_config.task.requires_logprobs:
+            raise InvalidBenchmark(
+                "This task requires the model to output logprobs, and this model "
+                "does not seem to be able to do that. Skipping the evaluation."
+            )
 
-    candidate_labels = [
-        dataset_config.prompt_label_mapping[lbl]
-        for lbl in dataset_config.id2label.values()
-    ]
     new_predicted_labels: list[str] = list()
-    for predicted_label in model_output.sequences:
+    num_predictions_being_very_off = 0
+    for idx, predicted_label in enumerate(model_output.sequences):
         # If the prediction includes a boxed answer, use that instead of the full
         # generation
         if (m := re.search(r"boxed\{(.*?)\}", predicted_label)) is not None:
             predicted_label = m.group(1)
 
-        # Pick the label with the smallest word edit distance to the predicted label
-        edit_distances = [
-            Levenshtein.distance(s1=predicted_label.lower(), s2=candidate_label.lower())
-            for candidate_label in candidate_labels
+        # If the prediction starts with one of the candidate labels (case-insensitive)
+        # then use that one
+        prefix_candidate_labels = [
+            candidate_label
+            for candidate_label in sample_candidate_labels[idx]
+            if predicted_label.lower().startswith(candidate_label.lower())
         ]
-        predicted_label = candidate_labels[np.argmin(edit_distances).item()]
-        new_predicted_labels.append(predicted_label)
+        if prefix_candidate_labels:
+            new_predicted_labels.append(prefix_candidate_labels[0])
+            continue
+
+        # We set the word edit distance weights such that we heavily penalise insertions
+        # and substitutions, so that we don't just insert the correct label, but that we
+        # want the model to have included the correct label in its output.
+
+        # Compute the word edit distances between the predicted label and all candidate
+        # labels
+        best_candidate_label, closest_distance = get_closest_match(
+            string=predicted_label.lower(),
+            options=[
+                candidate_label.lower()
+                for candidate_label in sample_candidate_labels[idx]
+            ],
+            case_sensitive=False,
+            insertion_weight=1000,
+            deletion_weight=1,
+            substitution_weight=1000,
+        )
+
+        # If no candidate labels were found, we either pick the label with the smallest
+        # word edit distance to the predicted label (if invalid model outputs are
+        # allowed), or we raise an error
+        if closest_distance >= 1000:
+            num_predictions_being_very_off += 1
+
+        new_predicted_labels.append(best_candidate_label)
+
+    if num_predictions_being_very_off > 0:
+        if dataset_config.allow_invalid_model_outputs:
+            log_msg = (
+                "No candidate labels found for the predicted label in "
+                f"{num_predictions_being_very_off:,}/{len(model_output.sequences):,} "
+                f"of the samples with the model {model_config.model_id!r}. This "
+                "likely means that the model were completely off in these cases, "
+                "but since invalid model outputs are allowed for this task, we used "
+                "the closest candidate labels as the output labels."
+            )
+            level = logging.DEBUG
+            if num_predictions_being_very_off / len(model_output.sequences) > 0.5:
+                log_msg += (
+                    " Since this happened for most of the model's predictions, please "
+                    "report this issue to the EuroEval team at "
+                    "github.com/EuroEval/EuroEval/issues."
+                )
+                level = logging.WARNING
+            log_once(log_msg, level=level)
+        else:
+            raise InvalidBenchmark(
+                "No candidate labels found for the predicted label in "
+                f"{num_predictions_being_very_off:,}/{len(model_output.sequences):,} "
+                "of the samples. This likely means that the model were completely "
+                "off in these cases. Since this task does not allow invalid model "
+                "outputs, we have to abort the evaluation."
+            )
 
     return new_predicted_labels
 
 
 def get_closest_logprobs_labels(
-    generation_logprobs: list[list[list[tuple[str, float]]]],
-    dataset_config: "DatasetConfig",
+    generation_logprobs: c.Sequence[c.Sequence[c.Sequence[tuple[str, float]]]],
     first_label_token_mapping: dict[str, str] | t.Literal[True],
-) -> list[str] | None:
+    candidate_labels: c.Sequence[c.Sequence[str]],
+) -> c.Sequence[str] | None:
     """Get the labels with the highest predicted logprob value.
 
     In case a candidate label is split into multiple tokens, we only use the first
@@ -166,11 +261,11 @@ def get_closest_logprobs_labels(
         generation_logprobs:
             The logprobs of the generated tokens, for all samples in the batch. Of shape
             (batch_size, num_tokens, num_logprobs).
-        dataset_config:
-            The configuration of the dataset.
         first_label_token_mapping:
             A mapping from labels to the first token in each label, or alternatively a
             `True` value indicating that the model should output logprobs.
+        candidate_labels:
+            The candidate labels for each sample in the batch.
 
     Returns:
         The predicted labels, or None if labels could not be extracted.
@@ -179,19 +274,11 @@ def get_closest_logprobs_labels(
         InvalidBenchmark:
             If no candidate label can be found for any of the generated labels.
     """
-    english_labels = list(dataset_config.id2label.values())
-    english2local = dataset_config.prompt_label_mapping
-    candidate_labels = [english2local[lbl].lower() for lbl in english_labels]
-
     output_labels: list[str] = list()
-    for sample in generation_logprobs:
+    for idx, sample in enumerate(generation_logprobs):
         for logprob_list in sample:
             generated_labels = [
-                re.sub(
-                    pattern=r"^[^a-zæøåüöä]+|[^a-zæøåüöä]+$",
-                    repl="",
-                    string=label.lower(),
-                )
+                re.sub(pattern=r"^[^a-zæøåüöä0-9]+$", repl="", string=label.lower())
                 for label, _ in logprob_list
             ]
             generated_labels = [label for label in generated_labels if label != ""]
@@ -206,7 +293,7 @@ def get_closest_logprobs_labels(
                 if isinstance(first_label_token_mapping, dict):
                     if any(
                         candidate_label not in first_label_token_mapping
-                        for candidate_label in candidate_labels
+                        for candidate_label in candidate_labels[idx]
                     ):
                         raise InvalidBenchmark(
                             "There is a label not present in the first label token "
@@ -217,14 +304,14 @@ def get_closest_logprobs_labels(
 
                     candidate_output_labels = {
                         candidate_label
-                        for candidate_label in candidate_labels
+                        for candidate_label in candidate_labels[idx]
                         if generated_label == first_label_token_mapping[candidate_label]
                     }
                 else:
                     candidate_output_labels = {
                         candidate_label
-                        for candidate_label in candidate_labels
-                        if candidate_label.startswith(generated_label)
+                        for candidate_label in candidate_labels[idx]
+                        if candidate_label.startswith(generated_label.strip())
                     }
 
                 # If we can uniquely determine the output label, we break the loop.
@@ -257,32 +344,21 @@ def get_closest_logprobs_labels(
                 elif len(candidate_output_labels) == 0:
                     candidate_output_labels_starting_with_generated_label = [
                         candidate_label
-                        for candidate_label in candidate_labels
+                        for candidate_label in candidate_labels[idx]
                         if candidate_label.startswith(generated_label)
                     ]
                     if candidate_output_labels_starting_with_generated_label:
                         log_once(
                             f"No candidate label found for the generated label "
-                            f"{generated_label!r}. This means that using logprobs to "
-                            "extract the labels is not reliable, and we will instead "
-                            "fall back to extracting the labels using word edit "
-                            "distance.",
+                            f"{generated_label!r}, but there are candidate labels "
+                            f"starting with it: "
+                            f"{candidate_output_labels_starting_with_generated_label}. "
+                            "This means that the first label token mapping is not "
+                            "reliable, and we will instead fall back to extracting "
+                            "the labels using word edit distance.",
                             level=logging.DEBUG,
                         )
                         return None
-
-            # If we did not find any candidate label for any of the generated labels, we
-            # assume that something is wrong with the model output, and we fall back to
-            # using word edit distance to extract the labels
-            else:
-                log_once(
-                    f"No candidate label found for any of the generated labels "
-                    f"{generated_labels}. This means that using logprobs to extract "
-                    "the labels is not reliable, and we will instead fall back to "
-                    "extracting the labels using word edit distance.",
-                    level=logging.DEBUG,
-                )
-                return None
 
             if output_label is not None:
                 output_labels.append(output_label)
@@ -291,18 +367,20 @@ def get_closest_logprobs_labels(
             if len(sample) == 0:
                 log_once(
                     "The model outputted an empty string, so no candidate labels could "
-                    f"be determined. Using {candidate_labels[0]!r} as the output "
-                    "label.",
+                    "be determined. This means that using logprobs to extract the "
+                    "labels is not reliable, and we will instead fall back to "
+                    "extracting the labels using word edit distance.",
                     level=logging.DEBUG,
                 )
             else:
                 log_once(
-                    "Could not find a candidate label for any of the generated "
-                    f"labels in the sample {sample}. Using {candidate_labels[0]!r} "
-                    "as the output label.",
+                    "No candidate label found for any of the generated labels, which "
+                    "means that using logprobs to extract the labels is not reliable, "
+                    "and we will instead fall back to extracting the labels using "
+                    "word edit distance.",
                     level=logging.DEBUG,
                 )
-            output_labels.append(candidate_labels[0])
+            return None
 
     assert len(output_labels) == len(generation_logprobs)
     return output_labels

@@ -1,132 +1,182 @@
 """All Dutch dataset configurations used in EuroEval."""
 
 from ..data_models import DatasetConfig
-from ..languages import NL
-from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
+from ..languages import DUTCH
+from ..tasks import (
+    COMMON_SENSE,
+    EUROPEAN_VALUES,
+    KNOW,
+    LA,
+    MCRC,
+    MCSTEREO,
+    NER,
+    RC,
+    SENT,
+    SIMPL,
+    SUMM,
+)
 
-### Official datasets ###
+# Official datasets ###
 
 DBRD_CONFIG = DatasetConfig(
     name="dbrd",
-    pretty_name="the truncated version of the Dutch sentiment classification "
-    "dataset DBRD",
-    huggingface_id="EuroEval/dbrd-mini",
+    pretty_name="DBRD",
+    source="EuroEval/dbrd-mini",
     task=SENT,
-    languages=[NL],
-    _labels=["negative", "positive"],
+    languages=[DUTCH],
+    labels=["negative", "positive"],
 )
 
 SCALA_NL_CONFIG = DatasetConfig(
     name="scala-nl",
-    pretty_name="the Dutch part of the linguistic acceptability dataset ScaLA",
-    huggingface_id="EuroEval/scala-nl",
+    pretty_name="ScaLA-nl",
+    source="EuroEval/scala-nl",
     task=LA,
-    languages=[NL],
+    languages=[DUTCH],
 )
 
 CONLL_NL_CONFIG = DatasetConfig(
     name="conll-nl",
-    pretty_name="the Dutch part of the truncated version of the named entity "
-    "recognition dataset CoNLL 2002",
-    huggingface_id="EuroEval/conll-nl-mini",
+    pretty_name="CoNLL-nl",
+    source="EuroEval/conll-nl-mini",
     task=NER,
-    languages=[NL],
+    languages=[DUTCH],
 )
 
 SQUAD_NL_CONFIG = DatasetConfig(
     name="squad-nl",
-    pretty_name="the truncated version of the Dutch reading comprehension dataset "
-    "SQuAD-nl, translated from the English SQuAD dataset",
-    huggingface_id="EuroEval/squad-nl-v2-mini",
+    pretty_name="SQuAD-nl",
+    source="EuroEval/squad-nl-v2-mini",
     task=RC,
-    languages=[NL],
+    languages=[DUTCH],
 )
 
 WIKI_LINGUA_NL_CONFIG = DatasetConfig(
     name="wiki-lingua-nl",
-    pretty_name="the Dutch part of the truncated version of the summarisation dataset "
-    "WikiLingua",
-    huggingface_id="EuroEval/wiki-lingua-nl-mini",
+    pretty_name="WikiLingua-nl",
+    source="EuroEval/wiki-lingua-nl-mini",
     task=SUMM,
-    languages=[NL],
+    languages=[DUTCH],
 )
 
 MMLU_NL_CONFIG = DatasetConfig(
     name="mmlu-nl",
-    pretty_name="the truncated version of the Dutch knowledge dataset MMLU-nl, "
-    "translated from the English MMLU dataset",
-    huggingface_id="EuroEval/mmlu-nl-mini",
+    pretty_name="MMLU-nl",
+    source="EuroEval/mmlu-nl-mini",
     task=KNOW,
-    languages=[NL],
+    languages=[DUTCH],
 )
 
 HELLASWAG_NL_CONFIG = DatasetConfig(
     name="hellaswag-nl",
-    pretty_name="the truncated version of the Dutch common-sense reasoning dataset "
-    "HellaSwag-nl, translated from the English HellaSwag dataset",
-    huggingface_id="EuroEval/hellaswag-nl-mini",
+    pretty_name="HellaSwag-nl",
+    source="EuroEval/hellaswag-nl-mini",
     task=COMMON_SENSE,
-    languages=[NL],
+    languages=[DUTCH],
+)
+
+DUIDELIJKE_TAAL_NL_CONFIG = DatasetConfig(
+    name="duidelijke-taal",
+    pretty_name="Duidelijke Taal",
+    source="EuroEval/duidelijke-taal",
+    task=SIMPL,
+    languages=[DUTCH],
+)
+
+VALEU_NL_CONFIG = DatasetConfig(
+    name="valeu-nl",
+    pretty_name="VaLEU-nl",
+    source="EuroEval/european-values-nl",
+    task=EUROPEAN_VALUES,
+    languages=[DUTCH],
+    train_split=None,
+    val_split=None,
+    bootstrap_samples=False,
+    instruction_prompt="{text}",
+)
+
+MBBQ_NL_CONFIG = DatasetConfig(
+    name="mbbq-nl",
+    pretty_name="MBBQ-nl",
+    source="EuroEval/mbbq-nl",
+    task=MCSTEREO,
+    languages=[DUTCH],
+    train_split=None,
 )
 
 
-### Unofficial datasets ###
+# Unofficial datasets ###
 
 DUTCH_COLA_CONFIG = DatasetConfig(
     name="dutch-cola",
-    pretty_name="the truncated version of the Dutch linguistic acceptability dataset "
-    "Dutch CoLA",
-    huggingface_id="EuroEval/dutch-cola",
+    pretty_name="Dutch CoLA",
+    source="EuroEval/dutch-cola",
     task=LA,
-    languages=[NL],
+    languages=[DUTCH],
     unofficial=True,
 )
 
 DUTCH_COLA_FULL_CONFIG = DatasetConfig(
     name="dutch-cola-full",
-    pretty_name="the Dutch linguistic acceptability dataset Dutch CoLA",
-    huggingface_id="EuroEval/dutch-cola-full",
+    pretty_name="Dutch CoLA Full",
+    source="EuroEval/dutch-cola-full",
     task=LA,
-    languages=[NL],
+    languages=[DUTCH],
     unofficial=True,
 )
 
 ARC_NL_CONFIG = DatasetConfig(
     name="arc-nl",
-    pretty_name="the truncated version of the Dutch knowledge dataset ARC-nl, "
-    "translated from the English ARC dataset",
-    huggingface_id="EuroEval/arc-nl-mini",
+    pretty_name="ARC-nl",
+    source="EuroEval/arc-nl-mini",
     task=KNOW,
-    languages=[NL],
+    languages=[DUTCH],
     unofficial=True,
 )
 
 BELEBELE_NL_CONFIG = DatasetConfig(
     name="belebele-nl",
-    pretty_name="the Dutch multiple choice reading comprehension dataset BeleBele-nl, "
-    "translated from the English BeleBele dataset",
-    huggingface_id="EuroEval/belebele-nl-mini",
+    pretty_name="Belebele-nl",
+    source="EuroEval/belebele-nl-mini",
     task=MCRC,
-    languages=[NL],
+    languages=[DUTCH],
     unofficial=True,
 )
 
 MULTI_WIKI_QA_NL_CONFIG = DatasetConfig(
     name="multi-wiki-qa-nl",
-    pretty_name="the truncated version of the Dutch part of the reading "
-    "comprehension dataset MultiWikiQA",
-    huggingface_id="EuroEval/multi-wiki-qa-nl-mini",
+    pretty_name="MultiWikiQA-nl",
+    source="EuroEval/multi-wiki-qa-nl-mini",
     task=RC,
-    languages=[NL],
+    languages=[DUTCH],
     unofficial=True,
+)
+
+COPA_NL_CONFIG = DatasetConfig(
+    name="copa-nl",
+    pretty_name="COPA-nl",
+    source="EuroEval/copa-nl",
+    task=COMMON_SENSE,
+    languages=[DUTCH],
+    unofficial=True,
+    labels=["a", "b"],
 )
 
 GOLDENSWAG_NL_CONFIG = DatasetConfig(
     name="goldenswag-nl",
-    pretty_name="the truncated version of the Dutch common-sense reasoning "
-    "dataset GoldenSwag-nl, translated from the English GoldenSwag dataset",
-    huggingface_id="EuroEval/goldenswag-nl-mini",
+    pretty_name="GoldenSwag-nl",
+    source="EuroEval/goldenswag-nl-mini",
     task=COMMON_SENSE,
-    languages=[NL],
+    languages=[DUTCH],
+    unofficial=True,
+)
+
+WINOGRANDE_NL_CONFIG = DatasetConfig(
+    name="winogrande-nl",
+    pretty_name="Winogrande-nl",
+    source="EuroEval/winogrande-nl",
+    task=COMMON_SENSE,
+    languages=[DUTCH],
+    labels=["a", "b"],
     unofficial=True,
 )

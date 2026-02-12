@@ -47,12 +47,12 @@ install-uv:
 			echo "Installed uv."; \
 		else \
 			echo "Updating uv..."; \
-			uv self update; \
+			uv self update || true; \
 	fi
 
 install-dependencies:
-	@uv python install 3.11
-	@uv sync --all-extras --python 3.11
+	@uv python install 3.12
+	@uv sync --all-extras --all-groups --python 3.12
 
 setup-environment-variables:
 	@uv run python src/scripts/fix_dot_env_file.py
@@ -73,7 +73,7 @@ publish-docs:  ## Publish documentation to GitHub Pages
 	@echo "Updated documentation website: https://euroeval.com/"
 
 test:  ## Run tests
-	@uv run pytest && uv run readme-cov
+	@uv run pytest && uv run readme-cov && rm .coverage*
 
 tree:  ## Print directory tree
 	@tree -a --gitignore -I .git .
@@ -144,3 +144,6 @@ publish-major: install check bump-major publish  ## Publish a major version
 publish-minor: install check bump-minor publish  ## Publish a minor version
 
 publish-patch: install check bump-patch publish  ## Publish a patch version
+
+loc: ## Count the number of lines of code in the project
+	@git ls-files | grep '\.py' | xargs wc -l | tail -n 1

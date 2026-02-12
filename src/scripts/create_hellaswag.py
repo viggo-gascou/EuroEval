@@ -14,39 +14,32 @@
 from collections import Counter
 
 import pandas as pd
-from constants import (
+from datasets import Dataset, DatasetDict, Split, load_dataset
+from huggingface_hub import HfApi
+from sklearn.model_selection import train_test_split
+
+from .constants import (
+    CHOICES_MAPPING,
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
     MAX_REPETITIONS,
     MIN_NUM_CHARS_IN_INSTRUCTION,
     MIN_NUM_CHARS_IN_OPTION,
 )
-from datasets import Dataset, DatasetDict, Split, load_dataset
-from huggingface_hub import HfApi
-from requests import HTTPError
-from sklearn.model_selection import train_test_split
+
+LANGUAGES = ["da", "de", "en", "es", "fr", "is", "it", "nl", "no", "pt", "sv"]
 
 
 def main() -> None:
-    """Create the HellaSwag-mini datasets and upload them to the HF Hub."""
+    """Create the HellaSwag-mini datasets and upload them to the HF Hub.
+
+    Raises:
+        ValueError: If the dataset could not be loaded.
+    """
     # Define the base download URL
     repo_id = "alexandrainst/m_hellaswag"
 
-    # Create a mapping with the word "Choices" in different languages
-    choices_mapping = {
-        "da": "Svarmuligheder",
-        "no": "Svaralternativer",
-        "sv": "Svarsalternativ",
-        "is": "Svarmöguleikar",
-        "de": "Antwortmöglichkeiten",
-        "nl": "Antwoordopties",
-        "en": "Choices",
-        "fr": "Choix",
-        "it": "Scelte",
-        "es": "Opciones",
-    }
-
-    for language in choices_mapping.keys():
+    for language in LANGUAGES:
         # Download the dataset
         try:
             dataset = load_dataset(path=repo_id, name=language, token=True, split="val")
@@ -66,9 +59,11 @@ def main() -> None:
             (df.ctx.str.len() >= MIN_NUM_CHARS_IN_INSTRUCTION)
             & (df.ctx.str.len() <= MAX_NUM_CHARS_IN_INSTRUCTION)
             & df.endings.map(
-                lambda endings: min(len(ending) for ending in endings)
-                >= MIN_NUM_CHARS_IN_OPTION
-                and max(len(ending) for ending in endings) <= MAX_NUM_CHARS_IN_OPTION
+                lambda endings: (
+                    min(len(ending) for ending in endings) >= MIN_NUM_CHARS_IN_OPTION
+                    and max(len(ending) for ending in endings)
+                    <= MAX_NUM_CHARS_IN_OPTION
+                )
             )
         ]
 
@@ -78,7 +73,7 @@ def main() -> None:
             return max_repetitions > MAX_REPETITIONS
 
         # Remove overly repetitive samples
-        df = df[
+        df = df.loc[
             ~df.ctx.apply(is_repetitive)
             & ~df.endings.map(
                 lambda endings: any(is_repetitive(ending) for ending in endings)
@@ -88,7 +83,7 @@ def main() -> None:
         # Make a `text` column with all the options in it
         df["text"] = [
             row.ctx.replace("\n", " ").strip() + "\n"
-            f"{choices_mapping[language]}:\n"
+            f"{CHOICES_MAPPING[language]}:\n"
             "a. " + row.endings[0].replace("\n", " ").strip() + "\n"
             "b. " + row.endings[1].replace("\n", " ").strip() + "\n"
             "c. " + row.endings[2].replace("\n", " ").strip() + "\n"
@@ -106,7 +101,7 @@ def main() -> None:
             for activity_label, count in df["activity_label"].value_counts().items()
             if count >= 3
         ]
-        df = df[df["activity_label"].isin(acceptable_activity_labels)]
+        df = df.loc[df["activity_label"].isin(acceptable_activity_labels)]
 
         # Remove duplicates
         df.drop_duplicates(subset="text", inplace=True)
@@ -148,9 +143,11 @@ def main() -> None:
 
         # Collect datasets in a dataset dictionary
         dataset = DatasetDict(
-            train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-            val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-            test=Dataset.from_pandas(test_df, split=Split.TEST),
+            {
+                "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+                "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+                "test": Dataset.from_pandas(test_df, split=Split.TEST),
+            }
         )
 
         # Create dataset ID
@@ -160,11 +157,7 @@ def main() -> None:
             dataset_id = f"EuroEval/hellaswag-{language}-mini"
 
         # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api = HfApi()
-            api.delete_repo(dataset_id, repo_type="dataset")
-        except HTTPError:
-            pass
+        HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
         # Push the dataset to the Hugging Face Hub
         dataset.push_to_hub(dataset_id, private=True)

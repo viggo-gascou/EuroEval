@@ -14,10 +14,10 @@ from ast import literal_eval
 
 import pandas as pd
 import requests
-from constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 from datasets import Dataset, DatasetDict, Split
 from huggingface_hub import HfApi
-from requests.exceptions import HTTPError
+
+from .constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 
 
 def main() -> None:
@@ -63,25 +63,29 @@ def main() -> None:
         "text_len <= @MAX_NUM_CHARS_IN_DOCUMENT"
     )
 
+    assert isinstance(new_train_df, pd.DataFrame)
+    assert isinstance(new_val_df, pd.DataFrame)
+    assert isinstance(new_test_df, pd.DataFrame)
+
     dataset = DatasetDict(
-        train=Dataset.from_pandas(
-            new_train_df, split=Split.TRAIN, preserve_index=False
-        ),
-        val=Dataset.from_pandas(
-            new_val_df, split=Split.VALIDATION, preserve_index=False
-        ),
-        test=Dataset.from_pandas(new_test_df, split=Split.TEST, preserve_index=False),
+        {
+            "train": Dataset.from_pandas(
+                new_train_df, split=Split.TRAIN, preserve_index=False
+            ),
+            "val": Dataset.from_pandas(
+                new_val_df, split=Split.VALIDATION, preserve_index=False
+            ),
+            "test": Dataset.from_pandas(
+                new_test_df, split=Split.TEST, preserve_index=False
+            ),
+        }
     )
 
     # Create dataset ID
     dataset_id = "EuroEval/ice-linguistic"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(dataset_id, private=True)

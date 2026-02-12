@@ -14,7 +14,6 @@ import pandas as pd
 import requests
 from datasets import Dataset, DatasetDict, Split
 from huggingface_hub import HfApi
-from requests import HTTPError
 
 LABEL_MAPS = {
     "B-PRO": "B-MISC",
@@ -58,26 +57,29 @@ def main() -> None:
 
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
-    mini_dataset_id = "EuroEval/turku-ner-fi-mini"
-    # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(mini_dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
-
     # Push the dataset to the Hugging Face Hub
-    dataset.push_to_hub(mini_dataset_id, private=True)
+    dataset_id = "EuroEval/turku-ner-fi-mini"
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
+    dataset.push_to_hub(dataset_id, private=True)
 
 
 def read_dataset() -> dict:
-    """Read the CoNLL-formatted TSV files and convert them to the required format."""
-    base_url = "https://raw.githubusercontent.com/TurkuNLP/turku-ner-corpus/refs/heads/master/data/conll/{}.tsv"
+    """Read the CoNLL-formatted TSV files and convert them to the required format.
+
+    Returns:
+        A dictionary with the train, validation and test datasets.
+    """
+    base_url = (
+        "https://raw.githubusercontent.com/TurkuNLP/turku-ner-corpus/refs/heads/"
+        "master/data/conll/{}.tsv"
+    )
     train_url = base_url.format("train")
     val_url = base_url.format("dev")
     test_url = base_url.format("test")

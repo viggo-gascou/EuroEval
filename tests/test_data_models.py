@@ -1,4 +1,4 @@
-"""Unit tests for the `data_models` module."""
+"""Tests for the `data_models` module."""
 
 import inspect
 import json
@@ -6,32 +6,16 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
+from click import ParamType
 
-from euroeval import __version__, data_models, enums
-from euroeval.data_models import BenchmarkResult, Metric
-from euroeval.metrics import HuggingFaceMetric
-
-
-def test_all_classes_are_dataclasses_or_pydantic_models() -> None:
-    """Test that all classes in `data_models` are dataclasses or Pydantic models."""
-    all_classes = [
-        getattr(data_models, obj_name)
-        for obj_name in dir(data_models)
-        if not obj_name.startswith("_")
-        and inspect.isclass(object=getattr(data_models, obj_name))
-        and not hasattr(enums, obj_name)
-        and obj_name not in {"ScoreDict", "Metric"}
-    ]
-    for obj in all_classes:
-        obj_is_dataclass = hasattr(obj, "__dataclass_fields__")
-        obj_is_pydantic_model = hasattr(obj, "model_fields")
-        assert obj_is_dataclass or obj_is_pydantic_model, (
-            f"{obj.__name__} is not a dataclass or Pydantic model. "
-        )
+from euroeval import __version__
+from euroeval.benchmarker import Benchmarker
+from euroeval.data_models import BenchmarkConfig, BenchmarkConfigParams, BenchmarkResult
+from euroeval.metrics import HuggingFaceMetric, Metric
 
 
 class TestMetric:
-    """Unit tests for the `Metric` class."""
+    """Tests for the `Metric` class."""
 
     def test_metric_is_object(self, metric: HuggingFaceMetric) -> None:
         """Test that the metric config is a `Metric` object."""
@@ -69,20 +53,16 @@ class TestMetric:
         assert metric.postprocessing_fn(inputs) == expected
 
 
-# TODO
-@pytest.mark.skip("Not implemented")
-class TestBenchmarkConfigParams:
-    """Unit tests for the `BenchmarkConfigParams` class."""
-
-    pass
-
-
 class TestBenchmarkResult:
     """Tests related to the `BenchmarkResult` class."""
 
     @pytest.fixture(scope="class")
     def benchmark_result(self) -> Generator[BenchmarkResult, None, None]:
-        """Fixture for a `BenchmarkResult` object."""
+        """Fixture for a `BenchmarkResult` object.
+
+        Yields:
+            A `BenchmarkResult` object.
+        """
         yield BenchmarkResult(
             dataset="dataset",
             model="model",
@@ -94,14 +74,18 @@ class TestBenchmarkResult:
             max_sequence_length=100,
             vocabulary_size=100,
             merge=False,
-            dataset_languages=["da"],
+            languages=["da"],
             task="task",
             results=dict(),
         )
 
     @pytest.fixture(scope="class")
     def results_path(self) -> Generator[Path, None, None]:
-        """Fixture for a `Path` object to a results file."""
+        """Fixture for a `Path` object to a results file.
+
+        Yields:
+            A `Path` object to a results file.
+        """
         results_path = Path(".euroeval_cache/test_results.jsonl")
         results_path.parent.mkdir(parents=True, exist_ok=True)
         yield results_path
@@ -120,7 +104,7 @@ class TestBenchmarkResult:
         assert benchmark_result.max_sequence_length == 100
         assert benchmark_result.vocabulary_size == 100
         assert benchmark_result.merge is False
-        assert benchmark_result.dataset_languages == ["da"]
+        assert benchmark_result.languages == ["da"]
         assert benchmark_result.task == "task"
         assert benchmark_result.results == dict()
         assert benchmark_result.euroeval_version == __version__
@@ -137,7 +121,7 @@ class TestBenchmarkResult:
                     num_model_parameters=100,
                     max_sequence_length=100,
                     vocabulary_size=100,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 ),
@@ -152,7 +136,7 @@ class TestBenchmarkResult:
                     num_model_parameters=100,
                     max_sequence_length=100,
                     vocabulary_size=100,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 ),
@@ -165,7 +149,7 @@ class TestBenchmarkResult:
                     num_model_parameters=100,
                     max_sequence_length=100,
                     vocabulary_size=100,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 ),
@@ -180,7 +164,7 @@ class TestBenchmarkResult:
                     num_model_parameters=100,
                     max_sequence_length=100,
                     vocabulary_size=100,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 ),
@@ -193,7 +177,7 @@ class TestBenchmarkResult:
                     num_model_parameters=100,
                     max_sequence_length=100,
                     vocabulary_size=100,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 ),
@@ -208,7 +192,7 @@ class TestBenchmarkResult:
                     num_model_parameters=100,
                     max_sequence_length=100,
                     vocabulary_size=100,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 ),
@@ -220,7 +204,7 @@ class TestBenchmarkResult:
                     num_model_parameters=100,
                     max_sequence_length=100,
                     vocabulary_size=100,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 ),
@@ -235,7 +219,7 @@ class TestBenchmarkResult:
                     num_model_parameters=100,
                     max_sequence_length=100,
                     vocabulary_size=100,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 ),
@@ -264,7 +248,7 @@ class TestBenchmarkResult:
             dict(
                 dataset=benchmark_result.dataset,
                 task=benchmark_result.task,
-                dataset_languages=benchmark_result.dataset_languages,
+                languages=benchmark_result.languages,
                 model=benchmark_result.model,
                 results=benchmark_result.results,
                 num_model_parameters=benchmark_result.num_model_parameters,
@@ -288,3 +272,53 @@ class TestBenchmarkResult:
         assert results_path.read_text() == f"\n{json_str}\n{json_str}"
 
         results_path.unlink(missing_ok=True)
+
+
+class TestBenchmarkParametersAreConsistent:
+    """Test that the same benchmark parameters are used everywhere."""
+
+    def test_config_params_is_the_same_as_benchmarker_init(self) -> None:
+        """Test that `BenchmarkConfigParams` agrees with `Benchmarker.__init__`."""
+        benchmark_config_params = set(
+            inspect.signature(BenchmarkConfigParams).parameters.keys()
+        )
+        benchmarker_init_params = set(
+            inspect.signature(Benchmarker.__init__).parameters.keys()
+        ) - {"self", "batch_size", "dataset_language", "model_language"}
+        assert benchmark_config_params == benchmarker_init_params
+
+    def test_config_params_is_the_same_as_benchmark_method(self) -> None:
+        """Test that `BenchmarkConfigParams` agrees with `Benchmarker.benchmark`."""
+        benchmark_config_params = set(
+            inspect.signature(BenchmarkConfigParams).parameters.keys()
+        ) - {"run_with_cli"}
+        benchmark_method_params = set(
+            inspect.signature(Benchmarker.benchmark).parameters.keys()
+        ) - {"self", "model", "batch_size", "dataset_language", "model_language"}
+        assert benchmark_config_params == benchmark_method_params
+
+    def test_config_params_is_the_same_as_cli(
+        self, cli_params: dict[str, ParamType]
+    ) -> None:
+        """Test that `BenchmarkConfigParams` agrees with the CLI."""
+        benchmark_config_params = set(
+            inspect.signature(BenchmarkConfigParams).parameters.keys()
+        ) - {"run_with_cli"}
+        cli_benchmark_params = set(cli_params.keys()) - {
+            "model",
+            "batch_size",
+            "dataset_language",
+            "model_language",
+            "help",
+        }
+        assert benchmark_config_params == cli_benchmark_params
+
+    def test_config_params_is_the_same_as_benchmark_config(self) -> None:
+        """Test that `BenchmarkConfigParams` agrees with `BenchmarkConfig`."""
+        benchmark_config_params = set(
+            inspect.signature(BenchmarkConfigParams).parameters.keys()
+        ) - {"dataset", "task", "language", "custom_datasets_file"}
+        benchmark_config_fields = set(
+            inspect.signature(BenchmarkConfig).parameters.keys()
+        ) - {"datasets", "tasks", "languages"}
+        assert benchmark_config_params == benchmark_config_fields

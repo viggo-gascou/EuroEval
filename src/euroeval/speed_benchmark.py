@@ -1,26 +1,25 @@
 """Benchmarking model inference speed."""
 
+import collections.abc as c
 import logging
 import typing as t
 
 import pyinfer
-from tqdm.auto import tqdm
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from .benchmark_modules import HuggingFaceEncoderModel, LiteLLMModel, VLLMModel
 from .exceptions import InvalidBenchmark
+from .logging_utils import get_pbar, log
 from .utils import clear_memory
 
 if t.TYPE_CHECKING:
     from .benchmark_modules import BenchmarkModule
     from .data_models import BenchmarkConfig
 
-logger = logging.getLogger("euroeval")
-
 
 def benchmark_speed(
     model: "BenchmarkModule", benchmark_config: "BenchmarkConfig"
-) -> list[dict[str, float]]:
+) -> c.Sequence[dict[str, float]]:
     """Benchmark model inference speed.
 
     Args:
@@ -33,7 +32,7 @@ def benchmark_speed(
         Dictionary of scores.
     """
     scores: list[dict[str, float]] = list()
-    for idx in tqdm(
+    for idx in get_pbar(
         iterable=range(benchmark_config.num_iterations),
         desc="Benchmarking",
         disable=not benchmark_config.progress_bar,
@@ -41,7 +40,7 @@ def benchmark_speed(
         itr_scores = benchmark_speed_single_iteration(model=model, itr_idx=idx)
         clear_memory()
         scores.append(itr_scores)
-        logger.debug(f"Scores for iteration {idx}: {itr_scores}")
+        log(f"Scores for iteration {idx}: {itr_scores}", level=logging.DEBUG)
     return scores
 
 
@@ -58,8 +57,14 @@ def benchmark_speed_single_iteration(
 
     Returns:
         A dictionary containing the scores for the current iteration.
+
+    Raises:
+        ValueError:
+            If the model is not a supported model type.
+        InvalidBenchmark:
+            If the speed benchmark failed.
     """
-    gpt2_tokenizer = AutoTokenizer.from_pretrained("gpt2", trust_remote_code=True)
+    gpt2_tokeniser = AutoTokenizer.from_pretrained("gpt2", trust_remote_code=True)
 
     base_doc = "Document which contains roughly 10 tokens. "
     multiplier = 10 * (1 + itr_idx)
@@ -74,11 +79,11 @@ def benchmark_speed_single_iteration(
         model.generate(inputs=dict(text=[doc]))
 
     def encoder_predict(doc: str) -> None:
-        tokenizer = model.get_tokenizer()
+        tokeniser = model.get_tokeniser()
         pytorch_model = model.get_pytorch_module()
         inputs = {
             key: tensor.to(pytorch_model.device)
-            for key, tensor in tokenizer(
+            for key, tensor in tokeniser(
                 text=[doc], truncation=True, return_tensors="pt"
             ).items()
         }
@@ -102,21 +107,21 @@ def benchmark_speed_single_iteration(
         speed_scores = pyinfer.InferenceReport(
             model=predict, inputs=doc, n_seconds=3
         ).run(print_report=False)
-        num_gpt2_tokens = len(gpt2_tokenizer([doc], truncation=True)["input_ids"][0])
+        num_gpt2_tokens = len(gpt2_tokeniser([doc], truncation=True)["input_ids"][0])
         gpt2_tokens_per_second = speed_scores["Infer(p/sec)"] * num_gpt2_tokens
 
         speed_scores_short = pyinfer.InferenceReport(
             model=predict, inputs=short_doc, n_seconds=3
         ).run(print_report=False)
         num_gpt2_tokens_short = len(
-            gpt2_tokenizer([short_doc], truncation=True)["input_ids"][0]
+            gpt2_tokeniser([short_doc], truncation=True)["input_ids"][0]
         )
         gpt2_tokens_per_second_short = (
             speed_scores_short["Infer(p/sec)"] * num_gpt2_tokens_short
         )
 
     except (RuntimeError, ValueError, IndexError) as e:
-        raise InvalidBenchmark(f"Speed benchmark failed with error: {e!r}")
+        raise InvalidBenchmark(f"Speed benchmark failed with error: {e!r}") from e
 
     return dict(
         test_speed=gpt2_tokens_per_second, test_speed_short=gpt2_tokens_per_second_short

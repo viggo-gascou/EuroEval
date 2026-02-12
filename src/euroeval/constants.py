@@ -1,23 +1,25 @@
 """Constants used throughout the project."""
 
+import re
+from typing import TypeVar
+
 from .enums import TaskGroup
-from .tasks import NER
+
+# Type variable used for generic typing
+T = TypeVar("T", bound=object)
 
 # This is used as input to generative models; it cannot be a special token
 DUMMY_FILL_VALUE = 100
-
 
 # This is the maximum allowed context length for models for the purpose of this
 # benchmark. We will still report the models' true maximum context length in the
 # metadata, but we won't use it for evaluation, as vLLM needs to allocate memory for
 # all tokens in the context.
-MAX_CONTEXT_LENGTH = 5_000
-
+MAX_CONTEXT_LENGTH = 8_192
 
 # We need to raise the amount of tokens generated for reasoning models, to give them
 # time to think
-REASONING_MAX_TOKENS = 32_768
-
+REASONING_MAX_TOKENS = 8_192
 
 # The Hugging Face Hub pipeline tags used to classify models as generative
 GENERATIVE_PIPELINE_TAGS = [
@@ -28,36 +30,20 @@ GENERATIVE_PIPELINE_TAGS = [
     "video-text-to-text",
 ]
 
-
 # Used to disallow non-generative models to be evaluated on these task groups
 GENERATIVE_DATASET_TASK_GROUPS = [TaskGroup.TEXT_TO_TEXT]
 
-
-# Local models are required to have these files in their directory
-LOCAL_MODELS_REQUIRED_FILES = ["config.json"]
-
-
-# Tasks where we use structured generation for generative models
-TASKS_USING_JSON = [NER]
-
-
-# Tasks where we use log probabilities for generative models, rather than the raw
-# completion
-TASK_GROUPS_USING_LOGPROBS = [
-    TaskGroup.SEQUENCE_CLASSIFICATION,
-    TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION,
-]
-
+# Local models are required to have one of these files in their directory
+LOCAL_MODELS_REQUIRED_FILES = ["config.json", "adapter_config.json"]
 
 # The number of top log probabilities to return for generative models. For several APIs
 # this is the maximum number of log probabilities that can be returned
-MAX_LOGPROBS = 8
-
+MAX_VLLM_LOGPROBS = 20
+MAX_LITELLM_LOGPROBS = 8
 
 # We make sure to remove these metric attributes after each iteration, to avoid memory
 # leaks
 METRIC_ATTRIBUTES_TAKING_UP_MEMORY = ["cached_bertscorer"]
-
 
 # Hugging Face Hub tags used to classify models as merge models
 MERGE_TAGS = ["merge", "mergekit"]
@@ -70,11 +56,28 @@ VLLM_BF16_MIN_CUDA_COMPUTE_CAPABILITY = 8.0
 # its evaluation score is kept as is. Otherwise, the score is set to 0.
 MIN_CONFIDENCE_SCORE = 0.75
 
+# The candidates for end-of-sequence, beginning-of-sequence and padding tokens
+EOS_TOKENS = ["</s>", "<|end_of_text|>", "<|endoftext|>", "[SEP]", "<|return|>"]
+BOS_TOKENS = ["<s>", "<|begin_of_text|>", "<|startoftext|>", "[CLS]"]
+PAD_TOKENS = [
+    "<pad>",
+    "<PAD>",
+    "[pad]",
+    "[PAD]",
+    "<|endoftext|>",
+    "<｜end▁of▁sentence｜>",
+    "<|im_end|>",
+]
+
 # Used to detect whether a model is a reasoning model
-REASONING_TOKENS = [
+REASONING_TOKENS: list[tuple[str | re.Pattern, str | re.Pattern]] = [
     ("<think>", "</think>"),
     ("<reason>", "</reason>"),
     ("<reasoning>", "</reasoning>"),
+    (
+        re.compile(pattern=r"<\|channel\|>(analysis|commentary)<\|message\|>"),
+        "<|channel|>final<|message|>",
+    ),
 ]
 
 # These tokens are sometimes used by models to indicate the end of a generated
@@ -82,3 +85,62 @@ REASONING_TOKENS = [
 # manually. We only use them as stop tokens if they actually appear in the model's
 # output
 CUSTOM_STOP_TOKENS = ["<sep>"]
+
+# For classification tasks we force LiteLLM models to output a JSON dictionary with a
+# single key and the values being restricted to the allowed labels. This is the key we
+# use
+LITELLM_CLASSIFICATION_OUTPUT_KEY = "label"
+
+# These characters are stripped from JSON output when trying to identify the label
+JSON_STRIP_CHARACTERS = ' {}\n\r":'
+
+# The number of tokens we generate when evaluating generative models on classification
+# tasks. We also use this to determine whether we should store logprobs in the model
+# outputs (and cache).
+NUM_GENERATION_TOKENS_FOR_CLASSIFICATION = 10
+
+# We only allow loading local datasets in these file formats
+SUPPORTED_FILE_FORMATS_FOR_LOCAL_DATASETS = ["csv"]
+
+# These are default generation parameters, and can be overridden if a generative model
+# has a `generation_config.json` file in its repository
+GENERATION_KWARGS = {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": 0,
+    "repetition_penalty": 1.0,
+}
+
+# This is a mirror of `AttentionBackendEnum` in vLLM, but since we don't have access to
+# this when running on CPU/MacOS (as we can only run an old vLLM version), we have to
+# define it here
+ATTENTION_BACKENDS: list[str] = [
+    "FLASH_ATTN",
+    "FLASH_ATTN_DIFFKV",
+    "TRITON_ATTN",
+    "ROCM_ATTN",
+    "ROCM_AITER_MLA",
+    "ROCM_AITER_TRITON_MLA",
+    "ROCM_AITER_FA",
+    "ROCM_AITER_MLA_SPARSE",
+    "TORCH_SDPA",
+    "FLASHINFER",
+    "FLASHINFER_MLA",
+    "TRITON_MLA",
+    "CUTLASS_MLA",
+    "FLASHMLA",
+    "FLASHMLA_SPARSE",
+    "FLASH_ATTN_MLA",
+    "IPEX",
+    "NO_ATTENTION",
+    "FLEX_ATTENTION",
+    "TREE_ATTN",
+    "ROCM_AITER_UNIFIED_ATTN",
+    "CPU_ATTN",
+    "CUSTOM",
+]
+
+# If a dataset configuration has more than this number of languages, we won't log any of
+# the languages. This is for instance the case for the speed benchmark, which has all
+# the languages. The threshold of 5 is somewhat arbitrary.
+MAX_NUMBER_OF_LOGGING_LANGUAGES = 5

@@ -42,6 +42,10 @@ def set_new_version(major: int, minor: int, patch: int) -> None:
             happened.
         patch:
             The patch version. This changes when the only new changes are bug fixes.
+
+    Raises:
+        RuntimeError:
+            If no version can be found in the `pyproject.toml` file.
     """
     version = f"{major}.{minor}.{patch}"
 
@@ -54,7 +58,7 @@ def set_new_version(major: int, minor: int, patch: int) -> None:
     # Add version to CHANGELOG
     today = dt.date.today().strftime("%Y-%m-%d")
     new_changelog = re.sub(
-        r"\[Unreleased\].*", f"[Unreleased]\n\n\n\n## [v{version}] - {today}", changelog
+        r"\[Unreleased\].*", f"[Unreleased]\n\n## [v{version}] - {today}", changelog
     )
     changelog_path.write_text(new_changelog)
 
@@ -85,6 +89,10 @@ def get_current_version() -> Tuple[int, int, int]:
 
     Returns:
         The current version, separated into major, minor and patch versions.
+
+    Raises:
+        RuntimeError:
+            If no version can be found in the `pyproject.toml` file.
     """
     # Get all the version candidates from pyproject.toml
     version_candidates = re.search(

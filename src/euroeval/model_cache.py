@@ -1,24 +1,19 @@
 """ModelCache class for caching model outputs."""
 
+import collections.abc as c
 import hashlib
 import json
 import logging
 import sys
-import typing as t
 from collections import defaultdict
 from dataclasses import asdict
+from pathlib import Path
 
-from tqdm.auto import tqdm
+from datasets import Dataset
 
+from .constants import NUM_GENERATION_TOKENS_FOR_CLASSIFICATION
 from .data_models import GenerativeModelOutput, SingleGenerativeModelOutput
-
-if t.TYPE_CHECKING:
-    from pathlib import Path
-
-    from datasets import Dataset
-
-
-logger = logging.getLogger("euroeval")
+from .logging_utils import get_pbar, log, log_once
 
 
 class ModelCache:
@@ -33,10 +28,19 @@ class ModelCache:
             The model output cache.
         max_generated_tokens:
             The maximum number of tokens to generate for each example.
+        progress_bar:
+            Whether to show a progress bar when caching model outputs.
+        hash_inputs:
+            Whether to hash the model inputs to use as keys in the cache.
     """
 
     def __init__(
-        self, model_cache_dir: "Path", cache_name: str, max_generated_tokens: int
+        self,
+        model_cache_dir: "Path",
+        cache_name: str,
+        max_generated_tokens: int,
+        progress_bar: bool,
+        hash_inputs: bool,
     ) -> None:
         """Initialise the model output cache.
 
@@ -47,11 +51,17 @@ class ModelCache:
                 The name of the cache file.
             max_generated_tokens:
                 The maximum number of tokens to generate for each example.
+            progress_bar:
+                Whether to show a progress bar when caching model outputs.
+            hash_inputs:
+                Whether to hash the model inputs to use as keys in the cache.
         """
         self.model_cache_dir = model_cache_dir
         self.model_cache_dir.mkdir(parents=True, exist_ok=True)
         self.cache_path = self.model_cache_dir / cache_name.replace("/", "--")
         self.max_generated_tokens = max_generated_tokens
+        self.progress_bar = progress_bar
+        self.hash_inputs = hash_inputs
 
     def load(self) -> None:
         """Load the model output cache."""
@@ -63,9 +73,10 @@ class ModelCache:
             with self.cache_path.open() as f:
                 json_cache = json.load(f)
         except json.JSONDecodeError:
-            logger.warning(
+            log(
                 f"Failed to load the cache from {self.cache_path}. The cache will be "
-                f"re-initialised."
+                f"re-initialised.",
+                level=logging.WARNING,
             )
             json_cache = dict()
             with self.cache_path.open("w") as f:
@@ -87,15 +98,16 @@ class ModelCache:
             with self.cache_path.open("w") as f:
                 json.dump(dumpable_cache, f)
         except KeyError:
-            logger.warning(
+            log(
                 f"Failed to load the cache from {self.cache_path}. The cache will be "
-                f"re-initialised."
+                f"re-initialised.",
+                level=logging.WARNING,
             )
             self.cache = dict()
             with self.cache_path.open("w") as f:
                 json.dump(dict(), f)
 
-    def _hash_key(self, key: str | list[dict[str, str]]) -> str:
+    def _hash_key(self, key: str | c.Sequence[dict[str, str]]) -> str:
         """Hash the key to use as an index in the cache.
 
         Args:
@@ -105,10 +117,13 @@ class ModelCache:
         Returns:
             The hashed key.
         """
-        return hashlib.md5(string=str(key).encode()).hexdigest()
+        if self.hash_inputs:
+            return hashlib.md5(string=str(key).encode()).hexdigest()
+        else:
+            return str(key)
 
     def __getitem__(
-        self, key: str | list[dict[str, str]]
+        self, key: str | c.Sequence[dict[str, str]]
     ) -> SingleGenerativeModelOutput:
         """Get an item from the cache.
 
@@ -123,7 +138,7 @@ class ModelCache:
         return self.cache[hashed_key]
 
     def __setitem__(
-        self, key: str | list[dict[str, str]], value: SingleGenerativeModelOutput
+        self, key: str | c.Sequence[dict[str, str]], value: SingleGenerativeModelOutput
     ) -> None:
         """Set an item in the cache.
 
@@ -141,7 +156,7 @@ class ModelCache:
         self.cache_path.unlink()
         del self.cache
 
-    def __contains__(self, key: str | list[dict[str, str]]) -> bool:
+    def __contains__(self, key: str | c.Sequence[dict[str, str]]) -> bool:
         """Check if a key is in the cache.
 
         Args:
@@ -170,29 +185,39 @@ class ModelCache:
 
         # Double check that the number of inputs and outputs match
         if not len(model_inputs) == len(model_output.sequences):
-            logger.warning(
+            log(
                 f"Number of model inputs ({len(model_inputs)}) does not match the "
                 f"number of model outputs ({len(model_output.sequences)}). We will not "
-                f"cache the model outputs."
+                f"cache the model outputs.",
+                level=logging.WARNING,
             )
             return
 
         # Store the generated sequences in the cache, one by one
-        with tqdm(
+        with get_pbar(
             iterable=model_inputs,
             desc="Caching model outputs",
-            leave=False,
-            disable=hasattr(sys, "_called_from_test"),
+            disable=hasattr(sys, "_called_from_test") or not self.progress_bar,
         ) as pbar:
             for sample_idx, model_input in enumerate(pbar):
                 # Extract the scores from the model output, to be cached. We only store
                 # the indices of the top scores, to save space. Further, we only store
                 # the scores if the generated sequence is shorter than the maximum
                 # length
-                if model_output.scores is not None and self.max_generated_tokens < 8:
+                if (
+                    model_output.scores is not None
+                    and self.max_generated_tokens
+                    <= NUM_GENERATION_TOKENS_FOR_CLASSIFICATION
+                ):
                     assert model_output.scores is not None
                     scores = model_output.scores[sample_idx]
                 else:
+                    if model_output.scores is not None:
+                        log_once(
+                            "The generated sequence is longer than the maximum "
+                            "length for classification. Not caching the scores.",
+                            level=logging.DEBUG,
+                        )
                     scores = None
                 self[model_input] = SingleGenerativeModelOutput(
                     sequence=model_output.sequences[sample_idx], scores=scores
@@ -231,6 +256,13 @@ def split_dataset_into_cached_and_non_cached(
 
     cached = dataset.select(cached_ids)
     non_cached = dataset.select(unique_non_cached_ids)
+
+    assert isinstance(cached, Dataset), (
+        f"Expected the cached dataset to be a Dataset, but got {type(cached)}"
+    )
+    assert isinstance(non_cached, Dataset), (
+        f"Expected the non-cached dataset to be a Dataset, but got {type(non_cached)}"
+    )
     return cached, non_cached
 
 
@@ -249,7 +281,7 @@ def load_cached_model_outputs(
         The model output containing the cached sequences.
     """
     input_column = "messages" if "messages" in cached_dataset.column_names else "text"
-    cached_model_outputs: list[SingleGenerativeModelOutput] = [
+    cached_model_outputs: c.Sequence[SingleGenerativeModelOutput] = [
         cache[prompt] for prompt in cached_dataset[input_column]
     ]
 
@@ -260,3 +292,36 @@ def load_cached_model_outputs(
 
     cached_scores = [model_output.scores or [] for model_output in cached_model_outputs]
     return GenerativeModelOutput(sequences=cached_sequences, scores=cached_scores)
+
+
+def create_model_cache_dir(cache_dir: str, model_id: str) -> str:
+    """Create cache directory for a model.
+
+    Args:
+        cache_dir:
+            The cache directory.
+        model_id:
+            The model ID.
+
+    Returns:
+        The path to the cache directory.
+    """
+    # If the model ID is a path, we just use that as the cache dir
+    if Path(model_id).is_dir():
+        log_once(
+            f"Since the model {model_id!r} is a local model, we will use the model "
+            "directory directly as the model cache directory.",
+            level=logging.DEBUG,
+        )
+        return model_id
+
+    # Otherwise, we create a cache dir based on the model ID
+    model_cache_dir = Path(
+        cache_dir, "model_cache", model_id.replace("/", "--")
+    ).as_posix()
+    log_once(
+        f"Using the model cache directory {model_cache_dir!r} for the model "
+        f"{model_id!r}.",
+        level=logging.DEBUG,
+    )
+    return model_cache_dir

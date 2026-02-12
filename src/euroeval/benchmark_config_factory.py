@@ -1,173 +1,93 @@
 """Factory class for creating dataset configurations."""
 
+import collections.abc as c
+import importlib.util
 import logging
 import sys
 import typing as t
+from pathlib import Path
 
 import torch
 
-from .data_models import BenchmarkConfig
+from .closest_match import get_closest_match
+from .data_models import BenchmarkConfig, BenchmarkConfigParams, DatasetConfig, Task
 from .dataset_configs import get_all_dataset_configs
 from .enums import Device
-from .exceptions import InvalidBenchmark
 from .languages import get_all_languages
-from .tasks import SPEED, get_all_tasks
+from .logging_utils import log
+
+if importlib.util.find_spec("vllm") is not None:
+    pass
 
 if t.TYPE_CHECKING:
-    from .data_models import Language, Task
-
-
-logger = logging.getLogger("euroeval")
+    from .data_models import Language
 
 
 def build_benchmark_config(
-    progress_bar: bool,
-    save_results: bool,
-    task: str | list[str] | None,
-    dataset: str | list[str] | None,
-    language: str | list[str],
-    model_language: str | list[str] | None,
-    dataset_language: str | list[str] | None,
-    device: Device | None,
-    batch_size: int,
-    raise_errors: bool,
-    cache_dir: str,
-    api_key: str | None,
-    force: bool,
-    verbose: bool,
-    trust_remote_code: bool,
-    clear_model_cache: bool,
-    evaluate_test_split: bool,
-    few_shot: bool,
-    num_iterations: int,
-    api_base: str | None,
-    api_version: str | None,
-    gpu_memory_utilization: float,
-    debug: bool,
-    run_with_cli: bool,
-    only_allow_safetensors: bool,
-    first_time: bool = False,
+    benchmark_config_params: BenchmarkConfigParams,
 ) -> BenchmarkConfig:
     """Create a benchmark configuration.
 
     Args:
-        progress_bar:
-            Whether to show a progress bar when running the benchmark.
-        save_results:
-            Whether to save the benchmark results to a file.
-        task:
-            The tasks to include for dataset. If None then datasets will not be
-            filtered based on their task.
-        dataset:
-            The datasets to include for task. If None then all datasets will be
-            included, limited by the `task` parameter.
-        language:
-            The language codes of the languages to include, both for models and
-            datasets. Here 'no' means both Bokmål (nb) and Nynorsk (nn). Set this
-            to 'all' if all languages should be considered.
-        model_language:
-            The language codes of the languages to include for models. If None then
-            the `language` parameter will be used.
-        dataset_language:
-            The language codes of the languages to include for datasets. If None then
-            the `language` parameter will be used.
-        device:
-            The device to use for running the models. If None then the device will be
-            set automatically.
-        batch_size:
-            The batch size to use for running the models.
-        raise_errors:
-            Whether to raise errors when running the benchmark.
-        cache_dir:
-            The directory to use for caching the models.
-        api_key:
-            The API key to use for a given inference server.
-        force:
-            Whether to force the benchmark to run even if the results are already
-            cached.
-        verbose:
-            Whether to print verbose output when running the benchmark. This is
-            automatically set if `debug` is True.
-        trust_remote_code:
-            Whether to trust remote code when running the benchmark.
-        clear_model_cache:
-            Whether to clear the model cache before running the benchmark.
-        evaluate_test_split:
-            Whether to use the test split for the datasets.
-        few_shot:
-            Whether to use few-shot learning for the models.
-        num_iterations:
-            The number of iterations each model should be evaluated for.
-        api_base:
-            The base URL for a given inference API. Only relevant if `model` refers to a
-            model on an inference API.
-        api_version:
-            The version of the API to use for a given inference API.
-        gpu_memory_utilization:
-            The GPU memory utilization to use for vLLM. A larger value will result in
-            faster evaluation, but at the risk of running out of GPU memory. Only reduce
-            this if you are running out of GPU memory. Only relevant if the model is
-            generative.
-        debug:
-            Whether to run the benchmark in debug mode.
-        run_with_cli:
-            Whether the benchmark is being run with the CLI.
-        only_allow_safetensors:
-            Whether to only allow evaluations of models stored as safetensors.
-        first_time:
-            Whether this is the first time the benchmark configuration is being created.
-            Defaults to False.
+        benchmark_config_params:
+            The parameters for creating the benchmark configuration.
 
     Returns:
         The benchmark configuration.
     """
-    language_codes = get_correct_language_codes(language_codes=language)
-    model_languages = prepare_languages(
-        language_codes=model_language, default_language_codes=language_codes
+    language_codes = get_correct_language_codes(
+        language_codes=benchmark_config_params.language
     )
-    dataset_languages = prepare_languages(
-        language_codes=dataset_language, default_language_codes=language_codes
-    )
-
-    tasks, datasets = prepare_tasks_and_datasets(
-        task=task, dataset=dataset, dataset_languages=dataset_languages
+    languages = prepare_languages(
+        language_codes=benchmark_config_params.language,
+        default_language_codes=language_codes,
     )
 
-    torch_device = prepare_device(device=device)
-
-    # Set variable with number of iterations
-    if hasattr(sys, "_called_from_test"):
-        num_iterations = 1
+    dataset_configs = prepare_dataset_configs(
+        task=benchmark_config_params.task,
+        dataset=benchmark_config_params.dataset,
+        languages=languages,
+        custom_datasets_file=benchmark_config_params.custom_datasets_file,
+        api_key=benchmark_config_params.api_key,
+        cache_dir=Path(benchmark_config_params.cache_dir),
+    )
 
     return BenchmarkConfig(
-        model_languages=model_languages,
-        dataset_languages=dataset_languages,
-        tasks=tasks,
-        datasets=datasets,
-        batch_size=batch_size,
-        raise_errors=raise_errors,
-        cache_dir=cache_dir,
-        api_key=api_key,
-        force=force,
-        progress_bar=progress_bar,
-        save_results=save_results,
-        verbose=verbose or debug,
-        device=torch_device,
-        trust_remote_code=trust_remote_code,
-        clear_model_cache=clear_model_cache,
-        evaluate_test_split=evaluate_test_split,
-        few_shot=few_shot,
-        num_iterations=num_iterations,
-        api_base=api_base,
-        api_version=api_version,
-        gpu_memory_utilization=gpu_memory_utilization,
-        debug=debug,
-        run_with_cli=run_with_cli,
-        only_allow_safetensors=only_allow_safetensors,
+        datasets=dataset_configs,
+        languages=languages,
+        finetuning_batch_size=benchmark_config_params.finetuning_batch_size,
+        raise_errors=benchmark_config_params.raise_errors,
+        cache_dir=benchmark_config_params.cache_dir,
+        api_key=benchmark_config_params.api_key,
+        force=benchmark_config_params.force,
+        progress_bar=benchmark_config_params.progress_bar,
+        save_results=benchmark_config_params.save_results,
+        verbose=benchmark_config_params.verbose or benchmark_config_params.debug,
+        device=prepare_device(device=benchmark_config_params.device),
+        trust_remote_code=benchmark_config_params.trust_remote_code,
+        clear_model_cache=benchmark_config_params.clear_model_cache,
+        evaluate_test_split=benchmark_config_params.evaluate_test_split,
+        few_shot=benchmark_config_params.few_shot,
+        num_iterations=(
+            1
+            if hasattr(sys, "_called_from_test")
+            else benchmark_config_params.num_iterations
+        ),
+        api_base=benchmark_config_params.api_base,
+        api_version=benchmark_config_params.api_version,
+        gpu_memory_utilization=benchmark_config_params.gpu_memory_utilization,
+        attention_backend=benchmark_config_params.attention_backend,
+        generative_type=benchmark_config_params.generative_type,
+        debug=benchmark_config_params.debug,
+        run_with_cli=benchmark_config_params.run_with_cli,
+        requires_safetensors=benchmark_config_params.requires_safetensors,
+        download_only=benchmark_config_params.download_only,
     )
 
 
-def get_correct_language_codes(language_codes: str | list[str]) -> list[str]:
+def get_correct_language_codes(
+    language_codes: str | c.Sequence[str],
+) -> c.Sequence[str]:
     """Get correct language code(s).
 
     Args:
@@ -188,7 +108,7 @@ def get_correct_language_codes(language_codes: str | list[str]) -> list[str]:
     elif isinstance(language_codes, str):
         languages = [language_codes]
     else:
-        languages = language_codes
+        languages = list(language_codes)
 
     # If `languages` contains 'no' then also include 'nb' and 'nn'. Conversely, if
     # either 'nb' or 'nn' are specified then also include 'no'.
@@ -201,8 +121,9 @@ def get_correct_language_codes(language_codes: str | list[str]) -> list[str]:
 
 
 def prepare_languages(
-    language_codes: str | list[str] | None, default_language_codes: list[str]
-) -> list["Language"]:
+    language_codes: str | c.Sequence[str] | None,
+    default_language_codes: c.Sequence[str],
+) -> c.Sequence["Language"]:
     """Prepare language(s) for benchmarking.
 
     Args:
@@ -220,7 +141,7 @@ def prepare_languages(
     language_mapping = get_all_languages()
 
     # Create the list `languages_str` of language codes to use for models or datasets
-    languages_str: list[str]
+    languages_str: c.Sequence[str]
     if language_codes is None:
         languages_str = default_language_codes
     elif isinstance(language_codes, str):
@@ -237,74 +158,113 @@ def prepare_languages(
     return prepared_languages
 
 
-def prepare_tasks_and_datasets(
-    task: str | list[str] | None,
-    dataset_languages: list["Language"],
-    dataset: str | list[str] | None,
-) -> tuple[list["Task"], list[str]]:
-    """Prepare task(s) and dataset(s) for benchmarking.
+def prepare_dataset_configs(
+    task: "str | Task | c.Sequence[str | Task] | None",
+    languages: c.Sequence["Language"],
+    dataset: "str | DatasetConfig | c.Sequence[str | DatasetConfig] | None",
+    custom_datasets_file: Path,
+    api_key: str | None,
+    cache_dir: Path,
+) -> list["DatasetConfig"]:
+    """Prepare dataset config(s) for benchmarking.
 
     Args:
         task:
             The tasks to include for dataset. If None then datasets will not be
             filtered based on their task.
-        dataset_languages:
+        languages:
             The languages of the datasets in the benchmark.
         dataset:
             The datasets to include for task. If None then all datasets will be
-            included, limited by the `task` and `dataset_languages` parameters.
+            included, limited by the `task` and `languages` parameters.
+        custom_datasets_file:
+            A path to a Python file containing custom dataset configurations.
+        api_key:
+            The API key to use for accessing the Hugging Face Hub.
+        cache_dir:
+            The directory to store the cache in.
 
     Returns:
-        The prepared tasks and datasets.
-
-    Raises:
-        InvalidBenchmark:
-            If the task or dataset is not found in the benchmark tasks or datasets.
+        The prepared dataset configs.
     """
-    # Create a dictionary that maps benchmark tasks to their associated benchmark
-    # task objects, and a dictionary that maps dataset names to their associated
-    # dataset configuration objects
-    task_mapping = get_all_tasks()
-    all_dataset_configs = get_all_dataset_configs()
+    # Extract the dataset IDs from the `dataset` argument
+    dataset_ids: list[str] = list()
+    if isinstance(dataset, str):
+        dataset_ids.append(dataset)
+    elif isinstance(dataset, DatasetConfig):
+        dataset_ids.append(dataset.name)
+    elif isinstance(dataset, list):
+        for d in dataset:
+            if isinstance(d, str):
+                dataset_ids.append(d)
+            elif isinstance(d, DatasetConfig):
+                dataset_ids.append(d.name)
 
-    # Create the list of dataset tasks
-    try:
-        if task is None:
-            tasks = [t for t in task_mapping.values() if t != SPEED]
-        elif isinstance(task, str):
-            tasks = [task_mapping[task]]
-        else:
-            tasks = [task_mapping[t] for t in task]
-    except KeyError as e:
-        raise InvalidBenchmark(f"Task {e} not found in the benchmark tasks.") from e
-
-    all_official_datasets = [
-        dataset_name
-        for dataset_name, dataset_config in all_dataset_configs.items()
+    # Create the list of dataset configs
+    all_dataset_configs = get_all_dataset_configs(
+        custom_datasets_file=custom_datasets_file,
+        dataset_ids=dataset_ids,
+        api_key=api_key,
+        cache_dir=cache_dir,
+    )
+    all_official_dataset_configs: c.Sequence[DatasetConfig] = [
+        dataset_config
+        for dataset_config in all_dataset_configs.values()
         if not dataset_config.unofficial
     ]
-    if dataset is None:
-        dataset = all_official_datasets
-    elif isinstance(dataset, str):
-        dataset = [dataset]
-
-    all_datasets = list(all_dataset_configs.keys())
-    invalid_datasets = set(dataset) - set(all_datasets)
-    if invalid_datasets:
-        raise InvalidBenchmark(
-            f"Dataset(s) {', '.join(invalid_datasets)} not found in the benchmark "
-            "datasets."
+    try:
+        if dataset is None:
+            datasets = all_official_dataset_configs
+        elif isinstance(dataset, str):
+            datasets = [all_dataset_configs[dataset]]
+        elif isinstance(dataset, DatasetConfig):
+            datasets = [dataset]
+        else:
+            datasets = [
+                all_dataset_configs[d] if isinstance(d, str) else d for d in dataset
+            ]
+    except KeyError as e:
+        closest_match, closest_distance = get_closest_match(
+            string=e.args[0],
+            options=list(all_dataset_configs.keys()),
+            case_sensitive=False,
         )
+        msg = f"Dataset {e} not found in the benchmark datasets."
+        if closest_distance < 5:
+            msg += f" Maybe you meant to use {closest_match!r}?"
+        log(msg, level=logging.ERROR)
+        sys.exit(1)
 
+    # Create the list of dataset tasks
+    task_mapping = {cfg.task.name: cfg.task for cfg in all_dataset_configs.values()}
+    try:
+        if task is None:
+            tasks = None
+        elif isinstance(task, str):
+            tasks = [task_mapping[task]]
+        elif isinstance(task, Task):
+            tasks = [task]
+        else:
+            tasks = [task_mapping[t] if isinstance(t, str) else t for t in task]
+    except KeyError as e:
+        closest_match, closest_distance = get_closest_match(
+            string=e.args[0], options=list(task_mapping.keys()), case_sensitive=False
+        )
+        msg = f"Task {e} not found in the benchmark tasks."
+        if closest_distance < 5:
+            msg += f" Maybe you meant to use {closest_match!r}?"
+        log(msg, level=logging.ERROR)
+        sys.exit(1)
+
+    # Filter the dataset configs based on the specified tasks and languages
     datasets = [
-        dataset_name
-        for dataset_name, dataset_config in all_dataset_configs.items()
-        if dataset_name in dataset
-        and dataset_config.task in tasks
-        and set(dataset_config.languages).intersection(dataset_languages)
+        ds
+        for ds in datasets
+        if (tasks is None or ds.task in tasks)
+        and any(lang in languages for lang in ds.languages)
     ]
 
-    return tasks, datasets
+    return datasets
 
 
 def prepare_device(device: Device | None) -> torch.device:

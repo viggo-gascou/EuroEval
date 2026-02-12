@@ -13,20 +13,21 @@
 """Create the NorGLM NO-multi question answering dataset."""
 
 import ast
+import hashlib
 import os
 
 import pandas as pd
-from constants import (
+from datasets import Dataset, DatasetDict, Split, load_dataset
+from dotenv import load_dotenv
+from huggingface_hub import HfApi
+from openai import OpenAI
+
+from .constants import (
     MAX_NUM_CHARS_IN_CONTEXT,
     MAX_NUM_CHARS_IN_QUESTION,
     MIN_NUM_CHARS_IN_CONTEXT,
     MIN_NUM_CHARS_IN_QUESTION,
 )
-from datasets import Dataset, DatasetDict, Split, load_dataset
-from dotenv import load_dotenv
-from huggingface_hub import HfApi
-from openai import OpenAI
-from requests import HTTPError
 
 load_dotenv()
 
@@ -93,6 +94,7 @@ def main() -> None:
     lower_bound = MIN_NUM_CHARS_IN_QUESTION
     upper_bound = MAX_NUM_CHARS_IN_QUESTION
     df = df[lengths.between(lower_bound, upper_bound)]
+    assert isinstance(df, pd.DataFrame)
 
     def rephrase_answer(question: str, answer: str, context: str) -> str:
         """Rephrase the answer such that it is in the context.
@@ -153,6 +155,7 @@ def main() -> None:
         lambda row: rephrase_answer(row["question"], row["answer"], row["context"]),
         axis=1,
     )
+    assert isinstance(df_no_context, pd.DataFrame)
 
     # Remove non-word start and end characters from answers
     df_no_context.loc[:, "answer"] = df_no_context["answer"].str.replace(
@@ -192,6 +195,7 @@ def main() -> None:
     # Create train split
     train_size = 1024
     filtered_df = df[~df.index.isin(val_df.index)]
+    assert isinstance(filtered_df, pd.DataFrame)
     train_df = filtered_df.sample(n=train_size, random_state=4242)
 
     # Create test split, using the remaining samples
@@ -201,24 +205,41 @@ def main() -> None:
     test_df = test_df.reset_index(drop=True)
     train_df = train_df.reset_index(drop=True)
 
+    # Add ID column
+    train_df["id"] = [
+        hashlib.md5((row.context + row.question).encode("utf-8")).hexdigest()
+        for _, row in train_df.iterrows()
+    ]
+    val_df["id"] = [
+        hashlib.md5((row.context + row.question).encode("utf-8")).hexdigest()
+        for _, row in val_df.iterrows()
+    ]
+    test_df["id"] = [
+        hashlib.md5((row.context + row.question).encode("utf-8")).hexdigest()
+        for _, row in test_df.iterrows()
+    ]
+
+    assert isinstance(train_df, pd.DataFrame)
+    assert isinstance(val_df, pd.DataFrame)
+    assert isinstance(test_df, pd.DataFrame)
+
+    # Check that the IDs are unique
+    assert train_df.id.nunique() == len(train_df)
+    assert val_df.id.nunique() == len(val_df)
+    assert test_df.id.nunique() == len(test_df)
+
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
-    # Create dataset ID
-    dataset_id = "EuroEval/norglm-multi-qa"
-
-    # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api: HfApi = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
-
     # Push the dataset to the Hugging Face Hub
+    dataset_id = "EuroEval/norglm-multi-qa"
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
     dataset.push_to_hub(dataset_id, private=True)
 
 

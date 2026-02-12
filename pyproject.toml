@@ -1,6 +1,6 @@
 [project]
 name = "EuroEval"
-version = "15.15.0.dev"
+version = "16.13.0.dev"
 description = "The robust European language model benchmark."
 readme = "README.md"
 authors = [
@@ -9,12 +9,13 @@ authors = [
 maintainers = [
     {name = "Dan Saattrup Smart", email = "dan.smart@alexandra.dk"},
 ]
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.12,<4.0"
 dependencies = [
     "torch>=2.6.0",
     "pandas>=2.2.0",
-    "numpy>=1.23.0,<2.0.0",
-    "transformers>=4.55.0",
+    "numpy>=2.0.0",
+    "transformers[mistral-common]>=4.56.0,<5.0.0",
+    "mistral-common[soundfile]",
     "accelerate>=1.9.0",
     "evaluate>=0.4.1",
     "datasets>=3.5.0",
@@ -29,36 +30,43 @@ dependencies = [
     "sacremoses>=0.1.1",
     "more-itertools>=10.5.0",
     "tenacity>=9.0.0",
-    "litellm>=1.72.2",
+    "litellm>=1.75.6",
     "rouge-score>=0.1.2",
     "bert-score>=0.3.13",
     "levenshtein>=0.24.0",
-    "scikit-learn<1.6.0",
+    "scikit-learn==1.6.1", # Required for loading European values pipeline
     "setuptools>=75.8.2",
     "demjson3>=3.0.6",
     "ollama>=0.5.1",
     "peft>=0.15.0",
     "lingua-language-detector>=2.1.0",
     "protobuf>=2.0.0",
+    "cloudpickle>=3.1.1",
+    "sacrebleu>=2.5.1",
 ]
 
 [project.optional-dependencies]
 generative = [
+    "timm>=1.0.19",
+    # vLLM setup for MacOS
+    "vllm==0.11.0; platform_system == 'Darwin'",
+    "vllm-metal>=0.1.0; platform_system == 'Darwin'",
+    # vLLM setup for Linux (assuming CUDA is available here)
     "bitsandbytes>=0.43.1; platform_system == 'Linux'",
-    "vllm>=0.10.0; platform_system == 'Linux'",
+    "vllm[flashinfer]>=0.14.1; platform_system == 'Linux'",
+    "ray>=2.53.0; platform_system == 'Linux'",
     "fbgemm-gpu>=1.0.0; platform_system == 'Linux'",
-]
-human_evaluation = [
-    "gradio>=4.26.0",
 ]
 all = [
+    "timm>=1.0.19",
+    # vLLM setup for MacOS
+    "vllm==0.11.0; platform_system == 'Darwin'",
+    "vllm-metal>=0.1.0; platform_system == 'Darwin'",
+    # vLLM setup for Linux (assuming CUDA is available here)
     "bitsandbytes>=0.43.1; platform_system == 'Linux'",
-    "vllm>=0.10.0; platform_system == 'Linux'",
+    "vllm[flashinfer]>=0.14.1; platform_system == 'Linux'",
+    "ray>=2.53.0; platform_system == 'Linux'",
     "fbgemm-gpu>=1.0.0; platform_system == 'Linux'",
-    "gradio>=4.26.0",
-]
-test = [
-    "gradio>=4.26.0",
 ]
 
 [project.urls]
@@ -71,17 +79,15 @@ file = "LICENSE"
 [project.scripts]
 euroeval = "euroeval.cli:benchmark"
 scandeval = "euroeval.cli:benchmark"
-human_evaluate = "euroeval.human_evaluation:main"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pytest>=8.3.3",
     "pytest-cov>=5.0.0",
     "pre-commit>=3.8.0",
     "readme-coverage-badger>=0.1.2",
     "click>=8.1.7",
     "ruff>=0.7.1",
-    "mypy>=1.15.0",
     "nbstripout>=0.7.1",
     "coverage>=5.5",
     "lxml>=5.1.0",
@@ -106,14 +112,17 @@ dev-dependencies = [
     "types-ujson>=5.10.0.20240515",
     "types-simplejson>=3.2.0.2025032",
     "debugpy>=1.8.13",
+    "pytest-socket>=0.7.0",
+    "pytest-depends>=1.0.1",
+    "pyrefly>=0.43.1",
+    "tqdm-stubs>=0.2.1",
 ]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py312"
 line-length = 88
 exclude = [
     ".git",
-    ".mypy_cache",
     ".pytest_cache",
     ".ruff_cache",
     ".euroeval_cache",
@@ -130,11 +139,13 @@ docstring-code-format = true
 skip-magic-trailing-comma = true
 
 [tool.ruff.lint]
+preview = true
 select = [
     # isort (imports)
     "I",
-    # pydocstyle (docstrings)
+    # Docstrings
     "D",
+    "DOC",
     # pycodestyle errors and warnings (PEP8)
     "E",
     "W",
@@ -152,8 +163,6 @@ ignore = [
     "ANN002",
     # Type annotations for **kwargs
     "ANN003",
-    # Docstrings for **kwargs
-    "D417",
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
@@ -170,11 +179,17 @@ split-on-trailing-comma = false
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.pyrefly.errors]
+missing-import = false
+missing-attribute = false
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [
     "--cov=src/euroeval",
     "--color=yes",
+    "-vvv",
+    "--allow-unix-socket",
 ]
 xfail_strict = true
 filterwarnings = [
@@ -186,10 +201,14 @@ filterwarnings = [
     "ignore::ResourceWarning",
     "ignore::FutureWarning",
 ]
-log_cli_level = "info"
+log_cli_level = "INFO"
 testpaths = [
     "tests",
     "src/euroeval",
+]
+pythonpath = [
+    "src",
+    "src/scripts",
 ]
 
 [build-system]

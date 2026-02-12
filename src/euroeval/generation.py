@@ -1,15 +1,17 @@
 """Functions related to text generation of models."""
 
+import collections.abc as c
 import logging
 import sys
 import typing as t
 from pathlib import Path
 
-import more_itertools as mit
+from datasets import Dataset
 from tqdm.auto import tqdm
 
 from .enums import BatchingPreference, TaskGroup
-from .exceptions import InvalidBenchmark
+from .exceptions import InvalidBenchmark, InvalidModel
+from .logging_utils import get_pbar, log, log_once
 from .model_cache import (
     ModelCache,
     load_cached_model_outputs,
@@ -18,7 +20,7 @@ from .model_cache import (
 from .utils import clear_memory
 
 if t.TYPE_CHECKING:
-    from datasets import Dataset, DatasetDict
+    from datasets import DatasetDict
 
     from .benchmark_modules import BenchmarkModule
     from .data_models import (
@@ -28,16 +30,14 @@ if t.TYPE_CHECKING:
         ModelConfig,
     )
 
-logger = logging.getLogger("euroeval")
-
 
 def generate(
     model: "BenchmarkModule",
-    datasets: list["DatasetDict"],
+    datasets: c.Sequence["DatasetDict"],
     model_config: "ModelConfig",
     dataset_config: "DatasetConfig",
     benchmark_config: "BenchmarkConfig",
-) -> list[dict[str, float]]:
+) -> c.Sequence[dict[str, float]]:
     """Evaluate a model on a dataset through generation.
 
     Args:
@@ -74,11 +74,13 @@ def generate(
         model_cache_dir=model_cache_dir,
         cache_name=cache_name,
         max_generated_tokens=dataset_config.max_generated_tokens,
+        progress_bar=benchmark_config.progress_bar,
+        hash_inputs=not benchmark_config.debug,
     )
 
     scores: list[dict[str, float]] = list()
-    for idx in tqdm(
-        iterable=range(benchmark_config.num_iterations),
+    for idx in get_pbar(
+        iterable=range(len(datasets)),
         desc="Benchmarking",
         disable=not benchmark_config.progress_bar,
     ):
@@ -89,8 +91,7 @@ def generate(
             dataset_config=dataset_config,
             benchmark_config=benchmark_config,
         )
-
-        logger.debug(f"Test scores for iteration {idx}: {test_scores}")
+        log(f"Test scores for iteration {idx}: {test_scores}", level=logging.DEBUG)
         scores.append(test_scores)
         clear_memory()
 
@@ -123,13 +124,22 @@ def generate_single_iteration(
 
     Returns:
         A list of dictionaries containing the scores for each metric.
+
+    Raises:
+        InvalidModel:
+            If the model's batching preference is not supported.
     """
     cache.load()
 
-    # Split up the dataset into a cached and non-cached part
-    cached_dataset, non_cached_dataset = split_dataset_into_cached_and_non_cached(
-        dataset=dataset, cache=cache
-    )
+    # Split up the dataset into a cached and non-cached part, unless we are not
+    # bootstrapping the samples. In that case, we just use the dataset as is.
+    if dataset_config.bootstrap_samples:
+        cached_dataset, non_cached_dataset = split_dataset_into_cached_and_non_cached(
+            dataset=dataset, cache=cache
+        )
+    else:
+        cached_dataset = Dataset.from_dict({})
+        non_cached_dataset = dataset
 
     all_preds: list[str] = list()
 
@@ -137,19 +147,31 @@ def generate_single_iteration(
         itr: t.Iterable
         match model.batching_preference:
             case BatchingPreference.SINGLE_SAMPLE:
-                itr = tqdm(iterable=non_cached_dataset, leave=False)
+                itr = get_pbar(
+                    iterable=non_cached_dataset,
+                    disable=not benchmark_config.progress_bar,
+                )
             case BatchingPreference.ALL_AT_ONCE:
                 itr = [non_cached_dataset[:]]
             case _:
-                num_batches = len(non_cached_dataset) // benchmark_config.batch_size
-                if len(non_cached_dataset) % benchmark_config.batch_size != 0:
-                    num_batches += 1
-                itr = tqdm(
-                    iterable=mit.batched(
-                        iterable=non_cached_dataset, n=benchmark_config.batch_size
-                    ),
-                    total=len(non_cached_dataset) // benchmark_config.batch_size,
+                raise InvalidModel(
+                    f"The batching preference {model.batching_preference!r} is "
+                    "currently not supported."
                 )
+                # NOTE: The code below can be used if we want to support batching for
+                # generative models. But in that case, we have to deal with the naming
+                # of the batch size variable, since it is currently
+                # `finetuning_batch_size`, as it is only used during finetuning of
+                # encoder models.
+                # num_batches = len(non_cached_dataset) // benchmark_config.batch_size
+                # if len(non_cached_dataset) % benchmark_config.batch_size != 0:
+                #     num_batches += 1
+                # itr = get_pbar(
+                #     iterable=mit.batched(
+                #         iterable=non_cached_dataset, n=benchmark_config.batch_size
+                #     ),
+                #     total=len(non_cached_dataset) // benchmark_config.batch_size,
+                # )
 
         # Generate the completions for the non-cached examples
         for batch in itr:
@@ -230,12 +252,17 @@ def generate_single_iteration(
             cached_labels = list(cached_labels)
         ground_truth = non_cached_labels + cached_labels
     else:
-        raise ValueError(
-            "The dataset must have either a 'label', 'labels', or 'target_text' column"
+        log_once(
+            "No labels found in the dataset. We assume that this is intentional, and "
+            "will not supply any ground truth labels for evaluation.",
+            level=logging.DEBUG,
         )
+        ground_truth = []
 
     itr_scores: dict[str, float] = model.compute_metrics(
-        model_outputs_and_labels=(all_preds, ground_truth), dataset=dataset
+        model_outputs_and_labels=(all_preds, ground_truth),
+        dataset=dataset,
+        benchmark_config=benchmark_config,
     )
 
     return itr_scores
@@ -244,7 +271,7 @@ def generate_single_iteration(
 def debug_log(
     batch: dict[str, t.Any],
     model_output: "GenerativeModelOutput",
-    extracted_labels: list[dict | str | list[str]],
+    extracted_labels: c.Sequence[dict | str | c.Sequence[str]],
     dataset_config: "DatasetConfig",
 ) -> None:
     """Log inputs and outputs for debugging purposes.
@@ -258,6 +285,10 @@ def debug_log(
             The extracted labels from the model output.
         dataset_config:
             The configuration of the dataset.
+
+    Raises:
+        InvalidBenchmark:
+            If the dataset is not passed to the metric.
     """
     match dataset_config.task.task_group:
         case TaskGroup.TOKEN_CLASSIFICATION:
@@ -287,16 +318,19 @@ def debug_log(
                         + "\n"
                         + "\t".join(labels)
                     )
-            logger.info("\n\n".join(log_msgs))
+            log("\n\n".join(log_msgs), level=logging.DEBUG)
             return
 
         case (
             TaskGroup.SEQUENCE_CLASSIFICATION | TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION
         ):
-            labels = [
-                dataset_config.prompt_label_mapping.get(label, label).lower()
-                for label in batch["label"]
-            ]
+            if "label" in batch:
+                labels = [
+                    dataset_config.prompt_label_mapping.get(label, label).lower()
+                    for label in batch["label"]
+                ]
+            else:
+                labels = [None] * len(extracted_labels)
 
         case TaskGroup.QUESTION_ANSWERING:
             extracted_labels = [
@@ -319,12 +353,22 @@ def debug_log(
     else:
         input_texts = batch["text"]
 
-    for input_text, raw_output, prediction, label in zip(
-        input_texts, model_output.sequences, extracted_labels, labels
-    ):
-        logger.info(
-            f"Input: '{input_text}'\n"
-            f"Raw output: '{raw_output}'\n"
-            f"Prediction: '{prediction}'\n"
-            f"Label: '{label}'"
+    metadata_keys: c.Sequence[str] = [
+        key
+        for key in batch.keys()
+        if key not in ["text", "messages", "label", "labels", "target_text"]
+    ]
+
+    for idx in range(len(input_texts)):
+        data_to_log: dict[str, t.Any] = {
+            "Input": input_texts[idx],
+            "Raw output": model_output.sequences[idx],
+            "Prediction": extracted_labels[idx],
+        }
+        if labels[idx]:
+            data_to_log["Label"] = labels[idx]
+        data_to_log |= {key.capitalize(): batch[key][idx] for key in metadata_keys}
+        log(
+            "\n".join(f"{key}: {value!r}" for key, value in data_to_log.items()),
+            level=logging.DEBUG,
         )

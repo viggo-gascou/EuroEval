@@ -1,107 +1,133 @@
 """All English dataset configurations used in EuroEval."""
 
 from ..data_models import DatasetConfig
-from ..languages import EN
-from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
+from ..languages import ENGLISH
+from ..tasks import COMMON_SENSE, EUROPEAN_VALUES, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
-### Official datasets ###
+# Official datasets ###
 
 SST5_CONFIG = DatasetConfig(
     name="sst5",
-    pretty_name="the truncated version of the English sentiment classification "
-    "dataset SST5",
-    huggingface_id="EuroEval/sst5-mini",
+    pretty_name="SST-5",
+    source="EuroEval/sst5-mini",
     task=SENT,
-    languages=[EN],
+    languages=[ENGLISH],
 )
 
 SCALA_EN_CONFIG = DatasetConfig(
     name="scala-en",
-    pretty_name="the English part of the linguistic acceptability dataset ScaLA",
-    huggingface_id="EuroEval/scala-en",
+    pretty_name="ScaLA-en",
+    source="EuroEval/scala-en",
     task=LA,
-    languages=[EN],
+    languages=[ENGLISH],
 )
 
 CONLL_EN_CONFIG = DatasetConfig(
     name="conll-en",
-    pretty_name="the truncated version of the English named entity recognition "
-    "dataset CoNLL 2003",
-    huggingface_id="EuroEval/conll-en-mini",
+    pretty_name="CoNLL-en",
+    source="EuroEval/conll-en-mini",
     task=NER,
-    languages=[EN],
+    languages=[ENGLISH],
 )
 
 SQUAD_CONFIG = DatasetConfig(
     name="squad",
-    pretty_name="the truncated version of the English question answering dataset SQuAD",
-    huggingface_id="EuroEval/squad-mini",
+    pretty_name="SQuAD",
+    source="EuroEval/squad-mini",
     task=RC,
-    languages=[EN],
+    languages=[ENGLISH],
 )
 
 CNN_DAILYMAIL_CONFIG = DatasetConfig(
     name="cnn-dailymail",
-    pretty_name="the truncated version of the English summarisation dataset "
-    "CNN-DailyMail",
-    huggingface_id="EuroEval/cnn-dailymail-mini",
+    pretty_name="CNN/DailyMail",
+    source="EuroEval/cnn-dailymail-mini",
     task=SUMM,
-    languages=[EN],
+    languages=[ENGLISH],
 )
 
 LIFE_IN_THE_UK_CONFIG = DatasetConfig(
     name="life-in-the-uk",
-    pretty_name="the English knowledge dataset Life in the UK",
-    huggingface_id="EuroEval/life-in-the-uk",
+    pretty_name="Life in the UK",
+    source="EuroEval/life-in-the-uk",
     task=KNOW,
-    languages=[EN],
+    languages=[ENGLISH],
 )
 
 HELLASWAG_CONFIG = DatasetConfig(
     name="hellaswag",
-    pretty_name="the truncated version of the English common-sense reasoning "
-    "dataset HellaSwag",
-    huggingface_id="EuroEval/hellaswag-mini",
+    pretty_name="HellaSwag",
+    source="EuroEval/hellaswag-mini",
     task=COMMON_SENSE,
-    languages=[EN],
+    languages=[ENGLISH],
+)
+
+VALEU_EN_CONFIG = DatasetConfig(
+    name="valeu-en",
+    pretty_name="VaLEU-en",
+    source="EuroEval/european-values-en",
+    task=EUROPEAN_VALUES,
+    languages=[ENGLISH],
+    train_split=None,
+    val_split=None,
+    bootstrap_samples=False,
+    instruction_prompt="{text}",
 )
 
 
-### Unofficial datasets ###
+# Unofficial datasets ###
+
+XQUAD_EN_CONFIG = DatasetConfig(
+    name="xquad-en",
+    pretty_name="XQuAD-en",
+    source="EuroEval/xquad-en",
+    task=RC,
+    languages=[ENGLISH],
+    unofficial=True,
+)
 
 ARC_CONFIG = DatasetConfig(
     name="arc",
-    pretty_name="the truncated version of the English knowledge dataset ARC",
-    huggingface_id="EuroEval/arc-mini",
+    pretty_name="ARC",
+    source="EuroEval/arc-mini",
     task=KNOW,
-    languages=[EN],
+    languages=[ENGLISH],
     unofficial=True,
 )
 
 BELEBELE_CONFIG = DatasetConfig(
     name="belebele-en",
-    pretty_name="the English multiple choice reading comprehension dataset BeleBele",
-    huggingface_id="EuroEval/belebele-mini",
+    pretty_name="Belebele-en",
+    source="EuroEval/belebele-mini",
     task=MCRC,
-    languages=[EN],
+    languages=[ENGLISH],
     unofficial=True,
 )
 
 MMLU_CONFIG = DatasetConfig(
     name="mmlu",
-    pretty_name="the truncated version of the English knowledge dataset MMLU",
-    huggingface_id="EuroEval/mmlu-mini",
+    pretty_name="MMLU",
+    source="EuroEval/mmlu-mini",
     task=KNOW,
-    languages=[EN],
+    languages=[ENGLISH],
     unofficial=True,
 )
 
 MULTI_WIKI_QA_EN_CONFIG = DatasetConfig(
     name="multi-wiki-qa-en",
-    pretty_name="the truncated version of the English part of the reading "
-    "comprehension dataset MultiWikiQA",
-    huggingface_id="EuroEval/multi-wiki-qa-en-mini",
+    pretty_name="MultiWikiQA-en",
+    source="EuroEval/multi-wiki-qa-en-mini",
     task=RC,
-    languages=[EN],
+    languages=[ENGLISH],
+    unofficial=True,
+)
+
+WINOGRANDE_CONFIG = DatasetConfig(
+    name="winogrande",
+    pretty_name="Winogrande-en",
+    source="EuroEval/winogrande-en",
+    task=COMMON_SENSE,
+    languages=[ENGLISH],
+    labels=["a", "b"],
     unofficial=True,
 )

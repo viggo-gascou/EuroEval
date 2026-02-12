@@ -1,27 +1,34 @@
 """Utility functions related to generative models."""
 
+import collections.abc as c
 import itertools as it
 import json
 import logging
 import random
+import re
 import typing as t
 
-from .enums import TaskGroup
-from .exceptions import InvalidBenchmark
-from .utils import log_once
+from datasets import Dataset
+
+from .enums import GenerativeType, TaskGroup
+from .exceptions import InvalidBenchmark, InvalidModel
+from .logging_utils import log_once
+from .string_utils import extract_multiple_choice_labels
+from .tokenisation_utils import apply_chat_template
 
 if t.TYPE_CHECKING:
     from datasets import DatasetDict
     from transformers.tokenization_utils import PreTrainedTokenizer
 
-    from .data_models import DatasetConfig, ModelConfig
-
-logger = logging.getLogger("euroeval")
+    from .data_models import BenchmarkConfig, DatasetConfig, ModelConfig
 
 
 def extract_few_shot_examples(
-    dataset: "DatasetDict", dataset_config: "DatasetConfig", itr_idx: int
-) -> list[dict[str, t.Any]]:
+    dataset: "DatasetDict",
+    dataset_config: "DatasetConfig",
+    benchmark_config: "BenchmarkConfig",
+    itr_idx: int,
+) -> c.Sequence[dict[str, t.Any]]:
     """Extract few-shot examples from a dataset.
 
     This will always extract the examples from the training split.
@@ -33,16 +40,40 @@ def extract_few_shot_examples(
             The dataset to extract the few-shot examples from.
         dataset_config:
             The dataset configuration.
+        benchmark_config:
+            The benchmark configuration.
         itr_idx:
             The index of the dataset in the iterator.
 
     Returns:
         The few-shot examples.
+
+    Raises:
+        InvalidBenchmark:
+            If there are not enough short examples for few-shot learning.
     """
+    if dataset_config.task.requires_zero_shot and benchmark_config.few_shot:
+        msg = (
+            "This task only allows zero-shot evaluation, so even though you have "
+            "requested few-shot evaluation "
+        )
+        if benchmark_config.run_with_cli:
+            msg += "(by not setting the --zero-shot flag), "
+        else:
+            msg += "(by setting the default `few_shot=True` argument), "
+        msg += "we will run the evaluation in zero-shot mode."
+        benchmark_config.few_shot = False
+        log_once(msg, level=logging.DEBUG)
+        return []
+
     random_seed = 4242 + itr_idx
     num_few_shots = dataset_config.num_few_shot_examples
     few_shot_examples: list[dict[str, t.Any]] = list()
     shuffled_train = dataset["train"].shuffle(seed=random_seed)
+    assert isinstance(shuffled_train, Dataset), (
+        f"Expected `shuffled_train` to be a Dataset, but got {type(shuffled_train)} "
+        "instead."
+    )
 
     match dataset_config.task.task_group:
         case (
@@ -54,23 +85,36 @@ def extract_few_shot_examples(
                     lambda example: len(example["text"]) < max_num_tokens
                 )
                 num_short_examples = len(train_with_short_examples)
-                if num_short_examples >= dataset_config.num_few_shot_examples:
+                if num_short_examples >= num_few_shots:
                     break
             else:
                 raise InvalidBenchmark(
                     "Could not find enough short examples for few-shot learning."
                 )
 
-            shuffled_train = train_with_short_examples.shuffle(seed=random_seed)
             labels = it.cycle(dataset_config.labels)
+            labels_with_no_samples: set[str] = set()
             while len(few_shot_examples) < num_few_shots and len(shuffled_train) > 0:
+                if len(labels_with_no_samples) == len(dataset_config.labels):
+                    raise InvalidBenchmark(
+                        "Could not find enough examples for few-shot learning. "
+                        "Please check the dataset and the labels."
+                    )
                 label = next(labels)
                 possible_examples = shuffled_train.filter(
-                    lambda x: x["label"].lower() == label.lower()
+                    lambda x: str(x["label"]).lower() == label.lower()
+                )
+                assert isinstance(possible_examples, Dataset), (
+                    f"Expected `possible_examples` to be a Dataset, but got "
+                    f"{type(possible_examples)} instead."
                 )
                 if len(possible_examples) == 0:
+                    labels_with_no_samples.add(label)
                     continue
                 example = possible_examples.select(range(1))[0]
+                assert isinstance(example, dict), (
+                    f"Expected `example` to be a dict, but got {type(example)} instead."
+                )
                 few_shot_examples.append(example)
                 shuffled_train = shuffled_train.filter(
                     lambda x: x["text"] != example["text"]
@@ -79,6 +123,9 @@ def extract_few_shot_examples(
         case TaskGroup.TEXT_TO_TEXT:
             while len(few_shot_examples) < num_few_shots and len(shuffled_train) > 0:
                 example = shuffled_train.select(range(1))[0]
+                assert isinstance(example, dict), (
+                    f"Expected `example` to be a dict, but got {type(example)} instead."
+                )
                 few_shot_examples.append(example)
                 shuffled_train = shuffled_train.filter(
                     lambda x: x["text"] != example["text"]
@@ -95,11 +142,18 @@ def extract_few_shot_examples(
             while len(few_shot_examples) < num_few_shots and len(shuffled_train) > 0:
                 label = next(labels)
                 possible_examples = shuffled_train.filter(
-                    lambda x: label in [tag.lower() for tag in x["labels"]]
+                    lambda x: label in [str(tag).lower() for tag in x["labels"]]
+                )
+                assert isinstance(possible_examples, Dataset), (
+                    f"Expected `possible_examples` to be a Dataset, but got "
+                    f"{type(possible_examples)} instead."
                 )
                 if len(possible_examples) == 0:
                     continue
                 example = possible_examples.select(range(1))[0]
+                assert isinstance(example, dict), (
+                    f"Expected `example` to be a dict, but got {type(example)} instead."
+                )
                 few_shot_examples.append(example)
                 shuffled_train = shuffled_train.filter(
                     lambda x: x["tokens"] != example["tokens"]
@@ -112,7 +166,7 @@ def extract_few_shot_examples(
                     lambda example: len(example["context"]) < max_num_tokens
                 )
                 num_short_examples = len(train_with_short_examples)
-                if num_short_examples >= dataset_config.num_few_shot_examples:
+                if num_short_examples >= num_few_shots:
                     break
             else:
                 raise InvalidBenchmark(
@@ -120,8 +174,15 @@ def extract_few_shot_examples(
                 )
 
             shuffled_train = train_with_short_examples.shuffle(seed=random_seed)
+            assert isinstance(shuffled_train, Dataset), (
+                f"Expected `shuffled_train` to be a Dataset, but got "
+                f"{type(shuffled_train)} instead."
+            )
             while len(few_shot_examples) < num_few_shots and len(shuffled_train) > 0:
                 example = shuffled_train.select(range(1))[0]
+                assert isinstance(example, dict), (
+                    f"Expected `example` to be a dict, but got {type(example)} instead."
+                )
                 few_shot_examples.append(example)
                 shuffled_train = shuffled_train.filter(
                     lambda x: x["context"] != example["context"]
@@ -139,12 +200,12 @@ def extract_few_shot_examples(
 
 def apply_prompt(
     examples: dict[str, t.Any],
-    few_shot_examples: list[dict[str, t.Any]],
+    few_shot_examples: c.Sequence[dict[str, t.Any]],
     model_config: "ModelConfig",
     dataset_config: "DatasetConfig",
-    instruction_model: bool,
+    generative_type: GenerativeType | None,
     always_populate_text_field: bool,
-    tokenizer: "PreTrainedTokenizer | None",
+    tokeniser: "PreTrainedTokenizer | None",
 ) -> dict[str, t.Any]:
     """Apply prompt template to an example, potentially with few-shot examples.
 
@@ -153,23 +214,34 @@ def apply_prompt(
             The examples to apply the few-shot examples to.
         few_shot_examples:
             The few-shot examples to apply.
+        model_config:
+            The model configuration.
         dataset_config:
             The dataset configuration.
-        instruction_model:
-            Whether the model is instruction-tuned.
+        generative_type:
+            The generative type of the model.
         always_populate_text_field:
             Whether to always populate the 'text' field in the examples, as opposed to
             the 'messages' field.
-        tokenizer:
-            The tokenizer to use for the model. If None, the tokenizer is not used.
+        tokeniser:
+            The tokeniser to use for the model. If None, the tokeniser is not used.
 
     Returns:
         The example with the few-shot examples applied.
+
+    Raises:
+        ValueError:
+            If the `tokeniser` argument is not provided when the model is instruction
+            tuned and when we are not just returning the raw messages.
     """
     # Sanity check
-    if instruction_model and always_populate_text_field and tokenizer is None:
+    if (
+        generative_type in {GenerativeType.INSTRUCTION_TUNED, GenerativeType.REASONING}
+        and always_populate_text_field
+        and tokeniser is None
+    ):
         raise ValueError(
-            "The `tokenizer` argument must be provided when the model is instruction "
+            "The `tokeniser` argument must be provided when the model is instruction "
             "tuned and when we are not just returning the raw messages."
         )
 
@@ -191,7 +263,10 @@ def apply_prompt(
         )
         label_mapping = dataset_config.prompt_label_mapping
         label = label_mapping.get(label, label)
-        if instruction_model:
+        if generative_type in {
+            GenerativeType.INSTRUCTION_TUNED,
+            GenerativeType.REASONING,
+        }:
             prompt = dataset_config.instruction_prompt.format(**kwargs)
             return prompt, label
         else:
@@ -199,18 +274,49 @@ def apply_prompt(
             return dataset_config.prompt_template.format(**kwargs), ""
 
     match dataset_config.task.task_group:
-        case (
-            TaskGroup.SEQUENCE_CLASSIFICATION | TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION
-        ):
+        case TaskGroup.SEQUENCE_CLASSIFICATION:
+            labels_str = dataset_config.get_labels_str()
             few_shot_sections = [
                 create_prompt(
                     text=example["text"].replace("\n", " ").strip(),
-                    label=example["label"].replace("\n", " ").strip(),
+                    label=str(example["label"]).replace("\n", " ").strip(),
+                    labels_str=labels_str,
                 )
                 for example in few_shot_examples
             ]
             new_sections = [
-                create_prompt(text=text.replace("\n", " ").strip(), label="")
+                create_prompt(
+                    text=text.replace("\n", " ").strip(),
+                    label="",
+                    labels_str=labels_str,
+                )
+                for text in examples["text"]
+            ]
+
+        case TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION:
+            few_shot_sections = [
+                create_prompt(
+                    text=example["text"].replace("\n", " ").strip(),
+                    label=str(example["label"]).replace("\n", " ").strip(),
+                    labels_str=dataset_config.get_labels_str(
+                        labels=extract_multiple_choice_labels(
+                            prompt=example["text"],
+                            candidate_labels=dataset_config.labels,
+                        )
+                    ),
+                )
+                for example in few_shot_examples
+            ]
+            new_sections = [
+                create_prompt(
+                    text=text.replace("\n", " ").strip(),
+                    label="",
+                    labels_str=dataset_config.get_labels_str(
+                        labels=extract_multiple_choice_labels(
+                            prompt=text, candidate_labels=dataset_config.labels
+                        )
+                    ),
+                )
                 for text in examples["text"]
             ]
 
@@ -228,6 +334,7 @@ def apply_prompt(
             ]
 
         case TaskGroup.TOKEN_CLASSIFICATION:
+            labels_str = dataset_config.get_labels_str()
 
             def create_label(example: dict) -> str:
                 prompt_labels = dataset_config.prompt_label_mapping.values()
@@ -235,7 +342,7 @@ def apply_prompt(
                     prompt_label: list() for prompt_label in prompt_labels
                 }
                 for token, label in zip(example["tokens"], example["labels"]):
-                    label = label.lower()
+                    label = str(label).lower()
                     if label == "o":
                         continue
                     prompt_label = dataset_config.prompt_label_mapping[label]
@@ -249,12 +356,15 @@ def apply_prompt(
                 create_prompt(
                     text=" ".join(example["tokens"]).replace("\n", " ").strip(),
                     label=create_label(example=example),
+                    labels_str=labels_str,
                 )
                 for example in few_shot_examples
             ]
             new_sections = [
                 create_prompt(
-                    text=" ".join(tokens).replace("\n", " ").strip(), label=""
+                    text=" ".join(tokens).replace("\n", " ").strip(),
+                    label="",
+                    labels_str=labels_str,
                 )
                 for tokens in examples["tokens"]
             ]
@@ -282,7 +392,7 @@ def apply_prompt(
                 f"Unsupported task group: {dataset_config.task.task_group}."
             )
 
-    if instruction_model:
+    if generative_type in {GenerativeType.INSTRUCTION_TUNED, GenerativeType.REASONING}:
         few_shot_messages = [
             dict(role=role, content=content)
             for prompt, label in few_shot_sections
@@ -296,33 +406,46 @@ def apply_prompt(
 
         if not always_populate_text_field:
             examples["messages"] = messages_list
-
         else:
-            assert tokenizer is not None
+            assert tokeniser is not None
 
             # Pick the chat template that matches the language of the dataset, if such a
             # template exists
             chat_template: str | None = None
-            if isinstance(tokenizer.chat_template, dict):
+            if hasattr(tokeniser, "chat_template") and isinstance(
+                tokeniser.chat_template, dict
+            ):
                 language_codes = [
                     language.code for language in dataset_config.languages
                 ]
-                for name, candidate_template in tokenizer.chat_template.items():
+                for name, candidate_template in tokeniser.chat_template.items():
                     if name.lower() in language_codes:
                         chat_template = candidate_template
                         log_once(
-                            f"Using the {name!r} chat template for the tokenizer for "
+                            f"Using the {name!r} chat template for the tokeniser for "
                             f"model {model_config.model_id!r}.",
                             level=logging.DEBUG,
                         )
                         break
 
+            # Custom chat template kwargs
+            chat_template_kwargs: dict[str, t.Any] = dict()
+            if model_config.param in {"low", "medium", "high"}:
+                chat_template_kwargs["reasoning_effort"] = model_config.param
+                log_once(
+                    f"Set reasoning mode to {model_config.param!r}.",
+                    level=logging.DEBUG,
+                )
+
             texts = [
-                tokenizer.apply_chat_template(
+                apply_chat_template(
                     conversation=messages,
-                    tokenize=False,
+                    tokeniser=tokeniser,
+                    tokenise=False,
                     add_generation_prompt=True,
+                    enable_thinking=(generative_type == GenerativeType.REASONING),
                     chat_template=chat_template,
+                    **chat_template_kwargs,
                 )
                 for messages in messages_list
             ]
@@ -332,7 +455,10 @@ def apply_prompt(
     else:
         prompt_prefix = ""
         if dataset_config.prompt_prefix:
-            prompt_prefix = dataset_config.prompt_prefix + "\n\n"
+            labels_str = dataset_config.get_labels_str()
+            prompt_prefix = (
+                dataset_config.prompt_prefix.format(labels_str=labels_str) + "\n\n"
+            )
 
         few_shot_prompt = "\n\n".join([prompt for prompt, _ in few_shot_sections])
         if few_shot_prompt:
@@ -343,4 +469,47 @@ def apply_prompt(
             for new_prompt, _ in new_sections
         ]
 
+    # Always add the final prompts without few-shot examples, too, for analysis
+    examples["prompt"] = [new_prompt for new_prompt, _ in new_sections]
+
     return examples
+
+
+def raise_if_wrong_params(
+    model_config: "ModelConfig", allowed_params: dict[re.Pattern, c.Sequence[str]]
+) -> None:
+    """Raise an error if the model configuration has invalid parameters.
+
+    Args:
+        model_config:
+            The model configuration.
+        allowed_params:
+            The allowed parameters for the model, being a dictionary mapping a regex
+            pattern matching the model ID to a list of allowed parameters for those
+            models.
+
+    Raises:
+        InvalidModel:
+            If the model configuration has invalid parameters.
+    """
+    # Do nothing if there are no parameters to check
+    if model_config.param is None:
+        return
+
+    # Make list of all allowed parameters for the model
+    all_allowed_params: set[str] = set()
+    for model_regex, allowed_params_list in allowed_params.items():
+        if re.fullmatch(pattern=model_regex, string=model_config.model_id):
+            all_allowed_params.update(allowed_params_list)
+
+    # Raise error if the parameter is not allowed
+    if model_config.param not in all_allowed_params:
+        msg = (
+            f"Invalid parameter {model_config.param!r} for model "
+            f"{model_config.model_id!r}."
+        )
+        if all_allowed_params:
+            msg += f" Allowed parameters are: {', '.join(all_allowed_params)}."
+        else:
+            msg += " No parameters are allowed."
+        raise InvalidModel(msg)

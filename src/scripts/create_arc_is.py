@@ -13,16 +13,16 @@
 from collections import Counter
 
 import pandas as pd
-from constants import (
+from datasets import Dataset, DatasetDict, Split, load_dataset
+from huggingface_hub import HfApi
+
+from .constants import (
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
     MAX_REPETITIONS,
     MIN_NUM_CHARS_IN_INSTRUCTION,
     MIN_NUM_CHARS_IN_OPTION,
 )
-from datasets import Dataset, DatasetDict, Split, load_dataset
-from huggingface_hub import HfApi
-from requests import HTTPError
 
 
 def main() -> None:
@@ -49,8 +49,10 @@ def main() -> None:
         df.rename(columns=dict(answerKey="label", question="instruction"), inplace=True)
 
         # Remove samples where the `label` is not 'A', 'B', 'C' or 'D'
-        df = df[df.label.isin(["A", "B", "C", "D"])]
-        df = df[df.choices.map(lambda dct: tuple(dct["label"])) == ("A", "B", "C", "D")]
+        df = df.loc[df.label.isin(["A", "B", "C", "D"])]
+        df = df.loc[
+            df.choices.map(lambda dct: tuple(dct["label"])) == ("A", "B", "C", "D")
+        ]
 
         df["option_a"] = df.choices.map(lambda dct: dct["text"][0])
         df["option_b"] = df.choices.map(lambda dct: dct["text"][1])
@@ -59,7 +61,7 @@ def main() -> None:
 
         # Remove all samples with a null value of `option_a`, `option_b`,
         # `option_c` or `option_d`
-        df = df[
+        df = df.loc[
             df["option_a"].notnull()
             & df["option_b"].notnull()
             & df["option_c"].notnull()
@@ -67,7 +69,7 @@ def main() -> None:
         ]
 
         # Remove the samples with overly short or long texts
-        df = df[
+        df = df.loc[
             (df.instruction.str.len() >= MIN_NUM_CHARS_IN_INSTRUCTION)
             & (df.instruction.str.len() <= MAX_NUM_CHARS_IN_INSTRUCTION)
             & (df.option_a.str.len() >= MIN_NUM_CHARS_IN_OPTION)
@@ -109,7 +111,7 @@ def main() -> None:
         df.label = df.label.str.lower()
 
         # Only keep the `text` and `label` columns
-        df = df[["text", "label"]]
+        df = df.loc[["text", "label"]]
 
         # Remove duplicates
         df.drop_duplicates(inplace=True)
@@ -142,20 +144,18 @@ def main() -> None:
 
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
     # Create dataset ID
     dataset_id = "EuroEval/arc-is-mini"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(dataset_id, private=True)

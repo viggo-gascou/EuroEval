@@ -12,21 +12,21 @@
 """Create the MultiWikiQA-mini datasets and upload them to the HF Hub."""
 
 import pandas as pd
-from constants import (
-    MAX_NUM_CHARS_IN_CONTEXT,
-    MAX_NUM_CHARS_IN_QUESTION,
-    MIN_NUM_CHARS_IN_CONTEXT,
-    MIN_NUM_CHARS_IN_QUESTION,
-)
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
 from datasets.load import load_dataset
 from datasets.splits import Split
 from huggingface_hub import HfApi
-from requests import HTTPError
 from tqdm.auto import tqdm
 
-ALL_LANGUAGES = [
+from .constants import (
+    MAX_NUM_CHARS_IN_CONTEXT,
+    MAX_NUM_CHARS_IN_QUESTION,
+    MIN_NUM_CHARS_IN_CONTEXT,
+    MIN_NUM_CHARS_IN_QUESTION,
+)
+
+LANGUAGES = [
     "da",
     "nl",
     "en",
@@ -40,7 +40,23 @@ ALL_LANGUAGES = [
     "nn",
     "es",
     "sv",
+    "pl",
     "pt-pt",
+    "lv",
+    "lt",
+    "sk",
+    "uk",
+    "el",
+    "bg",
+    "sr",
+    "sl",
+    "hr",
+    "bs",
+    "hu",
+    "ro",
+    "ca",
+    "sq",
+    "be",
 ]
 
 
@@ -48,7 +64,7 @@ def main() -> None:
     """Create the MultiWikiQA-mini datasets and upload them to the HF Hub."""
     dataset_id = "alexandrainst/multi-wiki-qa"
 
-    for language in tqdm(ALL_LANGUAGES, desc="Generating datasets"):
+    for language in tqdm(LANGUAGES, desc="Generating datasets"):
         # Load the dataset
         dataset = load_dataset(dataset_id, name=language, token=True, split="train")
         assert isinstance(dataset, Dataset)
@@ -68,6 +84,7 @@ def main() -> None:
                 MIN_NUM_CHARS_IN_QUESTION, MAX_NUM_CHARS_IN_QUESTION
             )
         ]
+        assert isinstance(df, pd.DataFrame)
 
         # Extract information on which examples contain an answer
         def has_answer_fn(example: dict) -> bool:
@@ -98,20 +115,18 @@ def main() -> None:
 
         # Collect datasets in a dataset dictionary
         dataset = DatasetDict(
-            train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-            val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-            test=Dataset.from_pandas(test_df, split=Split.TEST),
+            {
+                "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+                "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+                "test": Dataset.from_pandas(test_df, split=Split.TEST),
+            }
         )
 
         # Create dataset ID
         mini_dataset_id = f"EuroEval/multi-wiki-qa-{language}-mini"
 
         # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api: HfApi = HfApi()
-            api.delete_repo(mini_dataset_id, repo_type="dataset")
-        except HTTPError:
-            pass
+        HfApi().delete_repo(mini_dataset_id, repo_type="dataset", missing_ok=True)
 
         # Push the dataset to the Hugging Face Hub
         dataset.push_to_hub(mini_dataset_id, private=True)

@@ -10,18 +10,6 @@ from euroeval.enums import DataType
 from euroeval.finetuning import get_training_args
 
 
-# TODO
-def test_finetune() -> None:
-    """Test that the `finetune` function works as expected."""
-    pass
-
-
-# TODO
-def test_finetune_single_iteration() -> None:
-    """Test that the `finetune_single_iteration` function works as expected."""
-    pass
-
-
 class TestGetTrainingArgs:
     """Test that the `get_training_args` function works as expected."""
 
@@ -88,7 +76,9 @@ class TestGetTrainingArgs:
             dtype=DataType.FP32,
             batch_size=None,
         )
-        assert args.per_device_train_batch_size == benchmark_config.batch_size
+        assert (
+            args.per_device_train_batch_size == benchmark_config.finetuning_batch_size
+        )
 
     @pytest.mark.parametrize(
         argnames=["verbose", "expected_logging_strategy"],
@@ -178,7 +168,7 @@ class TestGetTrainingArgs:
     ) -> None:
         """Test that the use_cpu argument is correct."""
         old_device = benchmark_config.device
-        benchmark_config.device = torch.device(device_name)
+        benchmark_config.device = torch.device(device_name)  # type: ignore[read-only]
         args = get_training_args(
             benchmark_config=benchmark_config,
             model_config=model_config,
@@ -187,4 +177,4 @@ class TestGetTrainingArgs:
             batch_size=None,
         )
         assert args.use_cpu == expected_use_cpu
-        benchmark_config.device = old_device
+        benchmark_config.device = old_device  # type: ignore[read-only]

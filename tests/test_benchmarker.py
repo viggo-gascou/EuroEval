@@ -1,10 +1,13 @@
-"""Unit tests for the `benchmarker` module."""
+"""Tests for the `benchmarker` module."""
 
 import logging
 import os
+import sys
 import time
 from collections.abc import Generator
+from dataclasses import replace
 from pathlib import Path
+from shutil import rmtree
 
 import pytest
 import torch
@@ -14,17 +17,27 @@ from euroeval.benchmarker import (
     Benchmarker,
     adjust_logging_level,
     clear_model_cache_fn,
-    model_has_been_benchmarked,
-    prepare_dataset_configs,
+    get_record,
 )
-from euroeval.data_models import BenchmarkResult, DatasetConfig, Language, Task
-from euroeval.dataset_configs import get_dataset_config
+from euroeval.data_models import (
+    BenchmarkConfig,
+    BenchmarkResult,
+    DatasetConfig,
+    Language,
+    ModelConfig,
+    Task,
+)
+from euroeval.enums import TaskGroup
 from euroeval.exceptions import HuggingFaceHubDown
 
 
 @pytest.fixture(scope="module")
 def benchmarker() -> Generator[Benchmarker, None, None]:
-    """A `Benchmarker` instance."""
+    """A `Benchmarker` instance.
+
+    Yields:
+        A `Benchmarker` instance.
+    """
     yield Benchmarker(progress_bar=False, save_results=False, num_iterations=1)
 
 
@@ -33,10 +46,12 @@ def test_benchmark_results_is_a_list(benchmarker: Benchmarker) -> None:
     assert isinstance(benchmarker.benchmark_results, list)
 
 
+@pytest.mark.depends(on=["tests/test_model_loading.py::test_load_non_generative_model"])
 def test_benchmark_encoder(
     benchmarker: Benchmarker, task: Task, language: Language, encoder_model_id: str
 ) -> None:
     """Test that an encoder model can be benchmarked."""
+    benchmark_result = None
     for _ in range(10):
         try:
             benchmark_result = benchmarker.benchmark(
@@ -52,12 +67,23 @@ def test_benchmark_encoder(
 
 
 @pytest.mark.skipif(
-    condition=not torch.cuda.is_available(), reason="CUDA is not available."
+    condition=sys.platform == "linux" and not torch.cuda.is_available(),
+    reason="Running on Ubuntu but no CUDA available",
 )
+@pytest.mark.depends(on=["tests/test_model_loading.py::test_load_generative_model"])
 def test_benchmark_generative(
     benchmarker: Benchmarker, task: Task, language: Language, generative_model_id: str
 ) -> None:
     """Test that a generative model can be benchmarked."""
+    if not torch.cuda.is_available() and (
+        task.task_group
+        in [TaskGroup.SEQUENCE_CLASSIFICATION, TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION]
+        or task.uses_structured_output
+    ):
+        pytest.skip(
+            f"CUDA is required to run generative models on the {task.name} "
+            "task currently."
+        )
     benchmark_result = benchmarker.benchmark(
         model=generative_model_id, task=task.name, language=language.code
     )
@@ -66,8 +92,10 @@ def test_benchmark_generative(
 
 
 @pytest.mark.skipif(
-    condition=not torch.cuda.is_available(), reason="CUDA is not available."
+    condition=sys.platform == "linux" and not torch.cuda.is_available(),
+    reason="Running on Ubuntu but no CUDA available",
 )
+@pytest.mark.depends(on=["tests/test_model_loading.py::test_load_generative_model"])
 def test_benchmark_generative_adapter(
     benchmarker: Benchmarker,
     task: Task,
@@ -75,6 +103,15 @@ def test_benchmark_generative_adapter(
     generative_adapter_model_id: str,
 ) -> None:
     """Test that a generative adapter model can be benchmarked."""
+    if not torch.cuda.is_available() and (
+        task.task_group
+        in [TaskGroup.SEQUENCE_CLASSIFICATION, TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION]
+        or task.uses_structured_output
+    ):
+        pytest.skip(
+            f"CUDA is required to run generative models on the {task.name} "
+            "task currently."
+        )
     benchmark_result = benchmarker.benchmark(
         model=generative_adapter_model_id, task=task.name, language=language.code
     )
@@ -98,50 +135,6 @@ def test_benchmark_openai(
 
 
 @pytest.mark.skipif(
-    condition=os.getenv("ANTHROPIC_API_KEY") is None,
-    reason="Anthropic API key is not available.",
-)
-def test_benchmark_anthropic(
-    benchmarker: Benchmarker, task: Task, language: Language, anthropic_model_id: str
-) -> None:
-    """Test that an Anthropic model can be benchmarked."""
-    benchmark_result = benchmarker.benchmark(
-        model=anthropic_model_id, task=task.name, language=language.code
-    )
-    assert isinstance(benchmark_result, list)
-    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
-
-
-@pytest.mark.skipif(
-    condition=os.getenv("GEMINI_API_KEY") is None,
-    reason="Gemini API key is not available.",
-)
-def test_benchmark_gemini(
-    benchmarker: Benchmarker, task: Task, language: Language, gemini_model_id: str
-) -> None:
-    """Test that a Gemini model can be benchmarked."""
-    benchmark_result = benchmarker.benchmark(
-        model=gemini_model_id, task=task.name, language=language.code
-    )
-    assert isinstance(benchmark_result, list)
-    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
-
-
-@pytest.mark.skipif(
-    condition=os.getenv("XAI_API_KEY") is None, reason="xAI API key is not available."
-)
-def test_benchmark_xai(
-    benchmarker: Benchmarker, task: Task, language: Language, grok_model_id: str
-) -> None:
-    """Test that a Grok model can be benchmarked."""
-    benchmark_result = benchmarker.benchmark(
-        model=grok_model_id, task=task.name, language=language.code
-    )
-    assert isinstance(benchmark_result, list)
-    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
-
-
-@pytest.mark.skipif(
     condition=os.system("uv run ollama -v") != 0, reason="Ollama is not available."
 )
 def test_benchmark_ollama(
@@ -155,25 +148,90 @@ def test_benchmark_ollama(
     assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
 
 
+@pytest.mark.disable_socket
+@pytest.mark.depends(on=["test_benchmark_encoder"])
+def test_benchmark_encoder_no_internet(
+    task: Task, language: Language, encoder_model_id: str
+) -> None:
+    """Test that encoder models can be benchmarked without internet."""
+    # We need a new benchmarker since we only check for internet once per instance
+    benchmarker = Benchmarker(progress_bar=False, save_results=False, num_iterations=1)
+    benchmark_result = benchmarker.benchmark(
+        model=encoder_model_id, task=task.name, language=language.code
+    )
+    assert isinstance(benchmark_result, list)
+    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
+
+
+@pytest.mark.skipif(
+    condition=sys.platform == "linux" and not torch.cuda.is_available(),
+    reason="Running on Ubuntu but no CUDA available",
+)
+@pytest.mark.allow_hosts(["127.0.0.1"])
+@pytest.mark.depends(on=["test_benchmark_generative"])
+def test_benchmark_generative_no_internet(
+    task: Task, language: Language, generative_model_id: str
+) -> None:
+    """Test that generative models can be benchmarked without internet."""
+    if not torch.cuda.is_available() and (
+        task.task_group
+        in [TaskGroup.SEQUENCE_CLASSIFICATION, TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION]
+        or task.uses_structured_output
+    ):
+        pytest.skip(
+            f"CUDA is required to run generative models on the {task.name} "
+            "task currently."
+        )
+    # We need a new benchmarker since we only check for internet once per instance
+    benchmarker = Benchmarker(progress_bar=False, save_results=False, num_iterations=1)
+    benchmark_result = benchmarker.benchmark(
+        model=generative_model_id, task=task.name, language=language.code
+    )
+    assert isinstance(benchmark_result, list)
+    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
+
+
+@pytest.mark.skipif(
+    condition=sys.platform == "linux" and not torch.cuda.is_available(),
+    reason="Running on Ubuntu but no CUDA available",
+)
+@pytest.mark.allow_hosts(["127.0.0.1"])
+@pytest.mark.skip(
+    "Benchmarking adapter models without internet access are not implemented yet."
+)
+@pytest.mark.depends(on=["test_benchmark_generative_adapter"])
+def test_benchmark_generative_adapter_no_internet(
+    task: Task, language: Language, generative_adapter_model_id: str
+) -> None:
+    """Test that generative adapter models can be benchmarked without internet."""
+    if not torch.cuda.is_available() and (
+        task.task_group
+        in [TaskGroup.SEQUENCE_CLASSIFICATION, TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION]
+        or task.uses_structured_output
+    ):
+        pytest.skip(
+            f"CUDA is required to run generative models on the {task.name} "
+            "task currently."
+        )
+    # We need a new benchmarker since we only check for internet once per instance
+    benchmarker = Benchmarker(progress_bar=False, save_results=False, num_iterations=1)
+    benchmark_result = benchmarker.benchmark(
+        model=generative_adapter_model_id, task=task.name, language=language.code
+    )
+    assert isinstance(benchmark_result, list)
+    assert all(isinstance(result, BenchmarkResult) for result in benchmark_result)
+
+
 @pytest.mark.parametrize(
-    argnames=[
-        "model_id",
-        "dataset",
-        "few_shot",
-        "validation_split",
-        "benchmark_results",
-        "expected",
-    ],
+    argnames=["few_shot", "evaluate_test_split", "benchmark_results", "expected"],
     argvalues=[
-        ("model", "dataset", False, False, [], False),
+        (False, True, [], False),
         (
-            "model",
-            "dataset",
             False,
-            False,
+            True,
             [
                 BenchmarkResult(
-                    model="model",
+                    model="model_id@revision",
                     dataset="dataset",
                     generative=False,
                     generative_type=None,
@@ -183,7 +241,7 @@ def test_benchmark_ollama(
                     max_sequence_length=100,
                     vocabulary_size=100,
                     merge=False,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 )
@@ -191,13 +249,11 @@ def test_benchmark_ollama(
             True,
         ),
         (
-            "model",
-            "dataset",
-            False,
-            False,
+            True,
+            True,
             [
                 BenchmarkResult(
-                    model="model",
+                    model="model_id@revision",
                     dataset="another-dataset",
                     generative=False,
                     generative_type=None,
@@ -207,7 +263,7 @@ def test_benchmark_ollama(
                     max_sequence_length=100,
                     vocabulary_size=100,
                     merge=False,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 )
@@ -215,13 +271,11 @@ def test_benchmark_ollama(
             False,
         ),
         (
-            "model",
-            "dataset",
             True,
-            False,
+            True,
             [
                 BenchmarkResult(
-                    model="model",
+                    model="model_id@revision",
                     dataset="dataset",
                     generative=True,
                     generative_type=None,
@@ -231,7 +285,7 @@ def test_benchmark_ollama(
                     max_sequence_length=100,
                     vocabulary_size=100,
                     merge=False,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 )
@@ -239,13 +293,11 @@ def test_benchmark_ollama(
             False,
         ),
         (
-            "model",
-            "dataset",
             True,
-            False,
+            True,
             [
                 BenchmarkResult(
-                    model="model",
+                    model="model_id@revision",
                     dataset="dataset",
                     generative=True,
                     generative_type=None,
@@ -255,7 +307,7 @@ def test_benchmark_ollama(
                     max_sequence_length=100,
                     vocabulary_size=100,
                     merge=False,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 )
@@ -263,13 +315,11 @@ def test_benchmark_ollama(
             True,
         ),
         (
-            "model",
-            "dataset",
             True,
-            False,
+            True,
             [
                 BenchmarkResult(
-                    model="model",
+                    model="model_id@revision",
                     dataset="dataset",
                     generative=False,
                     generative_type=None,
@@ -279,7 +329,7 @@ def test_benchmark_ollama(
                     max_sequence_length=100,
                     vocabulary_size=100,
                     merge=False,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 )
@@ -287,13 +337,11 @@ def test_benchmark_ollama(
             True,
         ),
         (
-            "model",
-            "dataset",
             False,
-            True,
+            False,
             [
                 BenchmarkResult(
-                    model="model",
+                    model="model_id@revision",
                     dataset="dataset",
                     generative=False,
                     generative_type=None,
@@ -303,7 +351,7 @@ def test_benchmark_ollama(
                     max_sequence_length=100,
                     vocabulary_size=100,
                     merge=False,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 )
@@ -311,13 +359,11 @@ def test_benchmark_ollama(
             False,
         ),
         (
-            "model",
-            "dataset",
             False,
-            True,
+            False,
             [
                 BenchmarkResult(
-                    model="model",
+                    model="model_id@revision",
                     dataset="dataset",
                     generative=False,
                     generative_type=None,
@@ -327,7 +373,7 @@ def test_benchmark_ollama(
                     max_sequence_length=100,
                     vocabulary_size=100,
                     merge=False,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 )
@@ -335,13 +381,11 @@ def test_benchmark_ollama(
             True,
         ),
         (
-            "model",
-            "dataset",
             False,
-            False,
+            True,
             [
                 BenchmarkResult(
-                    model="model",
+                    model="model_id@revision",
                     dataset="dataset",
                     generative=False,
                     generative_type=None,
@@ -351,12 +395,12 @@ def test_benchmark_ollama(
                     max_sequence_length=100,
                     vocabulary_size=100,
                     merge=False,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 ),
                 BenchmarkResult(
-                    model="model",
+                    model="model_id@revision",
                     dataset="dataset",
                     generative=False,
                     generative_type=None,
@@ -366,7 +410,7 @@ def test_benchmark_ollama(
                     max_sequence_length=100,
                     vocabulary_size=100,
                     merge=False,
-                    dataset_languages=["da"],
+                    languages=["da"],
                     task="task",
                     results=dict(),
                 ),
@@ -386,21 +430,27 @@ def test_benchmark_ollama(
         "model has been benchmarked twice",
     ],
 )
-def test_model_has_been_benchmarked(
-    model_id: str,
-    dataset: str,
+def test_get_record(
+    model_config: ModelConfig,
+    dataset_config: DatasetConfig,
+    benchmark_config: BenchmarkConfig,
     few_shot: bool,
-    validation_split: bool,
+    evaluate_test_split: bool,
     benchmark_results: list[BenchmarkResult],
     expected: bool,
 ) -> None:
     """Test whether we can correctly check if a model has been benchmarked."""
-    benchmarked = model_has_been_benchmarked(
-        model_id=model_id,
-        dataset=dataset,
-        few_shot=few_shot,
-        validation_split=validation_split,
-        benchmark_results=benchmark_results,
+    benchmark_config = replace(
+        benchmark_config, few_shot=few_shot, evaluate_test_split=evaluate_test_split
+    )
+    benchmarked = (
+        get_record(
+            model_config=model_config,
+            dataset_config=dataset_config,
+            benchmark_config=benchmark_config,
+            benchmark_results=benchmark_results,
+        )
+        is not None
     )
     assert benchmarked == expected
 
@@ -421,6 +471,7 @@ class TestClearCacheFn:
     def test_clear_non_existing_cache(self) -> None:
         """Test that no errors are thrown when clearing a non-existing cache."""
         clear_model_cache_fn(cache_dir="does-not-exist")
+        rmtree(path="does-not-exist", ignore_errors=True)
 
     def test_clear_existing_cache(self) -> None:
         """Test that a cache can be cleared."""
@@ -436,20 +487,4 @@ class TestClearCacheFn:
         assert not dir_to_be_deleted.exists()
         assert example_model_dir.exists()
 
-
-@pytest.mark.parametrize(
-    argnames=["dataset_names", "dataset_configs"],
-    argvalues=[
-        ([], []),
-        (["angry-tweets"], [get_dataset_config("angry-tweets")]),
-        (
-            ["angry-tweets", "dansk"],
-            [get_dataset_config("angry-tweets"), get_dataset_config("dansk")],
-        ),
-    ],
-)
-def test_prepare_dataset_configs(
-    dataset_names: list[str], dataset_configs: list[DatasetConfig]
-) -> None:
-    """Test that the `prepare_dataset_configs` function works as expected."""
-    assert prepare_dataset_configs(dataset_names=dataset_names) == dataset_configs
+        rmtree(path=cache_dir, ignore_errors=True)

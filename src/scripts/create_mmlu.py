@@ -15,49 +15,62 @@
 from collections import Counter
 
 import pandas as pd
-import polars as pl
-from constants import (
+import polars as pl  # type: ignore[missing-import]
+from datasets import Dataset, DatasetDict, Split, load_dataset
+from huggingface_hub import HfApi
+from sklearn.model_selection import train_test_split
+
+from .constants import (
+    CHOICES_MAPPING,
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
     MAX_REPETITIONS,
     MIN_NUM_CHARS_IN_INSTRUCTION,
     MIN_NUM_CHARS_IN_OPTION,
 )
-from datasets import Dataset, DatasetDict, Split, load_dataset
-from huggingface_hub import HfApi
-from requests import HTTPError
-from sklearn.model_selection import train_test_split
+
+LANGUAGES = [
+    "da",
+    "de",
+    "ca",
+    "en",
+    "es",
+    "fr",
+    "hu",
+    "is",
+    "it",
+    "nl",
+    "no",
+    "pt",
+    "sk",
+    "sl",
+    "sr",
+    "sv",
+]
+
+
+MMLUX_SUBSET_IDS = {"pt": "PT-PT", "sl": "SL"}
 
 
 def main() -> None:
-    """Create the MMLU-mini datasets and upload them to the HF Hub."""
+    """Create the MMLU-mini datasets and upload them to the HF Hub.
+
+    Raises:
+        ValueError: If the number of repetitions is too high.
+    """
     # Define the base download URL
     repo_id = "alexandrainst/m_mmlu"
 
-    # Create a mapping with the word "Choices" in different languages
-    choices_mapping = {
-        "da": "Svarmuligheder",
-        "no": "Svaralternativer",
-        "sv": "Svarsalternativ",
-        "is": "Svarmöguleikar",
-        "de": "Antwortmöglichkeiten",
-        "nl": "Antwoordopties",
-        "en": "Choices",
-        "fr": "Choix",
-        "it": "Scelte",
-        "es": "Opciones",
-        "pt": "Opções",
-    }
-
-    for language in choices_mapping.keys():
+    for language in LANGUAGES:
         # Download the dataset
         try:
             dataset = load_dataset(path=repo_id, name=language, token=True)
         except ValueError as e:
             if language == "no":
                 dataset = load_dataset(path=repo_id, name="nb", token=True)
-            elif language == "pt":
-                dataset = load_pt_dataset()
+            elif language in MMLUX_SUBSET_IDS:
+                subset_id = MMLUX_SUBSET_IDS[language]
+                dataset = load_mmlux_dataset(subset_id=subset_id)
             else:
                 raise e
         assert isinstance(dataset, DatasetDict)
@@ -103,6 +116,7 @@ def main() -> None:
             & ~df.option_c.apply(is_repetitive)
             & ~df.option_d.apply(is_repetitive)
         ]
+        assert isinstance(df, pd.DataFrame)
 
         # Extract the category as a column
         df["category"] = df["id"].str.split("/").str[0]
@@ -110,7 +124,7 @@ def main() -> None:
         # Make a `text` column with all the options in it
         df["text"] = [
             row.instruction.replace("\n", " ").strip() + "\n"
-            f"{choices_mapping[language]}:\n"
+            f"{CHOICES_MAPPING[language]}:\n"
             "a. " + row.option_a.replace("\n", " ").strip() + "\n"
             "b. " + row.option_b.replace("\n", " ").strip() + "\n"
             "c. " + row.option_c.replace("\n", " ").strip() + "\n"
@@ -158,9 +172,11 @@ def main() -> None:
 
         # Collect datasets in a dataset dictionary
         dataset = DatasetDict(
-            train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-            val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-            test=Dataset.from_pandas(test_df, split=Split.TEST),
+            {
+                "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+                "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+                "test": Dataset.from_pandas(test_df, split=Split.TEST),
+            }
         )
 
         # Create dataset ID
@@ -170,18 +186,14 @@ def main() -> None:
             dataset_id = f"EuroEval/mmlu-{language}-mini"
 
         # Remove the dataset from Hugging Face Hub if it already exists
-        try:
-            api = HfApi()
-            api.delete_repo(dataset_id, repo_type="dataset")
-        except HTTPError:
-            pass
+        HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
         # Push the dataset to the Hugging Face Hub
         dataset.push_to_hub(dataset_id, private=True)
 
 
-def load_pt_dataset() -> DatasetDict:
-    """Load and process PT-PT split from LumiOpen/opengpt-x_mmlux.
+def load_mmlux_dataset(subset_id: str = "PT-PT") -> DatasetDict:
+    """Load and process a subset split from LumiOpen/opengpt-x_mmlux.
 
     Returns:
         DatasetDict: Hugging Face DatasetDict with train, val, and test splits.
@@ -198,7 +210,7 @@ def load_pt_dataset() -> DatasetDict:
         """
         return (
             pl.read_ndjson(
-                f"hf://datasets/LumiOpen/opengpt-x_mmlux/*PT-PT*{split}.jsonl"
+                f"hf://datasets/LumiOpen/opengpt-x_mmlux/*{subset_id}*{split}.jsonl"
             )
             .with_columns(
                 pl.col("id").str.split("/").list.get(0).alias("category"),
@@ -223,14 +235,16 @@ def load_pt_dataset() -> DatasetDict:
             .drop("category")
         )
 
-    train_df = _process_split("dev")
-    val_df = _process_split("validation")
-    test_df = _process_split("test")
+    train_df = _process_split("dev").to_pandas()
+    val_df = _process_split("validation").to_pandas()
+    test_df = _process_split("test").to_pandas()
 
     return DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
 

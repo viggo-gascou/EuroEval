@@ -13,7 +13,6 @@
 import pandas as pd
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
-from requests import HTTPError
 
 
 def main() -> None:
@@ -40,7 +39,9 @@ def main() -> None:
     df.rename(columns={"titulo": "text"}, inplace=True)
 
     # Create the label column
-    df["label"] = df["label"].map({0: "negative", 1: "neutral", 2: "positive"})
+    df["label"] = df["label"].map(
+        lambda x: {0: "negative", 1: "neutral", 2: "positive"}[x]
+    )
 
     # Keep only columns text and label
     df = df[["text", "label"]]
@@ -55,6 +56,7 @@ def main() -> None:
     # Create test split
     test_size = 1024
     filtered_df = df[~df.index.isin(val_df.index)]
+    assert isinstance(filtered_df, pd.DataFrame)
     test_df = filtered_df.sample(n=test_size, random_state=4242)
 
     # Create train split
@@ -66,24 +68,22 @@ def main() -> None:
     val_df = val_df.reset_index(drop=True)
     test_df = test_df.reset_index(drop=True)
 
+    assert isinstance(train_df, pd.DataFrame)
+    assert isinstance(val_df, pd.DataFrame)
+    assert isinstance(test_df, pd.DataFrame)
+
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
-    # Create dataset ID
-    dataset_id = "EuroEval/sentiment-headlines-es"
-
-    # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
-
     # Push the dataset to the Hugging Face Hub
+    dataset_id = "EuroEval/sentiment-headlines-es"
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
     dataset.push_to_hub(dataset_id, private=True)
 
 

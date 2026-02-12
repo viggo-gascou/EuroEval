@@ -11,7 +11,6 @@ choose the correct answer.
 
 When evaluating generative models, we allow the model to generate 5 tokens on this task.
 
-
 ## 📊 Metrics
 
 The primary metric we use when evaluating the performance of a model on the common-sense
@@ -23,12 +22,11 @@ benefit of MCC is that it is balanced even if the classes are imbalanced.
 We also report the accuracy score, as this is the most common metric used for this task,
 enabling comparisons with other benchmarks.
 
-
 ## 🛠️ How to run
 
-In the command line interface of the [EuroEval Python package](/python-package.md), you
+In the command line interface of the [EuroEval Python package](/python-package), you
 can benchmark your favorite model on the common-sense reasoning task like so:
 
 ```bash
-$ euroeval --model <model-id> --task common-sense-reasoning
+euroeval --model <model-id> --task common-sense-reasoning
 ```

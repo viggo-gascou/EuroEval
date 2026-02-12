@@ -1,57 +1,95 @@
 """Utility functions to be used in other scripts."""
 
-import asyncio
 import gc
-import importlib
-import importlib.metadata
-import importlib.util
 import logging
 import os
 import random
+import socket
 import sys
 import typing as t
-import warnings
-from functools import cache
 from pathlib import Path
 
-import litellm
+import huggingface_hub as hf_hub
 import numpy as np
-import requests
 import torch
-from datasets.utils import disable_progress_bar
+from huggingface_hub.errors import LocalTokenNotFoundError
 from requests.exceptions import RequestException
-from transformers import logging as tf_logging
 
-from .exceptions import NaNValueInModelOutput
-
-if importlib.util.find_spec("ray") is not None:
-    import ray
+from .caching_utils import cache_arguments
+from .constants import LOCAL_MODELS_REQUIRED_FILES
+from .exceptions import InvalidModel, NaNValueInModelOutput
+from .logging_utils import log_once
 
 if t.TYPE_CHECKING:
-    from types import TracebackType
-
     from .types import Predictions
 
 
-logger = logging.getLogger("euroeval")
-
-
-def create_model_cache_dir(cache_dir: str, model_id: str) -> str:
-    """Create cache directory for a model.
+def resolve_model_path(download_dir: str) -> str:
+    """Resolve the path to the directory containing the model config files and weights.
 
     Args:
-        cache_dir:
-            The cache directory.
-        model_id:
-            The model ID.
+        download_dir:
+            The download directory
 
     Returns:
-        The path to the cache directory.
+        The path to the model.
+
+    Raises:
+        InvalidModel:
+            If the model path is not valid, or if required files are missing.
     """
-    # to avoid nesting due to models name containing '/'
-    _model_id = model_id.replace("/", "--")
-    cache_dir_path = Path(cache_dir) / "model_cache" / _model_id
-    return str(cache_dir_path)
+    model_path = Path(download_dir)
+
+    # Get the 'path safe' version of the model id, which is the last dir in the path
+    model_id_path = model_path.name
+
+    # Hf hub `cache_dir` puts the files in models--`model_id_path`/snapshots
+    model_path = model_path / f"models--{model_id_path}" / "snapshots"
+    if not model_path.exists():
+        raise InvalidModel(
+            f"Attempted to load models from the {model_path} directory, "
+            "but it does not exist."
+        )
+
+    # Get all files in the model path
+    found_files = [
+        found_file for found_file in model_path.rglob("*") if found_file.is_file()
+    ]
+    if not found_files:
+        raise InvalidModel(f"No model files found at {model_path}")
+
+    # Make sure that there arent multiples of the files found
+    if len(found_files) == len(set(found_files)):
+        raise InvalidModel(
+            f"Found multiple model config files for {model_id_path.strip('models--')}"
+            f"at {model_path}"
+        )
+
+    # Check that found_files contains at least one of the required files
+    found_required_file = next(
+        (file for file in found_files if file.name in LOCAL_MODELS_REQUIRED_FILES), None
+    )
+    if found_required_file is None:
+        raise InvalidModel(
+            f"At least one of the files {LOCAL_MODELS_REQUIRED_FILES} must be present "
+            f"for {model_id_path.strip('models--')} at {model_path}"
+        )
+    model_path = found_required_file.parent
+
+    # As a precaution we also check that all of the files are in the same directory
+    # if not we create a new dir with symlinks to all of the files from all snapshots
+    # this is especially useful for vllm where we can only specify one folder and e.g.,
+    # the safetensors version of the weights was added in an unmerged PR
+    if not all(
+        [found_file.parent == found_files[0].parent for found_file in found_files]
+    ):
+        new_model_path = model_path.parent / "model_files"
+        new_model_path.mkdir(exist_ok=True)
+        for found_file in found_files:
+            Path(new_model_path / found_file.name).symlink_to(found_file)
+        model_path = new_model_path
+
+    return str(model_path)
 
 
 def clear_memory() -> None:
@@ -70,6 +108,9 @@ def enforce_reproducibility(seed: int = 4242) -> np.random.Generator:
     Args:
         seed:
             Seed for the random number generator.
+
+    Returns:
+        A numpy random generator
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -82,104 +123,6 @@ def enforce_reproducibility(seed: int = 4242) -> np.random.Generator:
     torch.backends.cudnn.deterministic = True
     torch.use_deterministic_algorithms(True, warn_only=True)
     return rng
-
-
-def block_terminal_output() -> None:
-    """Blocks libraries from writing output to the terminal.
-
-    This filters warnings from some libraries, sets the logging level to ERROR for some
-    libraries, disabled tokeniser progress bars when using Hugging Face tokenisers, and
-    disables most of the logging from the `transformers` library.
-    """
-    # Ignore miscellaneous warnings
-    warnings.filterwarnings("ignore", category=UserWarning)
-    warnings.filterwarnings("ignore", category=FutureWarning)
-    warnings.filterwarnings(
-        "ignore",
-        module="torch.nn.parallel*",
-        message="Was asked to gather along dimension 0, but all input tensors were "
-        "scalars; will instead unsqueeze and return a vector.",
-    )
-    warnings.filterwarnings("ignore", module="seqeval*")
-
-    # Up the logging level, to disable outputs
-    logging.getLogger("filelock").setLevel(logging.CRITICAL)
-    logging.getLogger("absl").setLevel(logging.CRITICAL)
-    logging.getLogger("datasets").setLevel(logging.CRITICAL)
-    logging.getLogger("openai").setLevel(logging.CRITICAL)
-    logging.getLogger("torch.distributed.distributed_c10d").setLevel(logging.CRITICAL)
-    logging.getLogger("torch.nn.parallel.distributed").setLevel(logging.CRITICAL)
-    logging.getLogger("vllm").setLevel(logging.CRITICAL)
-    logging.getLogger("vllm.engine.llm_engine").setLevel(logging.CRITICAL)
-    logging.getLogger("vllm.transformers_utils.tokenizer").setLevel(logging.CRITICAL)
-    logging.getLogger("vllm.core.scheduler").setLevel(logging.CRITICAL)
-    logging.getLogger("vllm.model_executor.weight_utils").setLevel(logging.CRITICAL)
-    logging.getLogger("vllm.platforms").setLevel(logging.CRITICAL)
-    logging.getLogger("httpx").setLevel(logging.CRITICAL)
-    logging.getLogger("ray._private.worker").setLevel(logging.CRITICAL)
-    logging.getLogger("ray._private.services").setLevel(logging.CRITICAL)
-    logging.getLogger("matplotlib.font_manager").setLevel(logging.CRITICAL)
-    logging.getLogger("accelerate").setLevel(logging.CRITICAL)
-    logging.getLogger("LiteLLM").setLevel(logging.CRITICAL)
-    logging.getLogger("LiteLLM Router").setLevel(logging.CRITICAL)
-    logging.getLogger("LiteLLM Proxy").setLevel(logging.CRITICAL)
-    logging.getLogger("huggingface_hub").setLevel(logging.CRITICAL)
-
-    # This suppresses vLLM logging
-    os.environ["LOG_LEVEL"] = "CRITICAL"
-    os.environ["VLLM_CONFIGURE_LOGGING"] = "0"
-
-    if importlib.util.find_spec("ray") is not None:
-        ray._private.worker._worker_logs_enabled = False
-
-    # Disable the tokeniser progress bars
-    disable_progress_bar()
-
-    # Disable most of the `transformers` logging
-    tf_logging._default_log_level = logging.CRITICAL
-    tf_logging.set_verbosity(logging.CRITICAL)
-    logging.getLogger("transformers.trainer").setLevel(logging.CRITICAL)
-
-    # Disable logging from `litellm`
-    litellm.suppress_debug_info = True
-
-
-def get_class_by_name(class_name: str | list[str], module_name: str) -> t.Type | None:
-    """Get a class by its name.
-
-    Args:
-        class_name:
-            The name of the class, written in kebab-case. The corresponding class name
-            must be the same, but written in PascalCase, and lying in a module with the
-            same name, but written in snake_case. If a list of strings is passed, the
-            first class that is found is returned.
-        module_name:
-            The name of the module where the class is located.
-
-    Returns:
-        The class. If the class is not found, None is returned.
-    """
-    if isinstance(class_name, str):
-        class_name = [class_name]
-
-    error_messages = list()
-    for name in class_name:
-        try:
-            module = importlib.import_module(name=module_name)
-            class_: t.Type = getattr(module, name)
-            return class_
-        except (ModuleNotFoundError, AttributeError) as e:
-            error_messages.append(str(e))
-
-    if error_messages:
-        errors = "\n- " + "\n- ".join(error_messages)
-        logger.debug(
-            f"Could not find the class with the name(s) {', '.join(class_name)}. The "
-            f"following error messages were raised: {errors}"
-        )
-
-    # If the class could not be found, return None
-    return None
 
 
 def get_min_cuda_compute_capability() -> float | None:
@@ -197,40 +140,27 @@ def get_min_cuda_compute_capability() -> float | None:
     return float(f"{major}.{minor}")
 
 
+@cache_arguments(disable_condition=lambda: hasattr(sys, "_called_from_test"))
 def internet_connection_available() -> bool:
-    """Checks if internet connection is available by pinging google.com.
+    """Checks if internet connection is available.
 
     Returns:
         Whether or not internet connection is available.
     """
+    internet_available: bool = False
+
     try:
-        requests.get("https://www.google.com")
-        return True
-    except RequestException:
-        return False
+        s = socket.create_connection(("1.1.1.1", 80))
+        s.close()
+        internet_available = True
+    except OSError:
+        pass
+    except Exception as e:
+        pytest_socket_errors = ["SocketConnectBlockedError", "SocketBlockedError"]
+        if type(e).__name__ not in pytest_socket_errors:
+            raise e
 
-
-class HiddenPrints:
-    """Context manager which removes all terminal output."""
-
-    def __enter__(self) -> None:
-        """Enter the context manager."""
-        self._original_stdout = sys.stdout
-        self._original_stderr = sys.stderr
-        sys.stdout = open(os.devnull, "w")
-        sys.stderr = open(os.devnull, "w")
-
-    def __exit__(
-        self,
-        exc_type: t.Type[BaseException],
-        exc_val: BaseException,
-        exc_tb: "TracebackType",
-    ) -> None:
-        """Exit the context manager."""
-        sys.stdout.close()
-        sys.stderr.close()
-        sys.stdout = self._original_stdout
-        sys.stderr = self._original_stderr
+    return internet_available
 
 
 def raise_if_model_output_contains_nan_values(model_output: "Predictions") -> None:
@@ -241,7 +171,8 @@ def raise_if_model_output_contains_nan_values(model_output: "Predictions") -> No
             The model output to check.
 
     Raises:
-        If the model output contains NaN values.
+        NaNValueInModelOutput:
+            If the model output contains NaN values.
     """
     if isinstance(model_output, np.ndarray):
         if model_output.dtype == np.float32 and np.isnan(model_output).any():
@@ -255,121 +186,50 @@ def raise_if_model_output_contains_nan_values(model_output: "Predictions") -> No
                 raise NaNValueInModelOutput()
 
 
-def scramble(text: str) -> str:
-    """Scramble a string in a bijective manner.
+@cache_arguments()
+def get_hf_token(api_key: str | None) -> str | bool:
+    """Get the Hugging Face token.
 
     Args:
-        text:
-            The string to scramble.
+        api_key:
+            The API key to use as the Hugging Face token. If None, we will try to
+            extract it in other ways.
 
     Returns:
-        The scrambled string.
+        The Hugging Face token, or True if no token is set but the user is logged in, or
+        False if no token is set and the user is not logged in.
     """
-    rng = np.random.default_rng(seed=4242)
-    permutation = rng.permutation(x=len(text))
-    scrambled = "".join(text[i] for i in permutation)
-    return scrambled
-
-
-def unscramble(scrambled_text: str) -> str:
-    """Unscramble a string in a bijective manner.
-
-    Args:
-        scrambled_text:
-            The scrambled string to unscramble.
-
-    Returns:
-        The unscrambled string.
-    """
-    rng = np.random.default_rng(seed=4242)
-    permutation = rng.permutation(x=len(scrambled_text))
-    inverse_permutation = np.argsort(permutation)
-    unscrambled = "".join(scrambled_text[i] for i in inverse_permutation)
-    return unscrambled
-
-
-@cache
-def log_once(message: str, level: int = logging.INFO) -> None:
-    """Log a message once.
-
-    This is ensured by caching the input/output pairs of this function, using the
-    `functools.cache` decorator.
-
-    Args:
-        message:
-            The message to log.
-        level:
-            The logging level. Defaults to logging.INFO.
-    """
-    match level:
-        case logging.DEBUG:
-            logger.debug(message)
-        case logging.INFO:
-            logger.info(message)
-        case logging.WARNING:
-            logger.warning(message)
-        case logging.ERROR:
-            logger.error(message)
-        case logging.CRITICAL:
-            logger.critical(message)
-        case _:
-            raise ValueError(f"Invalid logging level: {level}")
-
-
-def get_package_version(package_name: str) -> str | None:
-    """Get the version of a package.
-
-    Args:
-        package_name:
-            The name of the package.
-
-    Returns:
-        The version of the package, or None if the package is not installed.
-    """
+    if api_key is not None:
+        log_once(
+            "Using the Hugging Face API key passed to the function.",
+            level=logging.DEBUG,
+        )
+        return api_key
+    elif (token := os.getenv("HF_TOKEN")) is not None:
+        log_once(
+            "Using the Hugging Face API key from the environment variable `HF_TOKEN`.",
+            level=logging.DEBUG,
+        )
+        return token
     try:
-        return importlib.metadata.version(package_name)
-    except importlib.metadata.PackageNotFoundError:
-        return None
-
-
-T = t.TypeVar("T", bound=object)
-
-
-def safe_run(coroutine: t.Coroutine[t.Any, t.Any, T]) -> T:
-    """Run a coroutine, ensuring that the event loop is always closed when we're done.
-
-    Args:
-        coroutine:
-            The coroutine to run.
-
-    Returns:
-        The result of the coroutine.
-    """
-    loop = asyncio.new_event_loop()
-    try:
-        asyncio.set_event_loop(loop)
-        return loop.run_until_complete(coroutine)
-    finally:
-        loop.close()
-        asyncio.set_event_loop(None)
-
-
-async def add_semaphore_and_catch_exception(
-    coroutine: t.Coroutine[t.Any, t.Any, T], semaphore: asyncio.Semaphore
-) -> T | Exception:
-    """Run a coroutine with a semaphore.
-
-    Args:
-        coroutine:
-            The coroutine to run.
-        semaphore:
-            The semaphore to use.
-
-    Returns:
-        The result of the coroutine.
-    """
-    async with semaphore:
-        try:
-            return await coroutine
-        except Exception as exc:
-            return exc
+        hf_hub.whoami()
+        log_once(
+            "No Hugging Face API key was set, but the user is logged in to Hugging "
+            "Face, so using the local token.",
+            level=logging.DEBUG,
+        )
+        return True
+    except LocalTokenNotFoundError:
+        log_once(
+            "No Hugging Face API key was set and the user is not logged in to Hugging "
+            "Face, so no token will be used.",
+            level=logging.DEBUG,
+        )
+        return False
+    except RequestException:
+        log_once(
+            "No Hugging Face API key was set and the connection to Hugging Face "
+            "failed, so no token will be used.",
+            level=logging.DEBUG,
+        )
+        return False

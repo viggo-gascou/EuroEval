@@ -11,10 +11,10 @@
 """Create the Spanish MLSum-es-mini summarisation dataset."""
 
 import pandas as pd
-from constants import MAX_NUM_CHARS_IN_ARTICLE, MIN_NUM_CHARS_IN_ARTICLE
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
-from requests import HTTPError
+
+from .constants import MAX_NUM_CHARS_IN_ARTICLE, MIN_NUM_CHARS_IN_ARTICLE
 
 
 def main() -> None:
@@ -59,24 +59,22 @@ def main() -> None:
     test_df = test_df.reset_index(drop=True)
     train_df = train_df.reset_index(drop=True)
 
+    assert isinstance(train_df, pd.DataFrame)
+    assert isinstance(val_df, pd.DataFrame)
+    assert isinstance(test_df, pd.DataFrame)
+
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
-    # Create dataset ID
-    mini_dataset_id = "ScandEval/mlsum-es-mini"
-
-    # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api: HfApi = HfApi()
-        api.delete_repo(mini_dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
-
     # Push the dataset to the Hugging Face Hub
+    mini_dataset_id = "EuroEval/mlsum-es-mini"
+    HfApi().delete_repo(mini_dataset_id, repo_type="dataset", missing_ok=True)
     dataset.push_to_hub(mini_dataset_id, private=True)
 
 

@@ -1,14 +1,15 @@
 """Utility functions related to the token-classification task group."""
 
+import collections.abc as c
 import logging
-import re
 import typing as t
 from copy import deepcopy
 
-import demjson3
 import numpy as np
 
 from ..exceptions import InvalidBenchmark
+from ..logging_utils import log
+from ..string_utils import extract_json_dict_from_string
 from ..utils import raise_if_model_output_contains_nan_values
 
 if t.TYPE_CHECKING:
@@ -17,17 +18,15 @@ if t.TYPE_CHECKING:
     from transformers.tokenization_utils_base import BatchEncoding
     from transformers.trainer_utils import EvalPrediction
 
-    from ..data_models import DatasetConfig, GenerativeModelOutput
+    from ..data_models import BenchmarkConfig, DatasetConfig, GenerativeModelOutput
     from ..types import Labels, Predictions
-
-
-logger = logging.getLogger("euroeval")
 
 
 def compute_metrics(
     model_outputs_and_labels: "tuple[Predictions, Labels] | EvalPrediction",
     has_misc_tags: bool,
     dataset_config: "DatasetConfig",
+    benchmark_config: "BenchmarkConfig",
     dataset: "Dataset",
 ) -> dict[str, float]:
     """Compute the metrics needed for evaluation.
@@ -40,6 +39,8 @@ def compute_metrics(
             Whether the dataset has MISC tags.
         dataset_config:
             The configuration of the dataset.
+        benchmark_config:
+            The configuration of the benchmark.
         dataset:
             The dataset used for evaluation. This is only used in case any additional
             metadata is used to compute the metrics.
@@ -47,6 +48,11 @@ def compute_metrics(
     Returns:
         A dictionary with the names of the metrics as keys and the metric values as
         values.
+
+    Raises:
+        InvalidBenchmark:
+            If the tokeniser is not of a "fast" variant and the word IDs cannot be
+            extracted.
     """
     model_outputs, labels = model_outputs_and_labels
 
@@ -56,8 +62,8 @@ def compute_metrics(
         model_outputs = model_outputs[0]
 
     predictions: list[list[str]]
-    if not isinstance(model_outputs[0][0], str):
-        raw_predictions: list[list[int]] = np.argmax(model_outputs, axis=-1).tolist()
+    if not isinstance(model_outputs[0][0], str):  # type: ignore[bad-index]
+        raw_predictions: list[list[int]] = np.argmax(model_outputs, axis=-1).tolist()  # type: ignore[no-matching-overload]
 
         # Remove ignored index (special tokens)
         predictions = [
@@ -142,7 +148,11 @@ def compute_metrics(
             if metric.name == "micro_f1"
         )
         micro_f1_score = metric(
-            predictions=predictions, references=list(labels), dataset=dataset
+            predictions=predictions,
+            references=list(labels),
+            dataset=dataset,
+            dataset_config=dataset_config,
+            benchmark_config=benchmark_config,
         )
 
     # Compute the metrics without MISC tags
@@ -165,7 +175,11 @@ def compute_metrics(
             if metric.name == "micro_f1_no_misc"
         )
         micro_f1_no_misc_score = metric(
-            predictions=predictions_no_misc, references=labels_no_misc, dataset=dataset
+            predictions=predictions_no_misc,
+            references=labels_no_misc,
+            dataset=dataset,
+            dataset_config=dataset_config,
+            benchmark_config=benchmark_config,
         )
 
     # Raise error if the metrics are invalid
@@ -179,7 +193,7 @@ def extract_labels_from_generation(
     input_batch: dict[str, list],
     model_output: "GenerativeModelOutput",
     dataset_config: "DatasetConfig",
-) -> list[t.Any]:
+) -> c.Sequence[t.Any]:
     """Extract the predicted labels from the generated output.
 
     Args:
@@ -194,55 +208,31 @@ def extract_labels_from_generation(
     Returns:
         The predicted labels.
     """
-    raw_predictions = model_output.sequences
-
-    # Attempt to extract the JSON dictionary from the predictions
-    json_regex = r"\{[^{}]+?\}"
-    json_matches = [
-        re.search(pattern=json_regex, string=raw_prediction, flags=re.DOTALL)
-        or raw_prediction
-        for raw_prediction in raw_predictions
-    ]
-    raw_predictions = [
-        json_match.group() if isinstance(json_match, re.Match) else json_match
-        for json_match in json_matches
-    ]
-
     tokens = input_batch["tokens"]
     predicted_labels: list[list[str]] = [["o"] * len(token_ids) for token_ids in tokens]
-    for idx, raw_prediction in enumerate(raw_predictions):
-        try:
-            json_output = demjson3.decode(txt=raw_prediction)
-            if not isinstance(json_output, dict):
-                logger.debug(
-                    "The model output is not a JSON dictionary, so cannot parse "
-                    f"it. Skipping. Here is the output: {raw_prediction}"
-                )
-                continue
-            elif not all(isinstance(key, str) for key in json_output.keys()):
-                logger.debug(
-                    "The model output is not a JSON dictionary with string keys, "
-                    "so cannot parse it. Skipping. Here is the output: "
-                    f"{raw_prediction}"
-                )
-                continue
-            elif not all(isinstance(value, list) for value in json_output.values()):
-                logger.debug(
-                    "The model output is not a JSON dictionary with list values, "
-                    "so cannot parse it. Skipping. Here is the output: "
-                    f"{raw_prediction}"
-                )
-                continue
-            prediction_dict: dict[str, list[str]] = json_output
-        except demjson3.JSONDecodeError:
-            logger.debug(
-                "The model output is not valid JSON, so cannot parse it. Skipping. "
-                f"Here is the output: {raw_prediction!r}"
-            )
+    for idx, raw_prediction in enumerate(model_output.sequences):
+        prediction_dict = extract_json_dict_from_string(s=raw_prediction)
+        if prediction_dict is None:
             continue
 
         prompt_label_mapping = dataset_config.prompt_label_mapping
         for prompt_tag_name, named_entities in prediction_dict.items():
+            if not isinstance(named_entities, list):
+                log(
+                    "The model produced an invalid format for the named entities. "
+                    f"Expected a list but got {type(named_entities)}. Skipping.",
+                    level=logging.DEBUG,
+                )
+                continue
+            try:
+                named_entities = [str(ne) for ne in named_entities]
+            except Exception:
+                log(
+                    "The model produced an invalid format for the named entities. "
+                    f"Expected a list of strings but got {named_entities}. Skipping.",
+                    level=logging.DEBUG,
+                )
+                continue
             try:
                 tag_name = [
                     tag[2:]
@@ -250,9 +240,10 @@ def extract_labels_from_generation(
                     if prompt_tag == prompt_tag_name
                 ][0]
             except IndexError:
-                logger.debug(
+                log(
                     "The model produced an invalid prompt tag name, "
-                    f"{prompt_tag_name}. Skipping."
+                    f"{prompt_tag_name}. Skipping.",
+                    level=logging.DEBUG,
                 )
                 continue
 
@@ -272,39 +263,44 @@ def extract_labels_from_generation(
 
 
 def tokenize_and_align_labels(
-    examples: dict, tokenizer: "PreTrainedTokenizer", label2id: dict[str, int]
+    examples: dict, tokeniser: "PreTrainedTokenizer", label2id: dict[str, int]
 ) -> "BatchEncoding":
     """Tokenise all texts and align the labels with them.
 
     Args:
         examples:
             The examples to be tokenised.
-        tokenizer:
-            A pretrained tokenizer.
+        tokeniser:
+            A pretrained tokeniser.
         label2id:
             A dictionary that converts NER tags to IDs.
 
     Returns:
         A dictionary containing the tokenized data as well as labels.
+
+    Raises:
+        InvalidBenchmark:
+            If the tokeniser is not of a "fast" variant and the word IDs cannot be
+            extracted.
     """
-    # Tokenize the texts. We use the `is_split_into_words` argument here because
+    # Tokenise the texts. We use the `is_split_into_words` argument here because
     # the texts in our dataset are lists of words (with a label for each word)
-    tokenized_inputs = tokenizer(
+    tokenized_inputs = tokeniser(
         examples["tokens"], is_split_into_words=True, truncation=True, padding=True
     )
 
     # Extract a mapping between all the tokens and their corresponding word. If the
-    # tokenizer is of a "fast" variant then this can be accessed through the
+    # tokeniser is of a "fast" variant then this can be accessed through the
     # `word_ids` method. Otherwise, we have to extract it manually.
     all_labels: list[list[int]] = list()
     labels: list[str]
     word_ids: list[int | None]
     for i, labels in enumerate(examples["labels"]):
-        # Try to get the word IDs from the tokenizer
+        # Try to get the word IDs from the tokeniser
         try:
             word_ids = tokenized_inputs.word_ids(batch_index=i)
 
-        # If the tokenizer is not of a "fast" variant, we have to extract the word
+        # If the tokeniser is not of a "fast" variant, we have to extract the word
         # IDs manually
         except ValueError:
             # Get the list of words in the document
@@ -314,7 +310,7 @@ def tokenize_and_align_labels(
             tok_ids: list[int] = tokenized_inputs.input_ids[i]
 
             # Decode the token IDs
-            tokens = tokenizer.convert_ids_to_tokens(tok_ids)
+            tokens = tokeniser.convert_ids_to_tokens(tok_ids)
             assert isinstance(tokens, list)
 
             # Remove prefixes from the tokens
@@ -326,14 +322,14 @@ def tokenize_and_align_labels(
                             tokens[tok_idx] = tok[len(prefix) :]
 
             # Replace UNK tokens with the correct word
-            tokens = handle_unk_tokens(tokenizer=tokenizer, tokens=tokens, words=words)
+            tokens = handle_unk_tokens(tokeniser=tokeniser, tokens=tokens, words=words)
 
-            # Get list of special tokens. Some tokenizers do not record these
+            # Get list of special tokens. Some tokenisers do not record these
             # properly, which is why we convert the values to their indices and
             # then back to strings
             sp_toks = [
-                tokenizer.convert_ids_to_tokens(tokenizer.convert_tokens_to_ids(sp_tok))
-                for sp_tok in tokenizer.special_tokens_map.values()
+                tokeniser.convert_ids_to_tokens(tokeniser.convert_tokens_to_ids(sp_tok))
+                for sp_tok in tokeniser.special_tokens_map.values()
             ]
 
             # Replace special tokens with `None`
@@ -357,7 +353,7 @@ def tokenize_and_align_labels(
             if len(word_idxs) != len(token_idxs):
                 raise InvalidBenchmark(
                     "The tokens could not be aligned with the words during manual "
-                    "word-token alignment. It seems that the tokenizer is neither "
+                    "word-token alignment. It seems that the tokeniser is neither "
                     "of the fast variant nor of a SentencePiece/WordPiece variant."
                 )
 
@@ -387,9 +383,9 @@ def tokenize_and_align_labels(
                 label = labels[word_id]
                 try:
                     label_id = label2id[label.lower()]
-                except KeyError:
+                except KeyError as e:
                     msg = f"The label {label} was not found in the model's config."
-                    raise InvalidBenchmark(msg)
+                    raise InvalidBenchmark(msg) from e
                 label_ids.append(label_id)
 
             # For the other tokens in a word, we set the label to -100
@@ -404,13 +400,13 @@ def tokenize_and_align_labels(
 
 
 def handle_unk_tokens(
-    tokenizer: "PreTrainedTokenizer", tokens: list[str], words: list[str]
-) -> list[str]:
+    tokeniser: "PreTrainedTokenizer", tokens: list[str], words: c.Sequence[str]
+) -> c.Sequence[str]:
     """Replace unknown tokens in the tokens with the corresponding word.
 
     Args:
-        tokenizer:
-            The tokenizer used to tokenize the words.
+        tokeniser:
+            The tokeniser used to tokenise the words.
         tokens:
             The list of tokens.
         words:
@@ -420,15 +416,15 @@ def handle_unk_tokens(
         The list of tokens with unknown tokens replaced by the corresponding word.
     """
     # Locate the token indices of the unknown tokens
-    token_unk_idxs = [i for i, tok in enumerate(tokens) if tok == tokenizer.unk_token]
+    token_unk_idxs = [i for i, tok in enumerate(tokens) if tok == tokeniser.unk_token]
 
     # Locate the word indices of the words which contain an unknown token
     word_unk_idxs = [
         i
         for i, word in enumerate(words)
-        if tokenizer.unk_token
-        in tokenizer.convert_ids_to_tokens(
-            tokenizer.encode(word, add_special_tokens=False)
+        if tokeniser.unk_token
+        in tokeniser.convert_ids_to_tokens(
+            tokeniser.encode(word, add_special_tokens=False)
         )
     ]
 
@@ -437,9 +433,9 @@ def handle_unk_tokens(
         # Fetch the word
         word = words[word_idx]
 
-        # Tokenize the word, which is now a list containing at least one UNK token
-        tokens_with_unk = tokenizer.convert_ids_to_tokens(
-            tokenizer.encode(word, add_special_tokens=False)
+        # Tokenise the word, which is now a list containing at least one UNK token
+        tokens_with_unk = tokeniser.convert_ids_to_tokens(
+            tokeniser.encode(word, add_special_tokens=False)
         )
 
         # Iterate over the tokens in the word
@@ -448,10 +444,10 @@ def handle_unk_tokens(
             # of the content of this token from the word. The result of the `word`
             # variable will be the content of the UNK token.
             # NOTE: This is a bit hacky and not bulletproof. For instance, if the
-            # word is "1925-1950" and the tokenizer splits it into ["[UNK]", "-",
+            # word is "1925-1950" and the tokeniser splits it into ["[UNK]", "-",
             # "19", "50"], then the result will be 2519 instead of 1925. This
             # happens almost never, however, so we can live with it.
-            if possible_unk_token != tokenizer.unk_token:
+            if possible_unk_token != tokeniser.unk_token:
                 word = word.replace(possible_unk_token, "", 1)
 
         # Replace the token with the word

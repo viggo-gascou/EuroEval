@@ -13,7 +13,6 @@
 import pandas as pd
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
-from requests import HTTPError
 
 RANDOM_STATE = 4242
 TRAIN_SIZE, VAL_SIZE, TEST_SIZE = 1024, 256, 2048
@@ -22,13 +21,19 @@ FINAL_REPO_ID = "EuroEval/boolq-pt"
 
 
 def main() -> None:
-    """Create the dataset and upload to HF Hub."""
+    """Create the dataset and upload to HF Hub.
+
+    Raises:
+        ValueError: If there are not enough unique samples.
+    """
     ds_raw = load_dataset(ORIGINAL_REPO_ID, name="boolq_pt-PT")
+    assert isinstance(ds_raw, DatasetDict)
 
     # Combine all splits to avoid duplicates across splits
     all_data = []
     for split in ["train", "test", "validation"]:
         df = ds_raw[split].to_pandas()
+        assert isinstance(df, pd.DataFrame)
         all_data.append(df)
 
     combined_df = pd.concat(all_data, ignore_index=True)
@@ -52,9 +57,11 @@ def main() -> None:
         )
 
     # Split the data
-    train_df = combined_df[:TRAIN_SIZE]
-    val_df = combined_df[TRAIN_SIZE : TRAIN_SIZE + VAL_SIZE]
-    test_df = combined_df[TRAIN_SIZE + VAL_SIZE : TRAIN_SIZE + VAL_SIZE + TEST_SIZE]
+    train_df = combined_df.iloc[:TRAIN_SIZE]
+    val_df = combined_df.iloc[TRAIN_SIZE : TRAIN_SIZE + VAL_SIZE]
+    test_df = combined_df.iloc[
+        TRAIN_SIZE + VAL_SIZE : TRAIN_SIZE + VAL_SIZE + TEST_SIZE
+    ]
 
     # Transform datasets
     train_df = transform_dataset(train_df)
@@ -62,19 +69,18 @@ def main() -> None:
     val_df = transform_dataset(val_df)
 
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
     assert not set(dataset["train"]["text"]) & set(dataset["val"]["text"])
     assert not set(dataset["train"]["text"]) & set(dataset["test"]["text"])
     assert not set(dataset["val"]["text"]) & set(dataset["test"]["text"])
 
-    try:
-        HfApi().delete_repo(FINAL_REPO_ID, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(FINAL_REPO_ID, repo_type="dataset", missing_ok=True)
 
     dataset.push_to_hub(FINAL_REPO_ID, private=True)
 

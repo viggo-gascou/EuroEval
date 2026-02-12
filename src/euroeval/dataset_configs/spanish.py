@@ -1,109 +1,133 @@
 """All Spanish dataset configurations used in EuroEval."""
 
 from ..data_models import DatasetConfig
-from ..languages import ES
-from ..tasks import COMMON_SENSE, KNOW, LA, MCRC, NER, RC, SENT, SUMM
+from ..languages import SPANISH
+from ..tasks import COMMON_SENSE, EUROPEAN_VALUES, KNOW, LA, MCRC, NER, RC, SENT, SUMM
 
-### Official datasets ###
+# Official datasets ###
 
 SENTIMENT_HEADLINES_CONFIG = DatasetConfig(
     name="sentiment-headlines-es",
-    pretty_name="the truncated version of the Spanish sentiment classification dataset "
-    "SentimentHeadlines",
-    huggingface_id="EuroEval/sentiment-headlines-es",
+    pretty_name="Sentiment Headlines ES",
+    source="EuroEval/sentiment-headlines-es",
     task=SENT,
-    languages=[ES],
+    languages=[SPANISH],
 )
 
 SCALA_ES_CONFIG = DatasetConfig(
     name="scala-es",
-    pretty_name="the Spanish part of the linguistic acceptability dataset ScaLA",
-    huggingface_id="EuroEval/scala-es",
+    pretty_name="ScaLA-es",
+    source="EuroEval/scala-es",
     task=LA,
-    languages=[ES],
+    languages=[SPANISH],
 )
 
 CONLL_ES_CONFIG = DatasetConfig(
     name="conll-es",
-    pretty_name="the Spanish part of the truncated version of the named entity "
-    "recognition dataset CoNLL 2002",
-    huggingface_id="EuroEval/conll-es-mini",
+    pretty_name="CoNLL-es",
+    source="EuroEval/conll-es-mini",
     task=NER,
-    languages=[ES],
+    languages=[SPANISH],
 )
 
 MLQA_ES_CONFIG = DatasetConfig(
     name="mlqa-es",
-    pretty_name="the Spanish version of the reading comprehension dataset MLQA",
-    huggingface_id="EuroEval/mlqa-es",
+    pretty_name="MLQA-es",
+    source="EuroEval/mlqa-es",
     task=RC,
-    languages=[ES],
+    languages=[SPANISH],
 )
 
 MLSUM_ES_CONFIG = DatasetConfig(
     name="mlsum-es",
-    pretty_name="the truncated version of the Spanish summarisation dataset MLSum-es",
-    huggingface_id="EuroEval/mlsum-es-mini",
+    pretty_name="MLSUM-es",
+    source="EuroEval/mlsum-es-mini",
     task=SUMM,
-    languages=[ES],
+    languages=[SPANISH],
 )
 
 MMLU_ES_CONFIG = DatasetConfig(
     name="mmlu-es",
-    pretty_name="the truncated version of the Spanish knowledge dataset MMLU-es, "
-    "translated from the English MMLU dataset",
-    huggingface_id="EuroEval/mmlu-es-mini",
+    pretty_name="MMLU-es",
+    source="EuroEval/mmlu-es-mini",
     task=KNOW,
-    languages=[ES],
+    languages=[SPANISH],
 )
 
 HELLASWAG_ES_CONFIG = DatasetConfig(
     name="hellaswag-es",
-    pretty_name="the truncated version of the Spanish common-sense reasoning dataset "
-    "HellaSwag-es, translated from the English HellaSwag dataset",
-    huggingface_id="EuroEval/hellaswag-es-mini",
+    pretty_name="HellaSwag-es",
+    source="EuroEval/hellaswag-es-mini",
     task=COMMON_SENSE,
-    languages=[ES],
+    languages=[SPANISH],
+)
+
+VALEU_ES_CONFIG = DatasetConfig(
+    name="valeu-es",
+    pretty_name="VaLEU-es",
+    source="EuroEval/european-values-es",
+    task=EUROPEAN_VALUES,
+    languages=[SPANISH],
+    train_split=None,
+    val_split=None,
+    bootstrap_samples=False,
+    instruction_prompt="{text}",
 )
 
 
-### Unofficial datasets ###
+# Unofficial datasets ###
 
 XQUAD_ES_CONFIG = DatasetConfig(
     name="xquad-es",
-    pretty_name="the Spanish version of the reading comprehension dataset XQuAD",
-    huggingface_id="EuroEval/xquad-es",
+    pretty_name="XQuAD-es",
+    source="EuroEval/xquad-es",
     task=RC,
-    languages=[ES],
+    languages=[SPANISH],
     unofficial=True,
 )
 
 BELEBELE_ES_CONFIG = DatasetConfig(
     name="belebele-es",
-    pretty_name="the Spanish multiple choice reading comprehension dataset "
-    "BeleBele-es, translated from the English BeleBele dataset",
-    huggingface_id="EuroEval/belebele-es-mini",
+    pretty_name="Belebele-es",
+    source="EuroEval/belebele-es-mini",
     task=MCRC,
-    languages=[ES],
+    languages=[SPANISH],
     unofficial=True,
 )
 
 MULTI_WIKI_QA_ES_CONFIG = DatasetConfig(
     name="multi-wiki-qa-es",
-    pretty_name="the truncated version of the Spanish part of the reading "
-    "comprehension dataset MultiWikiQA",
-    huggingface_id="EuroEval/multi-wiki-qa-es-mini",
+    pretty_name="MultiWikiQA-es",
+    source="EuroEval/multi-wiki-qa-es-mini",
     task=RC,
-    languages=[ES],
+    languages=[SPANISH],
+    unofficial=True,
+)
+
+DACSA_ES_CONFIG = DatasetConfig(
+    name="dacsa-es",
+    pretty_name="DACSA-es",
+    source="EuroEval/dacsa-es-mini",
+    task=SUMM,
+    languages=[SPANISH],
     unofficial=True,
 )
 
 GOLDENSWAG_ES_CONFIG = DatasetConfig(
     name="goldenswag-es",
-    pretty_name="the truncated version of the Spanish common-sense reasoning "
-    "dataset GoldenSwag-es, translated from the English GoldenSwag dataset",
-    huggingface_id="EuroEval/goldenswag-es-mini",
+    pretty_name="GoldenSwag-es",
+    source="EuroEval/goldenswag-es-mini",
     task=COMMON_SENSE,
-    languages=[ES],
+    languages=[SPANISH],
+    unofficial=True,
+)
+
+WINOGRANDE_ES_CONFIG = DatasetConfig(
+    name="winogrande-es",
+    pretty_name="Winogrande-es",
+    source="EuroEval/winogrande-es",
+    task=COMMON_SENSE,
+    languages=[SPANISH],
+    labels=["a", "b"],
     unofficial=True,
 )

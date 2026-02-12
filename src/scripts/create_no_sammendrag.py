@@ -11,10 +11,10 @@
 """Create the NoSammendrag-mini summarisation dataset."""
 
 import pandas as pd
-from constants import MAX_NUM_CHARS_IN_ARTICLE, MIN_NUM_CHARS_IN_ARTICLE
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
-from requests import HTTPError
+
+from .constants import MAX_NUM_CHARS_IN_ARTICLE, MIN_NUM_CHARS_IN_ARTICLE
 
 
 def main() -> None:
@@ -44,6 +44,7 @@ def main() -> None:
     # Create test split
     test_size = 2048
     filtered_df = df[~df.index.isin(val_df.index)]
+    assert isinstance(filtered_df, pd.DataFrame)
     test_df = filtered_df.sample(n=test_size, random_state=4242)
 
     # Create train split
@@ -55,22 +56,24 @@ def main() -> None:
     test_df = test_df.reset_index(drop=True)
     train_df = train_df.reset_index(drop=True)
 
+    assert isinstance(train_df, pd.DataFrame)
+    assert isinstance(val_df, pd.DataFrame)
+    assert isinstance(test_df, pd.DataFrame)
+
     # Collect datasets in a dataset dictionary
     dataset = DatasetDict(
-        train=Dataset.from_pandas(train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(test_df, split=Split.TEST),
+        }
     )
 
     # Create dataset ID
     mini_dataset_id = "EuroEval/no-sammendrag-mini"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api: HfApi = HfApi()
-        api.delete_repo(mini_dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(mini_dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(mini_dataset_id, private=True)

@@ -1,26 +1,20 @@
 """All benchmarks tasks used in EuroEval."""
 
 from . import metrics as m
+from .constants import NUM_GENERATION_TOKENS_FOR_CLASSIFICATION
 from .data_models import Task
-from .enums import TaskGroup
+from .enums import GenerativeType, ModelType, TaskGroup
 from .prompt_templates import (
+    CLASSIFICATION_TEMPLATES,
     LA_TEMPLATES,
     MULTIPLE_CHOICE_TEMPLATES,
     NER_TEMPLATES,
     RC_TEMPLATES,
     SENT_TEMPLATES,
+    SIMPL_TEMPLATES,
     SUMM_TEMPLATES,
+    TOKEN_CLASSIFICATION_TEMPLATES,
 )
-
-
-def get_all_tasks() -> dict[str, Task]:
-    """Get a list of all the dataset tasks.
-
-    Returns:
-        A mapping between names of dataset tasks and their configurations.
-    """
-    return {cfg.name: cfg for cfg in globals().values() if isinstance(cfg, Task)}
-
 
 LA = Task(
     name="linguistic-acceptability",
@@ -28,8 +22,9 @@ LA = Task(
     template_dict=LA_TEMPLATES,
     metrics=[m.mcc_metric, m.macro_f1_metric],
     default_num_few_shot_examples=12,
-    default_max_generated_tokens=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["correct", "incorrect"],
+    uses_logprobs=True,
 )
 
 
@@ -51,6 +46,7 @@ NER = Task(
         "b-misc",
         "i-misc",
     ],
+    uses_structured_output=True,
 )
 
 
@@ -71,10 +67,21 @@ SENT = Task(
     template_dict=SENT_TEMPLATES,
     metrics=[m.mcc_metric, m.macro_f1_metric],
     default_num_few_shot_examples=12,
-    default_max_generated_tokens=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["positive", "neutral", "negative"],
+    uses_logprobs=True,
 )
 
+SIMPL = Task(
+    name="simplification",
+    task_group=TaskGroup.TEXT_TO_TEXT,
+    template_dict=SIMPL_TEMPLATES,
+    metrics=[m.meteor_metric, m.sari_metric],
+    default_num_few_shot_examples=3,
+    default_max_generated_tokens=256,
+    default_labels=[],
+    default_allowed_model_types=[ModelType.GENERATIVE],
+)
 
 SUMM = Task(
     name="summarization",
@@ -84,6 +91,7 @@ SUMM = Task(
     default_num_few_shot_examples=1,
     default_max_generated_tokens=256,
     default_labels=[],
+    default_allowed_model_types=[ModelType.GENERATIVE],
 )
 
 
@@ -93,8 +101,10 @@ KNOW = Task(
     template_dict=MULTIPLE_CHOICE_TEMPLATES,
     metrics=[m.mcc_metric, m.accuracy_metric],
     default_num_few_shot_examples=5,
-    default_max_generated_tokens=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["a", "b", "c", "d"],
+    default_allowed_model_types=[ModelType.GENERATIVE],
+    uses_logprobs=True,
 )
 
 
@@ -104,8 +114,10 @@ MCRC = Task(
     template_dict=MULTIPLE_CHOICE_TEMPLATES,
     metrics=[m.mcc_metric, m.accuracy_metric],
     default_num_few_shot_examples=5,
-    default_max_generated_tokens=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["a", "b", "c", "d"],
+    default_allowed_model_types=[ModelType.GENERATIVE],
+    uses_logprobs=True,
 )
 
 
@@ -115,8 +127,51 @@ COMMON_SENSE = Task(
     template_dict=MULTIPLE_CHOICE_TEMPLATES,
     metrics=[m.mcc_metric, m.accuracy_metric],
     default_num_few_shot_examples=5,
-    default_max_generated_tokens=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
     default_labels=["a", "b", "c", "d"],
+    default_allowed_model_types=[ModelType.GENERATIVE],
+    uses_logprobs=True,
+)
+
+
+EUROPEAN_VALUES = Task(
+    name="european-values",
+    task_group=TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION,
+    template_dict=MULTIPLE_CHOICE_TEMPLATES,
+    metrics=[m.european_values_metric],
+    default_num_few_shot_examples=0,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
+    default_labels=["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"],
+    default_allowed_model_types=[ModelType.GENERATIVE],
+    default_allowed_generative_types=[
+        GenerativeType.INSTRUCTION_TUNED,
+        GenerativeType.REASONING,
+    ],
+    requires_zero_shot=True,
+    uses_logprobs=True,
+    default_allow_invalid_model_outputs=False,
+)
+
+
+MCSTEREO = Task(
+    name="multiple-choice-stereotype-bias",
+    task_group=TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION,
+    template_dict=MULTIPLE_CHOICE_TEMPLATES,
+    metrics=[
+        m.bias_adjusted_accuracy_ambig_metric,
+        m.bias_ambig_metric,
+        m.accuracy_ambig_metric,
+    ],
+    default_num_few_shot_examples=0,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
+    default_labels=["a", "b", "c"],
+    default_allowed_model_types=[ModelType.GENERATIVE],
+    default_allowed_generative_types=[
+        GenerativeType.INSTRUCTION_TUNED,
+        GenerativeType.REASONING,
+    ],
+    requires_zero_shot=True,
+    uses_logprobs=True,
 )
 
 
@@ -128,4 +183,41 @@ SPEED = Task(
     default_num_few_shot_examples=0,
     default_max_generated_tokens=5,
     default_labels=[],
+)
+
+
+# Used for custom datasets
+
+TEXT_CLASSIFICATION = Task(
+    name="classification",
+    task_group=TaskGroup.SEQUENCE_CLASSIFICATION,
+    template_dict=CLASSIFICATION_TEMPLATES,
+    metrics=[m.mcc_metric, m.macro_f1_metric],
+    default_num_few_shot_examples=12,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
+    default_labels=None,
+    uses_logprobs=True,
+)
+
+TOKEN_CLASSIFICATION = Task(
+    name="token-classification",
+    task_group=TaskGroup.TOKEN_CLASSIFICATION,
+    template_dict=TOKEN_CLASSIFICATION_TEMPLATES,
+    metrics=[m.micro_f1_metric],
+    default_num_few_shot_examples=8,
+    default_max_generated_tokens=128,
+    default_labels=None,
+    uses_structured_output=True,
+)
+
+MULTIPLE_CHOICE = Task(
+    name="multiple-choice",
+    task_group=TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION,
+    template_dict=MULTIPLE_CHOICE_TEMPLATES,
+    metrics=[m.mcc_metric, m.accuracy_metric],
+    default_num_few_shot_examples=5,
+    default_max_generated_tokens=NUM_GENERATION_TOKENS_FOR_CLASSIFICATION,
+    default_labels=None,
+    default_allowed_model_types=[ModelType.GENERATIVE],
+    uses_logprobs=True,
 )

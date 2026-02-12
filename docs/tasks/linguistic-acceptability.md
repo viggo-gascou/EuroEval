@@ -9,7 +9,6 @@ corresponds to when a native speaker would say "this sentence sounds weird".
 
 When evaluating generative models, we allow the model to generate 5 tokens on this task.
 
-
 ## 📊 Metrics
 
 The primary metric we use when evaluating the performance of a model on the linguistic
@@ -22,12 +21,11 @@ We also report the macro-average [F1-score](https://en.wikipedia.org/wiki/F1_sco
 being the average of the F1-score for each class, thus again weighing each class
 equally.
 
-
 ## 🛠️ How to run
 
-In the command line interface of the [EuroEval Python package](/python-package.md), you
+In the command line interface of the [EuroEval Python package](/python-package), you
 can benchmark your favorite model on the linguistic acceptability task like so:
 
 ```bash
-$ euroeval --model <model-id> --task linguistic-acceptability
+euroeval --model <model-id> --task linguistic-acceptability
 ```

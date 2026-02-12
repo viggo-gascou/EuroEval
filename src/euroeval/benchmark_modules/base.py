@@ -2,24 +2,23 @@
 
 import collections.abc as c
 import logging
-import sys
+import re
 import typing as t
 from abc import ABC, abstractmethod
 from functools import cached_property, partial
 
-from datasets import DatasetDict
+from datasets import Dataset, DatasetDict
 from torch import nn
-from tqdm.auto import tqdm
 
 from ..enums import TaskGroup
-from ..exceptions import NeedsEnvironmentVariable, NeedsExtraInstalled
+from ..exceptions import InvalidBenchmark, NeedsEnvironmentVariable, NeedsExtraInstalled
+from ..logging_utils import get_pbar, log_once
 from ..task_group_utils import (
     question_answering,
     sequence_classification,
     text_to_text,
     token_classification,
 )
-from ..utils import log_once
 
 if t.TYPE_CHECKING:
     from transformers.tokenization_utils import PreTrainedTokenizer
@@ -34,8 +33,6 @@ if t.TYPE_CHECKING:
     )
     from ..enums import BatchingPreference, GenerativeType
     from ..types import ComputeMetricsFunction, ExtractLabelsFunction
-
-logger = logging.getLogger("euroeval")
 
 
 class BenchmarkModule(ABC):
@@ -55,12 +52,14 @@ class BenchmarkModule(ABC):
     fresh_model: bool
     batching_preference: "BatchingPreference"
     high_priority: bool
+    allowed_params: dict[re.Pattern, c.Sequence[str]] = {re.compile(r".*"): []}
 
     def __init__(
         self,
         model_config: "ModelConfig",
         dataset_config: "DatasetConfig",
         benchmark_config: "BenchmarkConfig",
+        log_metadata: bool = True,
     ) -> None:
         """Initialise the benchmark module.
 
@@ -71,29 +70,25 @@ class BenchmarkModule(ABC):
                 The dataset configuration.
             benchmark_config:
                 The benchmark configuration.
+            log_metadata:
+                Whether to log the metadata of the model.
         """
         self.model_config = model_config
         self.dataset_config = dataset_config
         self.benchmark_config = benchmark_config
+        self.log_metadata = log_metadata
         self.buffer: dict[str, t.Any] = dict()
-        self._log_metadata()
+        if self.log_metadata:
+            self._log_metadata()
 
     def _log_metadata(self) -> None:
         """Log the metadata of the model."""
-        # Set logging level based on verbosity
-        if hasattr(sys, "_called_from_test"):
-            logging_level = logging.CRITICAL
-        elif self.benchmark_config.verbose:
-            logging_level = logging.DEBUG
-        else:
-            logging_level = logging.INFO
-        logger.setLevel(logging_level)
-
-        logging_msg: str = ""
+        model_id = self.model_config.model_id
+        logging_msg: str = "    ↳ "
         if self.num_params < 0:
-            logging_msg += "The model has an unknown number of parameters, "
+            logging_msg += f"The model {model_id} has an unknown number of parameters, "
         else:
-            logging_msg += f"The model has {self.num_params:,} parameters, "
+            logging_msg += f"The model {model_id} has {self.num_params:,} parameters, "
         if self.vocab_size < 0:
             logging_msg += "an unknown vocabulary size, "
         else:
@@ -117,16 +112,16 @@ class BenchmarkModule(ABC):
             f"{self.__class__.__name__}."
         )
 
-    def get_tokenizer(self) -> "PreTrainedTokenizer":
-        """Get the underlying tokenizer.
+    def get_tokeniser(self) -> "PreTrainedTokenizer":
+        """Get the underlying tokeniser.
 
         Returns:
-            The tokenizer.
+            The tokeniser.
         """
-        if hasattr(self, "_tokenizer"):
-            return self._tokenizer
+        if hasattr(self, "_tokeniser"):
+            return self._tokeniser
         raise NotImplementedError(
-            "The `get_tokenizer` method has not been implemented for "
+            "The `get_tokeniser` method has not been implemented for "
             f"{self.__class__.__name__}."
         )
 
@@ -172,7 +167,7 @@ class BenchmarkModule(ABC):
 
     @property
     @abstractmethod
-    def data_collator(self) -> c.Callable[[list[t.Any]], dict[str, t.Any]]:
+    def data_collator(self) -> c.Callable[[list[dict[str, t.Any]]], dict[str, t.Any]]:
         """The data collator used to prepare samples during finetuning.
 
         Returns:
@@ -192,11 +187,13 @@ class BenchmarkModule(ABC):
                 return partial(
                     sequence_classification.compute_metrics,
                     dataset_config=self.dataset_config,
+                    benchmark_config=self.benchmark_config,
                 )
             case TaskGroup.MULTIPLE_CHOICE_CLASSIFICATION:
                 return partial(
                     sequence_classification.compute_metrics,
                     dataset_config=self.dataset_config,
+                    benchmark_config=self.benchmark_config,
                 )
             case TaskGroup.TEXT_TO_TEXT:
                 return partial(
@@ -209,11 +206,13 @@ class BenchmarkModule(ABC):
                     token_classification.compute_metrics,
                     has_misc_tags=self.buffer.get("has_misc_tags", True),
                     dataset_config=self.dataset_config,
+                    benchmark_config=self.benchmark_config,
                 )
             case TaskGroup.QUESTION_ANSWERING:
                 return partial(
                     question_answering.compute_metrics,
                     dataset_config=self.dataset_config,
+                    benchmark_config=self.benchmark_config,
                 )
             case _:
                 raise NotImplementedError(
@@ -242,7 +241,7 @@ class BenchmarkModule(ABC):
 
     def prepare_datasets(
         self, datasets: list[DatasetDict], task: "Task"
-    ) -> list[DatasetDict]:
+    ) -> c.Sequence[DatasetDict]:
         """Prepare the datasets for the model.
 
         This includes things like tokenisation.
@@ -255,30 +254,41 @@ class BenchmarkModule(ABC):
 
         Returns:
             The prepared datasets.
+
+        Raises:
+            InvalidBenchmark:
+                If the dataset does not have a 'train' split for token classification
+                tasks.
         """
         for idx, dataset in enumerate(
-            tqdm(iterable=datasets, desc="Preparing datasets")
+            get_pbar(
+                iterable=datasets,
+                desc="Preparing datasets",
+                disable=not self.benchmark_config.progress_bar,
+            )
         ):
             prepared_dataset = self.prepare_dataset(
                 dataset=dataset, task=task, itr_idx=idx
             )
             if self.dataset_config.task.task_group == TaskGroup.TOKEN_CLASSIFICATION:
+                if "train" not in dataset:
+                    raise InvalidBenchmark(
+                        "The dataset does not have a 'train' split, which is required "
+                        "for token classification tasks."
+                    )
                 labels_in_train: set[str] = {
                     tag for tag_list in dataset["train"]["labels"] for tag in tag_list
                 }
                 self.buffer["has_misc_tags"] = (
                     "B-MISC" in labels_in_train or "I-MISC" in labels_in_train
                 )
-            datasets[idx] = DatasetDict(
-                dict(
-                    train=prepared_dataset["train"],
-                    val=prepared_dataset["val"],
-                    test=prepared_dataset["test"],
-                    original_train=dataset["train"],
-                    original_val=dataset["val"],
-                    original_test=dataset["test"],
-                )
-            )
+
+            datasets_dict: dict[str, Dataset] = dict()
+            for split_name, split in prepared_dataset.items():
+                datasets_dict[str(split_name)] = split
+            for split_name, split in dataset.items():
+                datasets_dict[f"original_{split_name}"] = split
+            datasets[idx] = DatasetDict(datasets_dict)  # type: ignore[no-matching-overload]
         return datasets
 
     @abstractmethod

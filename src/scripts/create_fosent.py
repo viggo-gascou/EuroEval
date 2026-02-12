@@ -15,10 +15,10 @@ import logging
 from typing import Literal
 
 import pandas as pd
-from constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 from datasets import Dataset, DatasetDict, Split, load_dataset
 from huggingface_hub import HfApi
-from requests import HTTPError
+
+from .constants import MAX_NUM_CHARS_IN_DOCUMENT, MIN_NUM_CHARS_IN_DOCUMENT  # noqa
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("create_fosent")
@@ -175,19 +175,17 @@ def main() -> None:
     )
 
     dataset = DatasetDict(
-        train=Dataset.from_pandas(new_train_df, split=Split.TRAIN),
-        val=Dataset.from_pandas(new_val_df, split=Split.VALIDATION),
-        test=Dataset.from_pandas(new_test_df, split=Split.TEST),
+        {
+            "train": Dataset.from_pandas(new_train_df, split=Split.TRAIN),
+            "val": Dataset.from_pandas(new_val_df, split=Split.VALIDATION),
+            "test": Dataset.from_pandas(new_test_df, split=Split.TEST),
+        }
     )
 
     dataset_id = "EuroEval/fosent"
 
     # Remove the dataset from Hugging Face Hub if it already exists
-    try:
-        api = HfApi()
-        api.delete_repo(dataset_id, repo_type="dataset")
-    except HTTPError:
-        pass
+    HfApi().delete_repo(dataset_id, repo_type="dataset", missing_ok=True)
 
     # Push the dataset to the Hugging Face Hub
     dataset.push_to_hub(dataset_id, private=True)

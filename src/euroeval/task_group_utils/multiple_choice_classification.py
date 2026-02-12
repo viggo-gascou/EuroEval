@@ -1,7 +1,6 @@
 """Utility functions related to the multiple-choice classification task group."""
 
 import hashlib
-import logging
 import re
 import typing as t
 from collections import defaultdict
@@ -17,8 +16,6 @@ if t.TYPE_CHECKING:
     from transformers.tokenization_utils_base import BatchEncoding
 
     from ..types import Labels, Predictions
-
-logger = logging.getLogger("euroeval")
 
 
 class MultipleChoiceClassificationTrainer(Trainer):
@@ -44,7 +41,7 @@ class MultipleChoiceClassificationTrainer(Trainer):
         Returns:
             The metrics computed on the evaluation dataset.
         """
-        eval_dataloader = self.get_eval_dataloader(eval_dataset)
+        eval_dataloader = self.get_eval_dataloader(eval_dataset)  # type: ignore[bad-argument-type]
 
         eval_loop = (
             self.prediction_loop
@@ -68,6 +65,9 @@ class MultipleChoiceClassificationTrainer(Trainer):
         assert metrics is not None
 
         if metric_key_prefix == "test":
+            assert eval_dataset is not None, (
+                "eval_dataset must be provided when metric_key_prefix is 'test'."
+            )
             preds_and_labels = postprocess_predictions_and_labels(
                 predictions=predictions, dataset=eval_dataset
             )
@@ -94,28 +94,39 @@ class MultipleChoiceClassificationTrainer(Trainer):
 
 
 def prepare_examples(
-    examples: "BatchEncoding", tokenizer: "PreTrainedTokenizer"
+    examples: "BatchEncoding", tokeniser: "PreTrainedTokenizer"
 ) -> "BatchEncoding":
     """Prepare the features.
 
     Args:
         examples:
             The examples to prepare.
-        tokenizer:
-            The tokenizer to use to prepare the examples.
+        tokeniser:
+            The tokeniser to use to prepare the examples.
 
     Returns:
         The prepared examples.
     """
-    doc: str = examples["text"][0]
+    doc: str = examples["text"][0]  # type: ignore[bad-index]
     sections = doc.split("\n")
 
-    choice_idxs = [
+    candidate_choice_idxs = [
         idx
         for idx, section in enumerate(sections)
-        if re.match(pattern=r"^[a-e]\. ", string=section) is not None
+        if re.match(pattern=r"^[a-z0-9]+\. ", string=section) is not None
     ]
-    choices = [sections[idx] for idx in choice_idxs]
+
+    # Sometimes the question itself starts with a letter or number followed by a dot, We
+    # want to ignore these cases, and focus on the final contingent block of at least
+    # two choices.
+    choice_idxs: list[int] = list()
+    for idx in reversed(candidate_choice_idxs):
+        if len(choice_idxs) < 2 or (
+            len(choice_idxs) >= 2 and idx == choice_idxs[-1] - 1
+        ):
+            choice_idxs.append(idx)
+
+    choices = [sections[idx] for idx in reversed(choice_idxs)]
 
     # Check that the choices are present, and that all of them are at the end
     assert len(choices) > 0, "No choices found in the document."
@@ -127,15 +138,15 @@ def prepare_examples(
     question_idx = min(choice_idxs) - 2  # -2 to remove the 'Choices:' line
     context_and_question = "\n".join(sections[: question_idx + 1]).strip()
 
-    new_examples = tokenizer(
+    new_examples = tokeniser(
         text=[context_and_question] * len(choices),
         text_pair=[choice[3:] for choice in choices],
         padding=True,
         truncation=True,
     )
     new_examples["label"] = [
-        int(choice.startswith(f"{letter}. ") and letter == examples["label"][0])
-        for letter, choice in zip("abcde", choices)
+        int(choice.startswith(f"{letter}. ") and letter == examples["label"][0])  # type: ignore[bad-index]
+        for letter, choice in zip("abcdefghijklmnopqrstuvwxyz", choices)
     ]
     new_examples["id"] = [hashlib.md5(string=doc.encode()).hexdigest()] * len(choices)
     return new_examples
@@ -155,6 +166,10 @@ def postprocess_predictions_and_labels(
 
     Returns:
         The postprocessed predictions and labels.
+
+    Raises:
+        InvalidBenchmark:
+            If the predictions are not a 2D array with shape (num_examples, 2).
     """
     if predictions.ndim != 2 or predictions.shape[1] != 2:
         raise InvalidBenchmark(
@@ -169,7 +184,7 @@ def postprocess_predictions_and_labels(
 
     pred_label_dict = defaultdict(list)
     for pred_arr, example in zip(predictions, dataset):
-        pred_label_dict[example["id"]].append((pred_arr[1], example["label"]))
+        pred_label_dict[example["id"]].append((pred_arr[1], example["label"]))  # type: ignore[bad-index]
 
     # Compute the final predictions and labels
     for id_ in set(dataset["id"]):
