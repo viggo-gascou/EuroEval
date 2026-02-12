@@ -64,7 +64,7 @@ def stratified_split(
             labels_in_train.update(labels)
 
     return DatasetDict(
-        {"val": dataset.select(train_idx), "test": dataset.select(test_idx)}
+        {"train": dataset.select(train_idx), "test": dataset.select(test_idx)}
     )
 
 
@@ -78,22 +78,24 @@ def verify_split(split_ds: DatasetDict, label_key: str) -> bool:
     Returns:
         True if all label types appear in both splits, False otherwise.
     """
-    val_labels: set[str] = set()
+    train_labels: set[str] = set()
     test_labels: set[str] = set()
 
-    for row in split_ds["val"]:
-        val_labels.update(row[label_key])
+    for row in split_ds["train"]:
+        train_labels.update(row[label_key])
     for row in split_ds["test"]:
         test_labels.update(row[label_key])
 
-    missing_in_val = test_labels - val_labels
-    missing_in_test = val_labels - test_labels
+    missing_in_train = test_labels - train_labels
+    missing_in_test = train_labels - test_labels
 
-    if missing_in_val or missing_in_test:
-        print(f"Missing in val: {missing_in_val}, missing in test: {missing_in_test}")
+    if missing_in_train or missing_in_test:
+        print(
+            f"Missing in train: {missing_in_train}, missing in test: {missing_in_test}"
+        )
         return False
 
-    print(f"Val: {len(split_ds['val'])} samples, {len(val_labels)} label types")
+    print(f"Train: {len(split_ds['train'])} samples, {len(train_labels)} label types")
     print(f"Test: {len(split_ds['test'])} samples, {len(test_labels)} label types")
     return True
 

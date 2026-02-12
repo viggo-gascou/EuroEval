@@ -92,14 +92,15 @@ VALEU_ET_CONFIG = DatasetConfig(
 )
 
 # Unofficial datasets ###
+
 IFEVAL_ET_CONFIG = DatasetConfig(
     name="ifeval-et",
     pretty_name="IFEval-et",
     source="EuroEval/ifeval-et",
     task=INSTRUCTION_FOLLOWING,
     languages=[ESTONIAN],
+    unofficial=True,
 )
-
 
 SCALA_ET_CONFIG = DatasetConfig(
     name="scala-et",
