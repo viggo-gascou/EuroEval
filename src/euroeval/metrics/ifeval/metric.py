@@ -6,6 +6,7 @@ import typing as t
 
 import nltk
 
+from ...logging_utils import log_once
 from ..base import Metric
 from .constraints import ALL_CONSTRAINTS
 
@@ -24,8 +25,8 @@ class IFEvalInstructionAccuracy(Metric):
         """Initialise the metric."""
         self.downloaded_nltk = False
         super().__init__(
-            name="inst_level_strict_acc",
-            pretty_name="Instruction-Level Strict Accuracy",
+            name="instruction_accuracy",
+            pretty_name="Instruction Accuracy",
             postprocessing_fn=None,
         )
 
@@ -78,7 +79,10 @@ class IFEvalInstructionAccuracy(Metric):
                 ref["instruction_id_list"], ref["kwargs"]
             ):
                 if instruction_id not in ALL_CONSTRAINTS:
-                    logger.debug(f"Skipping unsupported instruction: {instruction_id}")
+                    log_once(
+                        f"Skipping unsupported instruction: {instruction_id}",
+                        level=logging.WARNING,
+                    )
                     continue
 
                 constraint_function = ALL_CONSTRAINTS[instruction_id]

@@ -976,6 +976,112 @@ You can evaluate this dataset directly as follows:
 euroeval --model <model-id> --dataset dacsa-es
 ```
 
+## Instruction-following
+
+### IFEval-es
+
+This dataset was published [here](https://huggingface.co/datasets/BSC-LT/IFEval_es)
+and is a translation of the English IFEval dataset, which was published in [this
+paper](https://doi.org/10.48550/arXiv.2311.07911) and contains 541 prompts, each with a
+combination of one or more of 25 different constraints. The dataset was manually
+translated by a professional translator.
+
+We use the original dataset as the test split, and do not include the other splits, as
+we only evaluate models zero-shot and the size is too small to warrant an even smaller
+validation set.
+
+Here are a few examples from the test split:
+
+```json
+{
+    "text": "He intentado que me devuelvan el dinero de un producto que compré por Internet, pero la empresa se niega a reembolsármelo. ¿Puedes ayudarme a escribirles una carta? Quiero que la carta incluya las palabras confianza, marca, cliente, ley, política e inutilizable.",
+    "target_text": {
+        "instruction_id_list": [
+            "es:keywords:existence"
+        ],
+        "kwargs": [
+            {
+                "keywords": [
+                    "confianza",
+                    "marca",
+                    "cliente",
+                    "ley",
+                    "política",
+                    "inutilizable"
+                ]
+            }
+        ]
+    }
+}
+```
+
+```json
+{
+    "text": "Escribe una historia sobre un hombre que está enamorado de una mujer que tiene Tourette. La historia debe tener al menos 4 secciones y cada sección debe empezar con Sección X (donde X es 1, 2, 3, 4) y toda la respuesta debe tener al menos 100 frases.",
+    "target_text": {
+        "instruction_id_list": [
+            "es:detectable_format:multiple_sections",
+            "es:length_constraints:number_sentences"
+        ],
+        "kwargs": [
+            {
+                "num_sections": 4,
+                "section_spliter": "Sección"
+            },
+            {
+                "num_sentences": 100,
+                "relation": "at least"
+            }
+        ]
+    }
+}
+```
+
+```json
+{
+    "text": "Escribe una entrada de blog sobre las últimas noticias de España, con un título entre paréntesis angulares dobles, es decir, <<título>>, y que tenga menos de 5 frases (excluyendo 5). Las frases deben ser largas para que el número total de palabras de tu respuesta sea de 250 o más.",
+    "target_text": {
+        "instruction_id_list": [
+            "es:detectable_format:title",
+            "es:length_constraints:number_sentences",
+            "es:length_constraints:number_words"
+        ],
+        "kwargs": [
+            {
+            },
+            {
+                "num_sentences": 5,
+                "relation": "less than"
+            },
+            {
+                "num_words": 250,
+                "relation": "at least"
+            }
+        ]
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 0
+- No prefix prompt, as only instruction-tuned models are evaluated on this task.
+- No base prompt template, as only instruction-tuned models are evaluated on this task.
+- Instruction-tuned prompt template:
+
+  ```text
+  {text}
+  ```
+
+  I.e., we just use the instruction directly as the prompt.
+
+You can evaluate this dataset directly as follows:
+
+```bash
+euroeval --model <model-id> --dataset ifeval-es
+```
+
 ## European Values
 
 ### ValEU-es
