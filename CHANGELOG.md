@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v16.14.0] - 2026-02-13
+
 ### Added
 
 - Added new instruction-following task! This was added by @slowwavesleep ✨
