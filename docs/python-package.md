@@ -115,7 +115,7 @@ to clone the repo and installing from source. This can be fetched programmatical
 running the following:
 
 ```bash
-wget https://raw.githubusercontent.com/EuroEval/EuroEval/main/Dockerfile.cuda
+wget https://raw.githubusercontent.com/EuroEval/EuroEval/main/Dockerfile
 ```
 
 Next, to be able to build the Docker image, first ensure that the NVIDIA Container
@@ -128,7 +128,7 @@ version installed (which you can check using `nvidia-smi`). After that, we build
 image as follows:
 
 ```bash
-docker build --pull -t euroeval -f Dockerfile.cuda .
+docker build --pull -t euroeval .
 ```
 
 With the Docker image built, we can now evaluate any model as follows:
