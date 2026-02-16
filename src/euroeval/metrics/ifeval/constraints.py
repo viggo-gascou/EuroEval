@@ -564,6 +564,26 @@ def check_constrained_response(response: str, **_) -> bool:
     return any(opt in response.strip() for opt in options)
 
 
+@register("detectable_format:constrained_response_with_argument", options=list)
+def check_constrained_response_with_argument(
+    response: str, **constraint_kwargs
+) -> bool:
+    """Check response contains one of the constrained options.
+
+    Args:
+        response:
+            The response string to check.
+        **constraint_kwargs:
+            Keyword arguments containing ``options`` – a list of strings to
+            check for.
+
+    Returns:
+        True if the response contains exactly one of the options, False otherwise.
+    """
+    options: list[str] = constraint_kwargs["options"]
+    return any(opt in response.strip() for opt in options)
+
+
 @register("detectable_format:number_highlighted_sections", num_highlights=int)
 @register("fr:detectable_format:number_highlighted_sections", num_highlights=int)
 @register("es:detectable_format:number_highlighted_sections", num_highlights=int)
