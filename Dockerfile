@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.2.0-base-ubuntu22.04
+FROM nvidia/cuda:13.1.1-base-ubuntu24.04
 
 # If CUDA is not available, raise an error during build
 RUN if ! command -v nvidia-smi >/dev/null 2>&1; then \
@@ -7,10 +7,6 @@ RUN if ! command -v nvidia-smi >/dev/null 2>&1; then \
     fi
 
 RUN apt-get -y update && \
-    apt-get -y upgrade && \
-    apt-get install -y --no-install-recommends software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get -y update && \
     apt-get -y upgrade && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       gcc git-all python3.12 python3.12-venv python3.12-dev && \
