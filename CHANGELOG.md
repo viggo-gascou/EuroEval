@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - The `huggingface_hub` safetensors API has changed, so we did not fetch the number of
   model parameters correctly - this has now been fixed.
+- For the French, Spanish and Catalan instruction-following datasets, the
+  `detectable_format:constrained_response` constraint was not being applied correctly,
+  so this has now been fixed.
 
 ## [v16.14.0] - 2026-02-13
 
