@@ -21,7 +21,7 @@ if t.TYPE_CHECKING:
 EMPTY_TEMPLATES: dict["Language", PromptConfig] = {
     lang: PromptConfig(
         default_prompt_prefix="",
-        default_prompt_template="{text}",
+        default_prompt_template="",
         default_instruction_prompt="{text}",
         default_prompt_label_mapping="auto",
     )
