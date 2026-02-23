@@ -202,6 +202,8 @@ def generate_single_iteration(
                 }
                 model_output.predicted_labels = [
                     extracted_to_predicted.get(label, label).lower()
+                    if isinstance(label, str)
+                    else [extracted_to_predicted.get(lbl, lbl).lower() for lbl in label]
                     for label in extracted_labels
                 ]
             else:
