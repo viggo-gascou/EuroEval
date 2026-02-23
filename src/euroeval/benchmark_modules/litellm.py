@@ -1624,7 +1624,9 @@ class LiteLLMModel(BenchmarkModule):
                     "enable it.",
                     level=logging.DEBUG,
                 )
-            elif supports_response_schema(model=self.model_config.model_id):
+            elif self.benchmark_config.api_base is not None or supports_response_schema(
+                model=self.model_config.model_id
+            ):
                 if dataset_config.task == NER:
                     ner_tag_names = list(dataset_config.prompt_label_mapping.values())
                     keys_and_their_types: dict[str, t.Any] = {
