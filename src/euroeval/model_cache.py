@@ -126,6 +126,8 @@ class ModelCache:
         for key, value in self.cache.items():
             value_dict = asdict(value)
             metadata = value_dict.pop("metadata", dict())
+            if metadata is None:
+                metadata = dict()
             value_dict |= metadata
             if "index" in metadata:
                 value_dict = {"index": metadata.pop("index")} | value_dict
