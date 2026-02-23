@@ -1624,6 +1624,10 @@ class LiteLLMModel(BenchmarkModule):
                     "enable it.",
                     level=logging.DEBUG,
                 )
+            # Skip litellm's support check when using a custom base_api URL, as
+            # litellm can only reliably verify support for their official API providers,
+            # not custom endpoints.
+            # We assume custom endpoint models support structured generation.
             elif self.benchmark_config.api_base is not None or supports_response_schema(
                 model=self.model_config.model_id
             ):
