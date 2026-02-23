@@ -6,6 +6,7 @@ from .data_models import Task
 from .enums import GenerativeType, ModelType, TaskGroup
 from .prompt_templates import (
     CLASSIFICATION_TEMPLATES,
+    EMPTY_TEMPLATES,
     LA_TEMPLATES,
     MULTIPLE_CHOICE_TEMPLATES,
     NER_TEMPLATES,
@@ -14,6 +15,7 @@ from .prompt_templates import (
     SIMPL_TEMPLATES,
     SUMM_TEMPLATES,
     TOKEN_CLASSIFICATION_TEMPLATES,
+    TRANSLATION_TEMPLATES,
 )
 
 LA = Task(
@@ -72,6 +74,7 @@ SENT = Task(
     uses_logprobs=True,
 )
 
+
 SIMPL = Task(
     name="simplification",
     task_group=TaskGroup.TEXT_TO_TEXT,
@@ -83,12 +86,25 @@ SIMPL = Task(
     default_allowed_model_types=[ModelType.GENERATIVE],
 )
 
+
 SUMM = Task(
     name="summarization",
     task_group=TaskGroup.TEXT_TO_TEXT,
     template_dict=SUMM_TEMPLATES,
     metrics=[m.bert_score_metric, m.rouge_l_metric],
     default_num_few_shot_examples=1,
+    default_max_generated_tokens=256,
+    default_labels=[],
+    default_allowed_model_types=[ModelType.GENERATIVE],
+)
+
+
+TRANSLATION = Task(
+    name="translation",
+    task_group=TaskGroup.TEXT_TO_TEXT,
+    template_dict=TRANSLATION_TEMPLATES,
+    metrics=[m.bert_score_metric, m.rouge_l_metric],
+    default_num_few_shot_examples=5,
     default_max_generated_tokens=256,
     default_labels=[],
     default_allowed_model_types=[ModelType.GENERATIVE],
@@ -220,4 +236,21 @@ MULTIPLE_CHOICE = Task(
     default_labels=None,
     default_allowed_model_types=[ModelType.GENERATIVE],
     uses_logprobs=True,
+)
+
+INSTRUCTION_FOLLOWING = Task(
+    name="instruction-following",
+    task_group=TaskGroup.TEXT_TO_TEXT,
+    template_dict=EMPTY_TEMPLATES,
+    metrics=[m.instruction_accuracy],
+    default_num_few_shot_examples=0,
+    default_max_generated_tokens=2048,
+    default_labels=None,
+    default_allowed_model_types=[ModelType.GENERATIVE],
+    default_allowed_generative_types=[
+        GenerativeType.INSTRUCTION_TUNED,
+        GenerativeType.REASONING,
+    ],
+    requires_zero_shot=True,
+    uses_logprobs=False,
 )

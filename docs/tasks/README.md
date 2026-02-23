@@ -41,4 +41,5 @@ this category are:
 3. [Common-sense Reasoning](common-sense-reasoning.md)
 4. [Simplification](simplification.md)
 5. [European Values](european-values.md)
-6. [Bias Detection](bias-detection.md)
+6. [Instruction-following](instruction-following.md)
+7. [Bias Detection](bias-detection.md)

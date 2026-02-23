@@ -9,6 +9,51 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- We now add all metadata (including ground truth labels, if applicable) to the model
+  cache when debug mode is enabled (with `--debug` or `debug=True`). We have added a
+  [section in the
+  documentation](https://euroeval.com/python-package/#analysing-the-results) on how to
+  use this feature.
+- When evaluating community evaluation datasets from the Hugging Face Hub, we now
+  require that the user actively set `--trust-remote-code` (or `trust_remote_code=True`
+  if running with the `Benchmarker` class). This is to prevent accidental execution of
+  malicious code.
+
+### Fixed
+
+- v16.15.0 introduced an error related to the parsing of safetensors metadata from
+  adapter models. This has now been fixed.
+
+## [v16.15.0] - 2026-02-18
+
+### Added
+
+- Added a new `translation` task. This uses BERTScore and ROUGE-L as metrics, just like
+  the `summarization` task. This was added by @oliverkinch ✨
+- Added 25 translation datasets from the WMT24++ dataset. These all translate from
+  English to the target language. It's added as unofficial for now.
+- Now supports the `detectable_format:constrained_response_with_argument` IFEval
+  constraint, being the same as `detectable_format:constrained_response` but with
+  a list of options to check for, rather than a hardcoded list of English options.
+
+### Fixed
+
+- The `huggingface_hub` safetensors API has changed, so we did not fetch the number of
+  model parameters correctly - this has now been fixed.
+- For the French, Spanish and Catalan instruction-following datasets, the
+  `detectable_format:constrained_response` constraint was not being applied correctly,
+  so this has now been fixed.
+
+## [v16.14.0] - 2026-02-13
+
+### Added
+
+- Added new instruction-following task! This was added by @slowwavesleep ✨
+- Added instruction-following datasets for English 🇬🇧 and Estonian 🇪🇪. This was added
+  by @slowwavesleep ✨
+- Added instruction-following datasets for Catalan, Danish 🇩🇰, German 🇩🇪,
+  Italian 🇮🇹, Greek 🇬🇷, Spanish 🇪🇸, Finnish 🇫🇮, French 🇫🇷, Portuguese 🇵🇹,
+  Swedish 🇸🇪 and Ukrainian 🇺🇦.
 - Now also logs the number of skipped and errored benchmarks at the end of the
   benchmarking.
 - Now logs a suggested dataset/task name if a user specified a dataset/task that is not

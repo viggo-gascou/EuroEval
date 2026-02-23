@@ -748,6 +748,255 @@ You can evaluate this dataset directly as follows:
 euroeval --model <model-id> --dataset err-news
 ```
 
+## Instruction-following
+
+### IFEval-et
+
+This dataset is a translation of the English IFEval dataset, which was published in
+[this paper](https://doi.org/10.48550/arXiv.2311.07911) and contains 541 prompts, each
+with a combination of one or more of 25 different constraints. The dataset was
+translated by a professional translator, and the samples were also localised to Estonia.
+For instance, "President of the United States" is replaced with "President of Estonia".
+
+We use the original dataset as the test split, and do not include the other splits, as
+we only evaluate models zero-shot and the size is too small to warrant an even smaller
+validation set.
+
+Here are a few examples from the training split:
+
+```json
+{
+    "text": "Kirjuta vähemalt 600 sõnaline sotsiaalmeediapostitus idufirmale, mis pakub realistlike füüsikaliste katsete simulaatorit. Vastus peab sisaldama mitmuse rajavas käändes märksõna „pomm“ vähemalt ühe korra.",
+    "target_text": {
+        "instruction_id_list": [
+            "keywords:frequency",
+            "length_constraints:number_words"
+        ],
+        "kwargs": [
+            {
+                "frequency": 1,
+                "keyword": "pommideni",
+                "relation": "at least"
+            },
+            {
+                "num_words": 600,
+                "relation": "at least"
+            }
+        ]
+    }
+}
+```
+
+```json
+{
+    "text": "Kirjuta lühike liftikõne uut tüüpi jäätise kohta, mille nimi on „Päikesejänku“. Jäätis peaks olema kergesti seeditav. Kaasa oma vastusesse kuus või enam hüüumärki „!“. Korda seda juhist esmalt ilma muudatusteta sõna-sõnalt, seejärel anna oma vastus (1. ära lisa enne juhise kordamist ühtegi sõna või märki; 2. juhis, mida pead kordama, ei sisalda seda lauset).",
+    "target_text": {
+        "instruction_id_list": [
+            "keywords:letter_frequency",
+            "combination:repeat_prompt"
+        ],
+        "kwargs": [
+            {
+                "let_frequency": 6,
+                "let_relation": "at least",
+                "letter": "!"
+            },
+            {
+                "prompt_to_repeat": "Kirjuta lühike liftikõne uut tüüpi jäätise kohta, mille nimi on „Päikesejänku“. Jäätis peaks olema kergesti seeditav. Kaasa oma vastusesse kuus või enam hüüumärki „!“."
+            }
+        ]
+    }
+}
+```
+
+```json
+{
+    "text": "Kirjuta lugu õmbleja kohta, kes saab õmmelda ainult öösiti. Lugu ei tohiks sisaldada mitte ühelgi kujul märksõnu \"nõel\", \"niit\", \"õmblusmasin\", \"öö\".",
+    "target_text": {
+        "instruction_id_list": [
+            "keywords:forbidden_words"
+        ],
+        "kwargs": [
+            {
+                "forbidden_words": [
+                    "nõel",
+                    "nõela",
+                    "nõelasse",
+                    "nõelas",
+                    "nõelast",
+                    "nõelale",
+                    "nõelal",
+                    "nõelalt",
+                    "nõelaks",
+                    "nõelani",
+                    "nõelana",
+                    "nõelata",
+                    "nõelaga",
+                    "nõelad",
+                    "nõelte",
+                    "nõelu",
+                    "nõelasid",
+                    "nõeltesse",
+                    "nõelusse",
+                    "nõeltes",
+                    "nõelus",
+                    "nõeltest",
+                    "nõelust",
+                    "nõeltele",
+                    "nõelule",
+                    "nõeltel",
+                    "nõelul",
+                    "nõetelt",
+                    "nõelult",
+                    "nõelteks",
+                    "nõeluks",
+                    "nõelteni",
+                    "nõeltena",
+                    "nõelteta",
+                    "nõeltega",
+                    "nõelade",
+                    "nõeladesse",
+                    "nõelades",
+                    "nõeladest",
+                    "nõeladele",
+                    "nõeladel",
+                    "nõeladelt",
+                    "nõeladeks",
+                    "nõeladeni",
+                    "nõeladena",
+                    "nõeladeta",
+                    "nõeladega",
+                    "niit",
+                    "niidi",
+                    "niiti",
+                    "niidisse",
+                    "niidis",
+                    "niidist",
+                    "niidile",
+                    "niidil",
+                    "niidilt",
+                    "niidiks",
+                    "niidini",
+                    "niidina",
+                    "niidita",
+                    "niidiga",
+                    "niidid",
+                    "niitide",
+                    "niite",
+                    "niitisid",
+                    "niitidesse",
+                    "niidesse",
+                    "niitides",
+                    "niides",
+                    "niitidest",
+                    "niidest",
+                    "niitidele",
+                    "niidel",
+                    "niitidelt",
+                    "niidelt",
+                    "niitideks",
+                    "niideks",
+                    "niitideni",
+                    "niitidena",
+                    "niitideta",
+                    "niitidega",
+                    "õmblusmasin",
+                    "õmblusmasina",
+                    "õmblusmasinat",
+                    "õmblusmasinasse",
+                    "õmblusmasinas",
+                    "õmblusmasinast",
+                    "õmblusmasinale",
+                    "õmblusmasinal",
+                    "õmblusmasinalt",
+                    "õmblusmasinaks",
+                    "õmblusmasinani",
+                    "õmblusmasinana",
+                    "õmblusmasinata",
+                    "õmblusmasinaga",
+                    "õmblusmasinad",
+                    "õmblusmasinate",
+                    "õmblusmasinaid",
+                    "õmblusmasinatesse",
+                    "õmblusmasinaisse",
+                    "õmblusmasinates",
+                    "õmblusmasinais",
+                    "õmblusmasinatest",
+                    "õmblusmasinaist",
+                    "õmblusmasinatele",
+                    "õmblusmasinaile",
+                    "õmblusmasinatel",
+                    "õmblusmasinail",
+                    "õmblusmasinatelt",
+                    "õmblusmasinailt",
+                    "õmblusmasinateks",
+                    "õmblusmasinaiks",
+                    "õmblusmasinateni",
+                    "õmblusmasinatena",
+                    "õmblusmasinateta",
+                    "õmblusmasinatega",
+                    "öö",
+                    "ööd",
+                    "ööde",
+                    "öid",
+                    "öösid",
+                    "öhe",
+                    "öösse",
+                    "öös",
+                    "ööst",
+                    "ööle",
+                    "ööl",
+                    "öölt",
+                    "ööks",
+                    "ööni",
+                    "öön",
+                    "ööta",
+                    "öög",
+                    "öödesse",
+                    "öösse",
+                    "öödes",
+                    "öis",
+                    "öödest",
+                    "öist",
+                    "öödele",
+                    "öile",
+                    "ööldel",
+                    "ööl",
+                    "öödelt",
+                    "öilt",
+                    "öödeks",
+                    "öiks",
+                    "ööd",
+                    "öödeta",
+                    "öödena",
+                    "öödega"
+                ]
+            }
+        ]
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 0
+- No prefix prompt, as only instruction-tuned models are evaluated on this task.
+- No base prompt template, as only instruction-tuned models are evaluated on this task.
+- Instruction-tuned prompt template:
+
+  ```text
+  {text}
+  ```
+
+  I.e., we just use the instruction directly as the prompt.
+
+You can evaluate this dataset directly as follows:
+
+```bash
+euroeval --model <model-id> --dataset ifeval-et
+```
+
 ## European Values
 
 ### ValEU-et

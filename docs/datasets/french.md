@@ -844,6 +844,93 @@ You can evaluate this dataset directly as follows:
 euroeval --model <model-id> --dataset orange-sum
 ```
 
+## Instruction-following
+
+### IFEval-fr
+
+This dataset was published in [this
+paper](https://doi.org/10.18653/v1/2025.findings-naacl.344) and is a manually curated
+French version of the English IFEval dataset, which was published in [this
+paper](https://doi.org/10.48550/arXiv.2311.07911) and contains 235 prompts, each with a
+combination of one or more of different constraints.
+
+We use the original dataset as the test split, and do not include the other splits, as
+we only evaluate models zero-shot and the size is too small to warrant an even smaller
+validation set.
+
+Here are a few examples from the test split:
+
+```json
+{
+    "text": "Narre une histoire d'amour contrariée se déroulant pendant la Seconde Guerre mondiale. Votre récit devrait inclure le mot \"guerre\" moins de deux fois.",
+    "target_text": {
+        "instruction_id_list": [
+            "fr:keywords:frequency"
+        ],
+        "kwargs": [
+            {
+                "frequency": 2,
+                "keyword": "guerre",
+                "relation": "moins de"
+            }
+        ]
+    }
+}
+```
+
+```json
+{
+    "text": "Élaborez un discours sur les points positifs et négatifs de l'intelligence artificielle dans notre vie de tous les jours. Veuillez rédiger votre réponse en utilisant uniquement des lettres minuscules, sans aucun mot en majuscule.",
+    "target_text": {
+        "instruction_id_list": [
+            "fr:change_case:french_lowercase"
+        ],
+        "kwargs": [
+            {}
+        ]
+    }
+}
+```
+
+```json
+{
+    "text": "Rédigez une lettre adressée à votre vous-même dans une décennie. Assurez-vous d'inclure les termes ['gouvernance', 'palais'] dans votre lettre.",
+    "target_text": {
+        "instruction_id_list": [
+            "fr:keywords:existence"
+        ],
+        "kwargs": [
+            {
+                "keywords": [
+                    "gouvernance",
+                    "palais"
+                ]
+            }
+        ]
+    }
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 0
+- No prefix prompt, as only instruction-tuned models are evaluated on this task.
+- No base prompt template, as only instruction-tuned models are evaluated on this task.
+- Instruction-tuned prompt template:
+
+  ```text
+  {text}
+  ```
+
+  I.e., we just use the instruction directly as the prompt.
+
+You can evaluate this dataset directly as follows:
+
+```bash
+euroeval --model <model-id> --dataset ifeval-fr
+```
+
 ## European Values
 
 ### ValEU-fr

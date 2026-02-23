@@ -88,7 +88,8 @@ class Task:
         task_group:
             The task group of the task.
         template_dict:
-            The template dictionary for the task, from language to prompt template.
+            The template dictionary for the task, from language (or language tuples) to
+            prompt template.
         metrics:
             The metrics used to evaluate the task.
         default_num_few_shot_examples:
@@ -133,7 +134,9 @@ class Task:
 
     name: str
     task_group: TaskGroup
-    template_dict: dict[Language, PromptConfig]
+    template_dict: (
+        dict[Language, PromptConfig] | dict[tuple[Language, Language], PromptConfig]
+    )
     metrics: c.Sequence[Metric]
     default_num_few_shot_examples: int
     default_max_generated_tokens: int
@@ -382,7 +385,9 @@ class DatasetConfig:
         self.task = task
         self.languages = languages
 
-        template = self.task.template_dict.get(self.main_language)
+        template = self.task.template_dict.get(  # pyrefly: ignore[no-matching-overload]
+            self.main_language
+        )
         self.prompt_prefix = (
             prompt_prefix
             if prompt_prefix is not None
@@ -574,16 +579,23 @@ class DatasetConfig:
         )
 
     @property
-    def main_language(self) -> Language:
+    def main_language(self) -> Language | tuple[Language, Language]:
         """Get the main language of the dataset.
 
         Returns:
-            The main language.
+            The main language or languages of the dataset.
 
         Raises:
             InvalidBenchmark:
                 If the dataset has no languages.
         """
+        # Importing here to avoid circular imports
+        from .tasks import TRANSLATION
+
+        # Special case for datasets with multiple languages
+        if self.task == TRANSLATION:
+            return (self.languages[0], self.languages[1])
+
         match len(self.languages):
             case 0:
                 raise InvalidBenchmark(
@@ -873,7 +885,7 @@ class BenchmarkResult(pydantic.BaseModel):
             results_path:
                 The path to the results file.
         """
-        json_str = json.dumps(self.model_dump())
+        json_str = json.dumps(self.model_dump(), ensure_ascii=False)
         with results_path.open("a") as f:
             f.write("\n" + json_str)
 
@@ -956,14 +968,28 @@ class GenerativeModelOutput:
     Attributes:
         sequences:
             The generated sequences.
-        scores:
+        predicted_labels (optional):
+            The predicted labels from the `sequences` and sometimes also `scores`. Can
+            be None if the labels have not been predicted yet. Defaults to None.
+        scores (optional):
             The scores of the sequences. This is an array of shape (batch_size,
             num_tokens, num_logprobs, 2), where the last dimension contains the
-            token and its logprob. Can be None if the scores are not available.
+            token and its logprob. Can be None if the scores are not available. Defaults
+            to None.
+        metadatas (optional):
+            All the metadata fields for the samples, including ground truth labels (if
+            applicable). Defaults to an empty list.
     """
 
     sequences: c.Sequence[str]
+    predicted_labels: c.Sequence[str] | None = None
     scores: c.Sequence[c.Sequence[c.Sequence[tuple[str, float]]]] | None = None
+    metadatas: list["HashableDict | None"] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        """Post-initialisation."""
+        if not self.metadatas:
+            self.metadatas = [None] * len(self.sequences)
 
 
 @dataclass
@@ -973,14 +999,22 @@ class SingleGenerativeModelOutput:
     Attributes:
         sequence:
             The generated sequence.
-        scores:
+        predicted_label (optional):
+            The predicted label from the `sequence` and sometimes also `scores`. Can be
+            None if the label has not been predicted yet. Defaults to None.
+        scores (optional):
             The scores of the sequence. This is an array of shape (num_tokens,
             num_logprobs, 2), where the last dimension contains the token and its
-            logprob. Can be None if the scores are not available.
+            logprob. Can be None if the scores are not available. Defaults to None.
+        metadata (optional):
+            The metadata fields for the sample, including ground truth labels (if
+            applicable). Can be None if the metadata is not available. Defaults to None.
     """
 
     sequence: str
+    predicted_label: str | None = None
     scores: c.Sequence[c.Sequence[tuple[str, float]]] | None = None
+    metadata: "HashableDict | None" = None
 
 
 @dataclass
