@@ -15,7 +15,11 @@ import torch
 from datasets import DatasetDict
 from transformers.generation.configuration_utils import GenerationConfig
 
-from .constants import ATTENTION_BACKENDS, CHOICES_MAPPING, MAX_NUMBER_OF_LOGGING_LANGUAGES
+from .constants import (
+    ATTENTION_BACKENDS,
+    CHOICES_MAPPING,
+    MAX_NUMBER_OF_LOGGING_LANGUAGES,
+)
 from .enums import Device, GenerativeType, ModelType, TaskGroup
 from .exceptions import InvalidBenchmark
 from .languages import (
@@ -110,6 +114,12 @@ class Task:
         uses_structured_output (optional):
             Whether the task uses structured output. If True, the task will return
             structured output (e.g., BIO tags for NER). Defaults to False.
+        structured_output_format (optional):
+            Schema to use for structured output as a (deserializable) JSON string.
+            Only used if `uses_structured_output` is True.
+            If None output structure will be determined by a default behavior
+            based on the task.
+            Defaults to None.
         uses_logprobs (optional):
             Whether the task uses log probabilities. If True, the task will return
             log probabilities for the generated tokens. Defaults to False.
@@ -145,6 +155,7 @@ class Task:
     default_labels: c.Sequence[str] | None = tuple()
     requires_zero_shot: bool = False
     uses_structured_output: bool = False
+    structured_output_format: pydantic.BaseModel | None = None
     uses_logprobs: bool = False
     requires_logprobs: bool = False
     default_allowed_model_types: c.Sequence[ModelType] = field(
@@ -162,6 +173,13 @@ class Task:
     def __post_init__(self) -> None:
         """Post-initialisation checks."""
         self.uses_logprobs = self.uses_logprobs or self.requires_logprobs
+        if not self.uses_structured_output and self.structured_output_format:
+            log_once(
+                "`structured_output_format` is specified however "
+                "`uses_structured_output=False` "
+                "- thus this specified structure will not be used.",
+                level=logging.WARNING,
+            )
 
     def __hash__(self) -> int:
         """Return a hash of the task."""
@@ -484,7 +502,11 @@ class DatasetConfig:
 
         # Build or assign the preprocessing function
         column_args_set = any(
-            (input_column != "text", target_column is not None, choices_column is not None)
+            (
+                input_column != "text",
+                target_column is not None,
+                choices_column is not None,
+            )
         )
         if preprocessing_func is not None and column_args_set:
             log_once(
@@ -493,9 +515,9 @@ class DatasetConfig:
                 "takes precedence and the column arguments will be ignored.",
                 level=logging.WARNING,
             )
-            self.preprocessing_func: (
-                c.Callable[[DatasetDict], DatasetDict] | None
-            ) = preprocessing_func
+            self.preprocessing_func: c.Callable[[DatasetDict], DatasetDict] | None = (
+                preprocessing_func
+            )
         elif column_args_set:
             # Determine the language-specific choices label
             main_lang = self.languages[0] if self.languages else None
