@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Failed generative model instances are now tracked and included in
+  `euroeval_benchmark_results.jsonl`. Each per-iteration entry in `results.raw` now
+  contains a `failed_instances` list, where every item has a `sample_index` (the
+  0-based index of the sample in the batch) and an `error` message describing why the
+  instance failed (e.g. `"Could not parse JSON from model output"` for NER tasks or
+  `"No candidate label found in model output"` for classification tasks). The
+  `results.total` dict also gains a `num_failed_instances` key with the total count
+  across all iterations.
 - A task _Tool Calling_ and a dataset under this task _bfcl-v2 a subset of the
   Berkeley Function Calling Leaderboard benchmark (v2). Currently only supported for
   English. This was added by @harderj ✨

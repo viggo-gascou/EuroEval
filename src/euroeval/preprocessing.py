@@ -21,8 +21,8 @@ def merge_input_and_choices(
 
     Args:
         example:
-            A single dataset example with at least the ``input_column`` and the
-            column(s) named by ``choices_column``.
+            A single dataset example with at least the ``input_column`` and
+            the column(s) named by ``choices_column``.
         input_column:
             The name of the column containing the input text.
         choices_column:
