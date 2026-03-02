@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Added the new Danish linguistic acceptability dataset DaLA. It's marked as
+  unofficial for now. This was added by @N-essuno ✨
+- Added the new Natural Language Inference task type and the Danish Entailment Dataset
+  [`danish-entailment`](https://github.com/kuhumcst/danish-semantic-reasoning-benchmark/tree/main/entailment).
+  The split is given by 32 / 286 samples for train / test, respectively (no validation
+  split).
 - Failed generative model instances are now tracked and included in
   `euroeval_benchmark_results.jsonl`. Each per-iteration entry in `results.raw` now
   contains a `failed_instances` list, where every item has a `sample_index` (the
