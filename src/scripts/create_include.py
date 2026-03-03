@@ -13,10 +13,7 @@
 from collections import Counter
 
 import pandas as pd
-from datasets import Dataset, DatasetDict, Split, load_dataset
-from sklearn.model_selection import train_test_split
-
-from .constants import (
+from constants import (
     CHOICES_MAPPING,
     MAX_NUM_CHARS_IN_INSTRUCTION,
     MAX_NUM_CHARS_IN_OPTION,
@@ -24,6 +21,8 @@ from .constants import (
     MIN_NUM_CHARS_IN_INSTRUCTION,
     MIN_NUM_CHARS_IN_OPTION,
 )
+from datasets import Dataset, DatasetDict, Split, load_dataset
+from sklearn.model_selection import train_test_split
 
 # Mapping from ISO language code to full language name used in INCLUDE dataset
 INCLUDE_LANGUAGE_MAPPING: dict[str, str] = {
@@ -111,10 +110,7 @@ def make_splits(
     n_val = min(val_size, len(test_df))
     try:
         val_df_final, remaining_df = train_test_split(
-            test_df,
-            train_size=n_val,
-            random_state=4242,
-            stratify=stratify_col,
+            test_df, train_size=n_val, random_state=4242, stratify=stratify_col
         )
     except ValueError:
         val_df_final = test_df.sample(n=n_val, random_state=4242, replace=False)
