@@ -11,15 +11,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - A new tool calling task has been added to the framework, including the English
   Berkeley Function Calling Leaderboard benchmark - benchmark it with the ID `bfcl-v2`.
+  It is marked as unofficial for now.
   This was added by @harderj ✨
 - Added the new Danish linguistic acceptability dataset DaLA. It's marked as
   unofficial for now. This was added by @N-essuno ✨
 - A new natural language inference task has been added, including the Danish
   Entailment Dataset (ID is `danish-entailment`) and the Danish Lexical Inference
-  Dataset (ID is `danish-lexical-inference`).
-- Added the new Danish Word in Context dataset DanWiC. It's marked as unofficial for
-  now. This is based on the COR.SEM lexical resource and tests the ability to
-  distinguish word meanings/senses in context (ID is `danwic`).
+  Dataset (ID is `danish-lexical-inference`). It is marked as unofficial for now.
+- Added a new Word-in-Context task, and added the new Danish Word in Context 
+  dataset DanWiC (ID is `danwic`). It is marked as unofficial for now.
+- Added the [INCLUDE](https://huggingface.co/datasets/CohereLabs/include-base-44)
+  knowledge dataset for 17 languages: Albanian, Bulgarian, Croatian, Dutch, Estonian,
+  Finnish, French, German, Greek, Hungarian, Italian, Lithuanian, Polish, Portuguese,
+  Serbian, Spanish, and Ukrainian. All are marked as unofficial for now.
 - Failed generative model instances are now tracked and included in
   `euroeval_benchmark_results.jsonl`.
 - Added `--max-context-length` and `--vocabulary-size` CLI options (and corresponding
