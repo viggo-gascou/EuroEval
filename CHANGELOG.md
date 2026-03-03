@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the new Danish Word in Context dataset DanWiC. It's marked as unofficial for
   now. This is based on the COR.SEM lexical resource and tests the ability to
   distinguish word meanings/senses in context (ID is `danwic`).
+- Added the German knowledge dataset
+  [einbuergerungstest](https://huggingface.co/datasets/EuroEval/einbuergerungstest),
+  based on the official German citizenship test (Einbürgerungstest) published by BAMF.
+  The questions were scraped from
+  [einbuergerungstest-online.eu](https://www.einbuergerungstest-online.eu/fragen/). It
+  is marked as `unofficial` for now.
 - Failed generative model instances are now tracked and included in
   `euroeval_benchmark_results.jsonl`.
 - Added `--max-context-length` and `--vocabulary-size` CLI options (and corresponding
