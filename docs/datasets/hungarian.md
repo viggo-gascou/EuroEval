@@ -401,22 +401,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Mi Magyarország fővárosa?\nVálaszlehetőségek:\na. Debrecen\nb. Miskolc\nc. Pécs\nd. Budapest",
-  "label": "d"
+    "text": "Melyik hormon szabályozza a tejleadást?\nVálaszlehetőségek:\na. az oxitocin\nb. a progeszteron\nc. az ösztrogén\nd. az adrenalin",
+    "label": "a",
+    "subject": "Agriculture"
 }
 ```
 
 ```json
 {
-  "text": "Ki írta az 'Egri csillagok' regényt?\nVálaszlehetőségek:\na. Mikszáth Kálmán\nb. Móricz Zsigmond\nc. Gárdonyi Géza\nd. Jókai Mór",
-  "label": "c"
+    "text": "Melyik hazánk legszelesebb tája?\nVálaszlehetőségek:\na. Tiszántúl\nb. Kisalföld\nc. Északi-középhegység\nd. Duna−Tisza köze",
+    "label": "b",
+    "subject": "Environmental studies and forestry"
 }
 ```
 
 ```json
 {
-  "text": "Melyik sejtorganellum felelős az energiatermelésért?\nVálaszlehetőségek:\na. Riboszóma\nb. Kloroplaszt\nc. Golgi-készülék\nd. Mitokondrium",
-  "label": "d"
+    "text": "Melyik igaz az alábbi állítások közül?\nVálaszlehetőségek:\na. Az RNS hidrolízise aldohexózt is eredményez.\nb. Az amidok vizes oldatban erős bázisként viselkednek.\nc. Az adenin, citozin és a guanin a DNS- és RNS-molekulák hidrolízisének termékei.\nd. A fehérjék savas hidrolízisében foszforsav is keletkezik.",
+    "label": "c",
+    "subject": "Chemistry"
 }
 ```
 

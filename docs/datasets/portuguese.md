@@ -518,22 +518,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Qual é a capital de Portugal?\nOpções:\na. Porto\nb. Coimbra\nc. Braga\nd. Lisboa",
-  "label": "d"
+    "text": "Em 2014, num dado país, as famílias efetuaram uma poupança de 10% do seu rendimento disponível médio. No mesmo período, as famílias apresentaram como coeficientes orçamentais das despesas em alimentação e em transportes, respetivamente, 30% e 15%. Nestas condições, em 2014, por cada 100 euros do seu rendimento disponível, as famílias despenderam, em média,\nOpções:\na. 27 euros em alimentação e 13,5 euros em transportes\nb. 30 euros em alimentação e 15 euros em transportes\nc. 30 euros em alimentação e 13,5 euros em transportes\nd. 27 euros em alimentação e 15 euros em transportes",
+    "label": "a",
+    "subject": "Economics"
 }
 ```
 
 ```json
 {
-  "text": "Quem escreveu 'Os Lusíadas'?\nOpções:\na. Fernando Pessoa\nb. Eça de Queirós\nc. Luís de Camões\nd. José Saramago",
-  "label": "c"
+    "text": "O combate às disparidades económicas e sociais nos países da UE foi assumido, pela primeira vez, no\nOpções:\na. Tratado de Maastricht, em 1957\nb. Tratado de Maastricht, em 1992\nc. Tratado de Roma, em 1957\nd. Tratado de Roma, em 1992",
+    "label": "b",
+    "subject": "Earth science"
 }
 ```
 
 ```json
 {
-  "text": "Qual organela celular é responsável pela produção de energia?\nOpções:\na. Ribossomo\nb. Cloroplasto\nc. Aparelho de Golgi\nd. Mitocôndria",
-  "label": "d"
+    "text": "Se o homem no estado de natureza é tão livre, conforme dissemos, se é senhor absoluto da sua própria pessoa e posses, igual ao maior e a ninguém sujeito, por que abrirá ele mão dessa liberdade, por que abandonará o seu império e sujeitar-se-á ao domínio e controle de qualquer outro poder? Ao que é óbvio responder que, embora no estado de natureza tenha tal direito, a fruição do mesmo é muito incerta e está constantemente exposta à invasão de terceiros porque, sendo todos reis tanto quanto ele, todo homem igual a ele, e na maior parte pouco observadores da equidade e da justiça, a fruição da propriedade que possui nesse estado é muito insegura, muito arriscada. Estas circunstâncias obrigam-no a abandonar uma condição que, embora livre, está cheia de temores e perigos constantes; e não é sem razão que procura de boa vontade juntar-se em sociedade com outros que estão já unidos, ou pretendem unir-se, para a mútua conservação da vida, da liberdade e dos bens a que chamo de “propriedade”.\\\nOpções:\na. A propriedade surge com a criação da sociedade.\nb. No estado de natureza, o homem é livre, mas desigual.\nc. O direito de propriedade é compatível com a sociedade.\nd. Devido à insegurança, os homens optam por viver sem direitos.",
+    "label": "c",
+    "subject": "Sociology"
 }
 ```
 

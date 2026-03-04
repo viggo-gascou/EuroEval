@@ -630,22 +630,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "¿Cuál es la capital de España?\nOpciones:\na. Barcelona\nb. Sevilla\nc. Valencia\nd. Madrid",
-  "label": "d"
+    "text": "Hormona que actúa sobre el metabolismo de agua, sodio, potasio y cloruro de sodio:\nOpciones:\na. Aldosterona\nb. Cortisol\nc. Corticosterona\nd. Cortisona",
+    "label": "a",
+    "subject": "Medicine"
 }
 ```
 
 ```json
 {
-  "text": "¿Quién escribió la novela 'Don Quijote de la Mancha'?\nOpciones:\na. Francisco de Quevedo\nb. Lope de Vega\nc. Miguel de Cervantes\nd. Luis de Góngora",
-  "label": "c"
+    "text": "Nervio que inerva a los músculos esternocleidomastoideo y trapecio:\nOpciones:\na. Hipogloso\nb. Espinal\nc. Vago\nd. Acústico",
+    "label": "b",
+    "subject": "Medicine"
 }
 ```
 
 ```json
 {
-  "text": "¿Qué orgánulo celular es responsable de la producción de energía?\nOpciones:\na. Ribosoma\nb. Cloroplasto\nc. Aparato de Golgi\nd. Mitocondria",
-  "label": "d"
+    "text": "Si el precio del bien sustituto disminuye, la curva de la demanda se\nOpciones:\na. expandirá\nb. incrementará\nc. desplazará hacia la izquierda\nd. mantendrá constante",
+    "label": "c",
+    "subject": "Economics"
 }
 ```
 

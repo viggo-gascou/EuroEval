@@ -706,22 +706,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Was ist die Hauptstadt von Deutschland?\nAntwortmöglichkeiten:\na. München\nb. Hamburg\nc. Berlin\nd. Frankfurt",
-  "label": "c"
+    "text": "Wann dürfen Sie in einem Tunnel Ihr Fahrzeug wenden?\nAntwortmöglichkeiten:\na. Wenn Einsatzkräfte das Wenden ausdrücklich anordnen\nb. Wenn ich aus einer Gefahrensituation flüchten möchte\nc. Wenn ich unter Zeitdruck bin und sich vor mir ein Stau gebildet hat\nd. Nur wenn ich mit meinem Fahrzeug in einem Zug umkehren kann",
+    "label": "a",
+    "subject": "Driving License"
 }
 ```
 
 ```json
 {
-  "text": "Wer schrieb den Roman 'Die Leiden des jungen Werthers'?\nAntwortmöglichkeiten:\na. Friedrich Schiller\nb. Johann Wolfgang von Goethe\nc. Heinrich Heine\nd. Gotthold Ephraim Lessing",
-  "label": "b"
+    "text": "Das Industrieland hat in einer Wirtschaftstätigkeit einen komparativen Vorteil, wenn\nAntwortmöglichkeiten:\na. in einer anderen Tätigkeit sein absoluter Vorteil größer ist.\nb. in dieser Tätigkeit sein absoluter Vorteil am größten ist.\nc. es keinen absoluten Vorteil hat.\nd. in dieser Tätigkeit sein absoluter Nachteil am geringsten ist.",
+    "label": "b",
+    "subject": "Economics"
 }
 ```
 
 ```json
 {
-  "text": "Welches Zellorganell ist für die Energieproduktion verantwortlich?\nAntwortmöglichkeiten:\na. Ribosom\nb. Chloroplast\nc. Mitochondrium\nd. Golgi-Apparat",
-  "label": "c"
+    "text": "Ein Schiff fährt mit einer geradlinigen, gleichförmigen Bewegung auf dem offenen Meer. Zu gleicher Zeit fliegt auch ein Albatros mit einer in Bezug auf das Meer geradlinigen, gleichförmigen Bewegung in der Luft. Wie bewegt sich der Albatros in Bezug auf das Schiff?\nAntwortmöglichkeiten:\na. Die Bahn des Vogels ist geradlinig, aber seine Geschwindigkeit in Bezug auf das Schiff ist nicht konstant.\nb. Abhängig vom Winkel der zwei Geschwindigkeitsvektoren kann die Bahn des Vogels sowohl krummlinig, als auch geradlinig sein und auch seine Geschwindigkeit in Bezug auf das Schiff kann veränderlich sein.\nc. Der Vogel führt in Bezug auf das Schiff eine gleichförmige, geradlinige Bewegung aus.\nd. In bestimmten Fällen kann die Bahn des Vogels in Bezug auf das Schiff auch krummlinig sein, aber seine Geschwindigkeit hat einen konstanten Betrag.",
+    "label": "c",
+    "subject": "Physics"
 }
 ```
 

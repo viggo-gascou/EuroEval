@@ -485,22 +485,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Koks yra Lietuvos sostinė?\nPasirinkimai:\na. Kaunas\nb. Klaipėda\nc. Šiauliai\nd. Vilnius",
-  "label": "d"
+    "text": "Kur, kopdami į aukščiausias kalnų viršūnes, pereitumėte daugiausia vertikaliųjų1 geografinių zonų?\nPasirinkimai:\na. Anduose Ekvadore\nb. Alpėse Vokietijoje\nc. Skandinavijos kalnuose Norvegijoje\nd. Karpatuose Slovakijoje",
+    "label": "a",
+    "subject": "Earth science"
 }
 ```
 
 ```json
 {
-  "text": "Kas parašė romaną 'Kryžkelė'?\nPasirinkimai:\na. Vincas Krėvė\nb. Jonas Biliūnas\nc. Kristijonas Donelaitis\nd. Žemaitė",
-  "label": "a"
+    "text": "Kuriame Eurazijos regione būna šalčiausios žiemos?\nPasirinkimai:\na. Šiaurės Europoje\nb. Rytų Sibire\nc. Vakarų Azijoje\nd. Rytų Europoje",
+    "label": "b",
+    "subject": "Earth science"
 }
 ```
 
 ```json
 {
-  "text": "Kuris ląstelių organelas yra atsakingas už energijos gamybą?\nPasirinkimai:\na. Ribosoma\nb. Chloroplastas\nc. Mitochondrija\nd. Golgi aparatas",
-  "label": "c"
+    "text": "Kokios yra įstatymų numatytos atsakomybės?\nPasirinkimai:\na. Pastaba, papeikimas, atleidimas iš darbo.\nb. Moralinė, religinė, ekonominė.\nc. Administracinė, drausminė, baudžiamoji, materialinė.\nd. Nematerialinė, socialinė.",
+    "label": "c",
+    "subject": "Professional certification"
 }
 ```
 

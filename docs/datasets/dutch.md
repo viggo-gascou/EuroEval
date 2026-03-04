@@ -682,22 +682,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Wat is de hoofdstad van Nederland?\nAntwoordopties:\na. Rotterdam\nb. Amsterdam\nc. Den Haag\nd. Utrecht",
-  "label": "b"
+    "text": "Je zit op kot (studentenkamer) met zes medestudenten. Omdat jullie de fietsen tegen de gevel van het huis plaatsen, zetten jullie de vuilniszakken tegen de gevel van de buurman, waar altijd plaats is. Op een morgen gebeurt dit weer. De buurman komt woedend naar buiten en hij scheldt jullie uit dat jullie grote egoïsten zijn. Welke reactie zal het conflict niet doen escaleren?\nAntwoordopties:\na. 'Sorry, we gingen er misschien te gemakkelijk van uit dat dit u niet hinderde.'\nb. 'Wie dat zegt? We hebben de voorbije maanden nooit een vriendelijk woord gekregen.'\nc. 'Wij egoïsten? Mochten er meer parkeerplaatsen zijn voor fietsen, dan was het opgelost.'\nd. 'Maak u toch niet zo druk. Het zijn maar vuilniszakken hoor, geen bompakketten.'",
+    "label": "a",
+    "subject": "Journalism, media studies, and communication"
 }
 ```
 
 ```json
 {
-  "text": "Wie schreef het boek 'De aanslag'?\nAntwoordopties:\na. Harry Mulisch\nb. W.F. Hermans\nc. Gerard Reve\nd. Maarten 't Hart",
-  "label": "a"
+    "text": "Bij de Vrede van Versailles werd besloten dat Duitsland moest demilitariseren. Welke reden voor deze demilitarisatie is juist?\nAntwoordopties:\na. Duitsland moest economisch sterker worden.\nb. Frankrijk wilde geen Duits leger aan zijn grens hebben.\nc. Het Duitse leger was na de Eerste Wereldoorlog te klein geworden.\nd. Het Franse leger moest even sterk zijn als het Duitse leger.",
+    "label": "b",
+    "subject": "History"
 }
 ```
 
 ```json
 {
-  "text": "Welk organel in de cel is verantwoordelijk voor de productie van energie?\nAntwoordopties:\na. Ribosoom\nb. Chloroplast\nc. Mitochondrie\nd. Golgi-apparaat",
-  "label": "c"
+    "text": "In welke productiesector werkt een tandarts?\nAntwoordopties:\na. in de primaire sector\nb. in de secundaire sector\nc. in de tertiaire sector\nd. in de quartaire sector",
+    "label": "c",
+    "subject": "Economics"
 }
 ```
 

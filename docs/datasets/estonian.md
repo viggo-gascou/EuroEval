@@ -624,22 +624,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Mis on Eesti pealinn?\nVastusevariandid:\na. Tartu\nb. Tallinn\nc. Pärnu\nd. Narva",
-  "label": "b"
+    "text": "Mis ülesandeid täidavad taimeorganid?  Seob taimeorganid ühtseks tervikuks\nVastusevariandid:\na. Vars\nb. Juur\nc. Leht\nd. Õis",
+    "label": "a",
+    "subject": "Biology"
 }
 ```
 
 ```json
 {
-  "text": "Kes kirjutas romaani 'Tõde ja õigus'?\nVastusevariandid:\na. Juhan Liiv\nb. Eduard Vilde\nc. Anton Hansen Tammsaare\nd. Lydia Koidula",
-  "label": "c"
+    "text": "Vabariigi Valitsuse liikmed nimetab ametisse:\nVastusevariandid:\na. Riigikogu\nb. Vabariigi President\nc. õiguskantsler\nd. Riigikohus",
+    "label": "b",
+    "subject": "Public Administration"
 }
 ```
 
 ```json
 {
-  "text": "Milline rakuorganel vastutab energia tootmise eest?\nVastusevariandid:\na. Ribosoom\nb. Kloroplast\nc. Golgi aparaat\nd. Mitokonder",
-  "label": "d"
+    "text": "Vasta küsimustele.  Milline toodud väidetest iseloomustab kiltmaad?\nVastusevariandid:\na. Tasandik, kus madalikud vahelduvad kõrgustikega.\nb. Paikneb peamiselt mere või suure jõe ääres.\nc. Asub merepinnast kõrgemal kui 500 m.\nd. Tasandik, mille absoluutne kõrgus on kuni 200 m.",
+    "label": "c",
+    "subject": "Geography"
 }
 ```
 

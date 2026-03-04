@@ -652,22 +652,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Qual è la capitale d'Italia?\nScelte:\na. Milano\nb. Napoli\nc. Roma\nd. Torino",
-  "label": "c"
+    "text": "Quale dei seguenti processi fisiologici distingue i vegetali dagli animali?\nScelte:\na. Fotosintesi\nb. Assorbimento di sostanze nutritive esogene\nc. Metabolismo anaerobico\nd. Fermentazione",
+    "label": "a",
+    "subject": "Medicine"
 }
 ```
 
 ```json
 {
-  "text": "Chi ha scritto il romanzo 'I promessi sposi'?\nScelte:\na. Giacomo Leopardi\nb. Alessandro Manzoni\nc. Dante Alighieri\nd. Giovanni Boccaccio",
-  "label": "b"
+    "text": "Kojoj religiji pripada učenje o četirima plemenitim istinama i osmerostrukome putu oslobođenja od patnje?\nScelte:\na. kršćanstvu\nb. budizmu\nc. islamu\nd. židovstvu",
+    "label": "b",
+    "subject": "Philosophy"
 }
 ```
 
 ```json
 {
-  "text": "Quale organello cellulare è responsabile della produzione di energia?\nScelte:\na. Ribosoma\nb. Cloroplasto\nc. Apparato di Golgi\nd. Mitocondrio",
-  "label": "d"
+    "text": "Conclusione, interpretazione e adempimento del contratto - Adempimento del contratto   Può il creditore rifiutare l'adempimento parziale di una prestazione pecuniaria divisibile?\nScelte:\na. No, a meno che la prestazione principale sia eseguita con gli interessi e la rivalutazione monetaria\nb. No, se si oppone il coniuge del creditore in regime di comunione legale\nc. Sì, salvo che la legge e gli usi dispongano diversamente\nd. No, mai",
+    "label": "c",
+    "subject": "Professional certification"
 }
 ```
 

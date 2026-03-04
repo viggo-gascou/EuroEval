@@ -494,22 +494,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Jaka jest stolica Polski?\nOpcje:\na. Kraków\nb. Gdańsk\nc. Wrocław\nd. Warszawa",
-  "label": "d"
+    "text": "Proces tłumaczenia kodu źródłowego pisanego przez programistę na zrozumiały dla komputera kod maszynowy to\nOpcje:\na. kompilowanie.\nb. debugowanie.\nc. uruchamianie.\nd. implementowanie.",
+    "label": "a",
+    "subject": "Professional certification"
 }
 ```
 
 ```json
 {
-  "text": "Kto napisał powieść 'Pan Tadeusz'?\nOpcje:\na. Henryk Sienkiewicz\nb. Bolesław Prus\nc. Adam Mickiewicz\nd. Juliusz Słowacki",
-  "label": "c"
+    "text": "Dane są punkty 𝐾 = (−3, −7) oraz 𝑆 = (5, 3). Punkt 𝑆 jest środkiem odcinka 𝐾𝐿. Wtedy punkt 𝐿 ma współrzędne\nOpcje:\na. (13, 10)\nb. (13, 13)\nc. (1, −2)\nd. (7, −1)",
+    "label": "b",
+    "subject": "Math"
 }
 ```
 
 ```json
 {
-  "text": "Który organellum komórkowe jest odpowiedzialne za produkcję energii?\nOpcje:\na. Rybosom\nb. Chloroplast\nc. Mitochondrium\nd. Aparat Golgiego",
-  "label": "c"
+    "text": "Przepisy konstytucji jednego z państw Art. 9. Prezydent […] przewodniczy Radzie Ministrów. Art. 21. Premier kieruje działalnością Rządu. […] Art. 24.1. Parlament uchwala ustawy. Kontroluje działalność Rządu.  Ocenia jego politykę. 2. Parlament składa się ze Zgromadzenia Narodowego i Senatu. 3. Deputowani do Zgromadzenia Narodowego […] są wybierani w wyborach bezpośrednich. 4. Senat […] wybierany jest w wyborach pośrednich. […] Art. 39.1. Inicjatywa ustawodawcza przysługuje zarówno Premierowi, jak i członkom Parlamentu. 2. Rządowe projekty ustaw są rozpatrywane przez Radę Ministrów […] i wnoszone do prezydium jednej z izb. […] Art. 45.1. Każdy rządowy lub parlamentarny projekt ustawy jest rozpatrywany kolejno przez obie izby Parlamentu w celu przyjęcia tekstu w tym samym brzmieniu. […] biblioteka.sejm.gov.pl (tekst uwzględniający zmiany z 23 lipca 2008 r.). Zaznacz nazwę państwa, z którego ustawy zasadniczej pochodzą przytoczone przepisy prawne.\nOpcje:\na. Republika Włoska\nb. Federacja Rosyjska\nc. Republika Francuska\nd. Stany Zjednoczone Ameryki",
+    "label": "c",
+    "subject": "Sociology"
 }
 ```
 

@@ -398,22 +398,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Cila është kryeqyteti i Shqipërisë?\nOpsione:\na. Shkodra\nb. Durrësi\nc. Tirana\nd. Vlora",
-  "label": "c"
+    "text": "Në cilë teori sociologjike pohohet se stratifikimi është i arsyeshëm dhe i pashmangshëm dhe se kontribuon për barazpeshë në shoqëri?\nOpsione:\na. Teorinë funksionaliste.\nb. Teorinë e konflikteve.\nc. Teorinë Marksiste.\nd. Teorinë e Maks Veberit.",
+    "label": "a",
+    "subject": "Sociology"
 }
 ```
 
 ```json
 {
-  "text": "Kush ishte autori i veprës 'Gjarpërinjtë e gjakut'?\nOpsione:\na. Ismail Kadare\nb. Naim Frashëri\nc. Gjergj Fishta\nd. Fan Noli",
-  "label": "a"
+    "text": "Cilët janë stilet kryesore të menaxhmentit?\nOpsione:\na. autoritar, demokratik dhe „qetësi në shtëpi“.\nb. autoritar, demokratik, fleksibil.\nc. Totalitar, demokratik, fleksibil.\nd. autoritar, fleksibil dhe „qetësi në shtëpi“.",
+    "label": "b",
+    "subject": "Business"
 }
 ```
 
 ```json
 {
-  "text": "Cila nga organelet e mëposhtme të qelizës është përgjegjëse për prodhimin e energjisë?\nOpsione:\na. Kloroplasti\nb. Mitokondria\nc. Ribozomi\nd. Aparati i Golxhit",
-  "label": "b"
+    "text": "Në cilën periudhë mbisundon kuptimi që bukuria ka prejardhje hyjnore?\nOpsione:\na. periudhën antike.\nb. post modernizëm.\nc. mesjetë.\nd. klasicizëm.",
+    "label": "c",
+    "subject": "Visual Arts"
 }
 ```
 

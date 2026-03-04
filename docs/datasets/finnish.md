@@ -483,22 +483,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Mikä on Suomen pääkaupunki?\nVastausvaihtoehdot:\na. Turku\nb. Tampere\nc. Helsinki\nd. Oulu",
-  "label": "c"
+    "text": "Miten hermoimpulssin aikana tapahtuva K+-kanavien aukeaminen vaikuttaa hermosolun toimintaan?\nVastausvaihtoehdot:\na. Lepojännitteen palautuminen nopeutuu.\nb. Hermosolukalvon sähkönjohtavuus vähenee.\nc. Välittäjäaineen vapautuminen lisääntyy.\nd. Hermoimpulssin kesto pitenee.",
+    "label": "a",
+    "subject": "Medicine"
 }
 ```
 
 ```json
 {
-  "text": "Kuka kirjoitti romaanin 'Seitsemän veljestä'?\nVastausvaihtoehdot:\na. Zacharias Topelius\nb. Aleksis Kivi\nc. Väinö Linna\nd. Mika Waltari",
-  "label": "b"
+    "text": "Mikä vaihtoehdoista ei kuulu hyvin toimivien markkinoiden synnyttämiin hyötyihin?\nVastausvaihtoehdot:\na. Hyvin toimivat markkinat mahdollistavat erikoistumisen.\nb. Hyvin toimivat markkinat takaavat että tulot jakautuvat oikeudenmukaisesti.\nc. Hyvin toimivat markkinat mahdollistavat skaalaetujen hyödyntämisen.\nd. Hyvin toimivat markkinat takaavat että resurssit kohdentuvat sinne missä ne tuottavat parhaiten.",
+    "label": "b",
+    "subject": "Economics"
 }
 ```
 
 ```json
 {
-  "text": "Mikä soluorganelli on vastuussa energian tuotannosta?\nVastausvaihtoehdot:\na. Ribosomi\nb. Kloroplasti\nc. Mitokondriot\nd. Golgin laite",
-  "label": "c"
+    "text": "Eräs professori totesi sijoittamisesta Viisas Raha -lehdessä 27.6.2023: ”Hajauttamisen laajuuteen vaikuttavat ennen kaikkea sijoittajan ikä ja riskinkantokyky. Mitä nuorempi henkilö ja pidempi sijoitushorisontti on kyseessä, sitä isommalla painolla voi olla mukana osakemarkkinoilla. Kun ikää tulee lisää, saattavat korkosijoitukset houkutella enemmän.” Mikä seuraavista väittämistä pitää paikkansa?\nVastausvaihtoehdot:\na. Hajauttamisella viitataan usein sanontaan laita kaikki munat samaan koriin. Maailman varakkaimmat henkilöt ovat tehneet juuri näin ja sen avulla luoneet suuria omaisuuksia.\nb. Perinteisten sijoitusperiaatteiden mukaan sijoitussalkun suhteellista riskiä kannattaa kasvattaa sijoittajan iän karttuessa. Selityksenä tähän on se, että palkka ja eläke yleensä nousevat iän myötä.\nc. Korkosijoituksia ovat esimerkiksi määräaikaiset talletukset, rahamarkkinarahastot ja obligaatiot. Riskiä pohtiessa kannattaa huomioida, että jo liikkeeseen lasketun kiinteäkorkoisen obligaation arvo laskee, jos korkotaso nousee.\nd. Riskinkantokyvyllä tarkoitetaan samaa kuin riskihalukkuudella. Mitä korkeampi riski, sitä korkeampi toteutunut tuotto.",
+    "label": "c",
+    "subject": "Economics"
 }
 ```
 

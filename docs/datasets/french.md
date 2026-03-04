@@ -568,22 +568,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Quelle est la capitale de la France?\nChoix:\na. Lyon\nb. Marseille\nc. Paris\nd. Bordeaux",
-  "label": "c"
+    "text": "Qui est le dernier Président de la IVème République ?\nChoix:\na. René Coty\nb. Félix Gaillard\nc. Charles de Gaulle\nd. Alain Poher",
+    "label": "a",
+    "subject": "History"
 }
 ```
 
 ```json
 {
-  "text": "Qui a écrit le roman 'Les Misérables'?\nChoix:\na. Honoré de Balzac\nb. Victor Hugo\nc. Gustave Flaubert\nd. Émile Zola",
-  "label": "b"
+    "text": "Qui a réalisé le film « Léon » ?\nChoix:\na. Costa-Gavras\nb. Luc Besson\nc. Martin Scorsese\nd. Steven Spielberg",
+    "label": "b",
+    "subject": "Culturology"
 }
 ```
 
 ```json
 {
-  "text": "Quel organite cellulaire est responsable de la production d'énergie?\nChoix:\na. Ribosome\nb. Chloroplaste\nc. Appareil de Golgi\nd. Mitochondrie",
-  "label": "d"
+    "text": "Pour consulter mon solde de points, je me rends sur le site internet :\nChoix:\na. Allopoints.\nb. Info-point.\nc. Telepoint.\nd. Point-permis.",
+    "label": "c",
+    "subject": "Driving License"
 }
 ```
 

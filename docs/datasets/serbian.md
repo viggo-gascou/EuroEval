@@ -394,22 +394,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Koji je glavni grad Srbije?\nOpcije:\na. Novi Sad\nb. Niš\nc. Kragujevac\nd. Beograd",
-  "label": "d"
+    "text": "Које се од наведених понашања уобичајено појављује на крају сензомоторичке фазе?\nOpcije:\na. Дете брише мрље од чоколаде с лица када у огледалу види трагове чоколаде.\nb. Дете се користи кухачом као мачем којим напада замишљене непријатеље.\nc. Дете зна да количина сока остаје иста без обзира на облик чаше.\nd. Дете игра улогу маме па лутку води у шетњу и пева јој.",
+    "label": "a",
+    "subject": "Psychology"
 }
 ```
 
 ```json
 {
-  "text": "Ko je napisao roman 'Na Drini ćuprija'?\nOpcije:\na. Branko Ćopić\nb. Mesa Selimović\nc. Ivo Andrić\nd. Dobrica Ćosić",
-  "label": "c"
+    "text": "Која од наведених супстанци није елементарна супстанца?\nOpcije:\na. арсен\nb. амалгам\nc. астат\nd. америциј",
+    "label": "b",
+    "subject": "Chemistry"
 }
 ```
 
 ```json
 {
-  "text": "Koji ćelijski organoid je odgovoran za proizvodnju energije?\nOpcije:\na. Ribosom\nb. Hloroplast\nc. Golgijev aparat\nd. Mitohondrija",
-  "label": "d"
+    "text": "Како се назива облик агресије којим се користи ученик који виче на свога пријатеља након што га је наставник неправедно оценио?\nOpcije:\na. физичка агресија\nb. директна агресија\nc. помакнута агресија\nd. пасивна агресија",
+    "label": "c",
+    "subject": "Psychology"
 }
 ```
 

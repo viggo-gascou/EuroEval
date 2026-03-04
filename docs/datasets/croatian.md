@@ -400,22 +400,25 @@ Here are a few examples from the dataset:
 
 ```json
 {
-  "text": "Koji je glavni grad Hrvatske?\nIzbori:\na. Split\nb. Rijeka\nc. Zagreb\nd. Osijek",
-  "label": "c"
+    "text": "U čemu se prema Ludwigu Wittgensteinu otkriva značenje riječi?\nIzbori:\na. u kritici metafizike\nb. u idealnome jeziku\nc. u upotrebi riječi\nd. u prinudnoj šutnji",
+    "label": "a",
+    "subject": "Philosophy"
 }
 ```
 
 ```json
 {
-  "text": "Tko je napisao roman 'Na rubu pameti'?\nIzbori:\na. Miroslav Krleža\nb. Antun Gustav Matoš\nc. Tin Ujević\nd. Silvije Strahimir Kranjčević",
-  "label": "a"
+    "text": "Na koji od navedenih uzročnika bolesti antibiotici neće djelovati?\nIzbori:\na. na Salmonella typhi\nb. na Herpes simplex\nc. na Streptococcus mutans\nd. na Escherichia coli",
+    "label": "b",
+    "subject": "Biology"
 }
 ```
 
 ```json
 {
-  "text": "Koja organela u stanici je odgovorna za proizvodnju energije?\nIzbori:\na. Ribosomi\nb. Kloroplasti\nc. Golgijeva tijela\nd. Mitohondriji",
-  "label": "d"
+    "text": "Koje vrste veza prevladavaju između molekula metana?\nIzbori:\na. kovalentne\nb. vodikove\nc. van der Waalsove\nd. peptidne",
+    "label": "c",
+    "subject": "Chemistry"
 }
 ```
 
