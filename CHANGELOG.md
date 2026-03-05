@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   This was added by @harderj ✨
 - Added the new Danish linguistic acceptability dataset DaLA. It's marked as
   unofficial for now. This was added by @N-essuno ✨
+- Added the Norwegian summarisation datasets NorSumm-nb and NorSumm-nn, based on the
+  [NorSumm dataset](https://github.com/SamiaTouileb/NorSumm). The splits are given by
+  8 samples for train and the remaining articles for test, with no validation split.
+  Both datasets are marked as `unofficial` for now.
 - Added the Norwegian dialect classification dataset NorDial. The split is given
   by 848 / 106 / 110 samples for train / val / test, respectively. It is marked
   as `unofficial` for now.
