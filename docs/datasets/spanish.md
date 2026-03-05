@@ -762,15 +762,24 @@ validation, and the rest for testing.
 Here are a few examples from the training split:
 
 ```json
-
+{
+    "text": "Estaba limpiando mi clóset y que me aparece una cajita allá escondida detrás de los suéteres. Con sorpresa vi que era una colección de timbres postales que empecé a juntar cuando era adolescente y ni me acordaba. Había unas estampillas emitidas a mediados de 1986 en México: 10 de color rojo oscuro, 8 de color verde oscuro y 5 de color azul marino. De acuerdo a los valores con que fueron emitidos, ¿cuántos centavos de antaño tengo en estampillas?\nOpciones:\na. 76 centavos.\nb. 82 centavos.\nc. 68 centavos.\nd. 91 centavos.",
+    "label": "a"
+}
 ```
 
 ```json
-
+{
+    "text": "Mi bisabuelo nació en 1910, un día después que cumplía año el que era presidente de Venezuela, cuando se disolvió el Gran Estado Falcón Zulia. ¿Podrías decirme que día era el cumpleaños de mi bisabuelo?\nOpciones:\na. 22 de enero\nb. 7 de febrero\nc. 15 de abril\nd. 3 de marzo",
+    "label": "b"
+}
 ```
 
 ```json
-
+{
+    "text": "Lupita le pidió un paro a Manuel, que le prestará 3 000 baros. Él le dijo que andaba bruja, pero que vería si en la tienda de sus abuelos había algo de baro, que ya después vería como lo jineteaba. Manuel reviso y encontró 10 de los del ajolote, pero también 7 Sor Juanas y en morralla nada. Al final ¿Cuánto dinero le presto Manuel a Lupita?\nOpciones:\na. 1 700 pesos\nb. 2 000 pesos\nc. 1 900 pesos\nd. 1 300 pesos",
+    "label": "c"
+}
 ```
 
 When evaluating generative models, we use the following setup (see the

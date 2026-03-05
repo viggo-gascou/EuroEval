@@ -700,15 +700,24 @@ validation, and the rest for testing.
 Here are a few examples from the training split:
 
 ```json
-
+{
+    "text": "Mon premier est la même première lettre de l'alphabet d'un fruit royal. Mon deuxième se prononce comme le liquide indispensable au corps humain. Mon troisième est une lettre qui se prononce comme le mot qui est l'inverse du mot amour. Mon tout est quelque chose qui nous réjouit.\nChoix:\na. Don.\nb. Jouet\nc. Rire\nd. Roi",
+    "label": "a"
+}
 ```
 
 ```json
-
+{
+    "text": "Mon frère souhaite célébrer la Saint Jean avec la famille de sa copine cette année. Il va passer son permis juste après la pentecôte et a 17 ans. Pourra-t-il conduire seul pour y aller?\nChoix:\na. Non, il doit attendre d'avoir 18 ans pour conduire seul.\nb. Oui, si il réussi l'examen du permis de conduire.\nc. Non, il doit obligatoirement être accompagné d'un adulte jusqu'à ses 21 ans.\nd. Oui, il pourra conduire seul, même sans passer l'examen du permis de conduire.",
+    "label": "b"
+}
 ```
 
 ```json
-
+{
+    "text": "Si mon premier, ambulant, fait peur, mon second est, lui, délicieux, et mon tout boira le vin nouveau. Qui suis-je ?\nChoix:\na. squelette vineux\nb. fantôme gourmand\nc. cadavre exquis\nd. zombie friand",
+    "label": "c"
+}
 ```
 
 When evaluating generative models, we use the following setup (see the
