@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   knowledge dataset for 17 languages: Albanian, Bulgarian, Croatian, Dutch, Estonian,
   Finnish, French, German, Greek, Hungarian, Italian, Lithuanian, Polish, Portuguese,
   Serbian, Spanish, and Ukrainian. All are marked as unofficial for now.
+- Added the new Danish Sentiment in Context dataset, part of the [Danish Semantic
+  Reasoning Benchmark](https://github.com/kuhumcst/danish-semantic-reasoning-benchmark).
+  It measures the sentiment of individual words in context (ID is
+  `danish-sentiment-in-context`). It's marked as unofficial for now.
 - Failed generative model instances are now tracked and included in
   `euroeval_benchmark_results.jsonl`.
 - Added `--max-context-length` and `--vocabulary-size` CLI options (and corresponding
