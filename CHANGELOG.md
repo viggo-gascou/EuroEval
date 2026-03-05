@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   This was added by @harderj ✨
 - Added the new Danish linguistic acceptability dataset DaLA. It's marked as
   unofficial for now. This was added by @N-essuno ✨
+- Added the Greek knowledge dataset GreekMMLU. The split is
+  given by 1,024 / 256 / 2,048 samples for train / val / test, respectively.
+  It is marked as `unofficial` for now.
 - Added the MultiLoKo multilingual local knowledge benchmark datasets for Dutch,
   English, French, German, Italian, Portuguese, Spanish and Swedish. All datasets
   are marked as `unofficial` for now.
