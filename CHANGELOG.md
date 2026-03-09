@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   This was added by @harderj ✨
 - Added the new Danish linguistic acceptability dataset DaLA. It's marked as
   unofficial for now. This was added by @N-essuno ✨
+- It is now possible to benchmark datasets on the Hugging Face Hub using the `eval.yaml`
+  configuration files, fully compatible with the Inspect AI format.
 - Added the Norwegian summarisation datasets NorSumm-nb and NorSumm-nn, based on the
   [NorSumm dataset](https://github.com/SamiaTouileb/NorSumm). The splits are given by
   8 samples for train and the remaining articles for test, with no validation split.
