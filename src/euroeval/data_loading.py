@@ -77,6 +77,7 @@ def load_data(
     # If we are testing then truncate the test set, unless we need the full set for
     # evaluation
     if hasattr(sys, "_called_from_test") and dataset_config.task != EUROPEAN_VALUES:
+        # Truncate test set to one sample for testing
         dataset["test"] = dataset["test"].select(range(1))  # type: ignore[unsupported-operation]
 
     # Bootstrap the splits, if applicable

@@ -62,8 +62,10 @@ def compute_metrics(
         model_outputs = model_outputs[0]
 
     predictions: list[list[str]]
-    if not isinstance(model_outputs[0][0], str):  # type: ignore[bad-index]
-        raw_predictions: list[list[int]] = np.argmax(model_outputs, axis=-1).tolist()  # type: ignore[no-matching-overload]
+    # type: ignore[bad-index]
+    if not isinstance(model_outputs[0][0], str):
+        # type: ignore[no-matching-overload]
+        raw_predictions: list[list[int]] = np.argmax(model_outputs, axis=-1).tolist()
 
         # Remove ignored index (special tokens)
         predictions = [

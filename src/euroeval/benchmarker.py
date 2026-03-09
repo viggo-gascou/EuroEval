@@ -441,9 +441,9 @@ class Benchmarker:
                 when initialising the benchmarker.
             language:
                 The language codes of the languages to include, both for models and
-                datasets. Here 'no' means both Bokmål (nb) and Nynorsk (nn). Set this to
-                'all' if all languages should be considered. Defaults to the value
-                specified when initialising the benchmarker.
+                datasets. Here 'no' means both Bokmål (nb) and Nynorsk (nn).
+                Set this to 'all' if all languages should be considered.
+                Defaults to the value specified when initialising the benchmarker.
             device:
                 The device to use for benchmarking. Defaults to the value specified when
                 initialising the benchmarker.
