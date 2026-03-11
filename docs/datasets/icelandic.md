@@ -1383,3 +1383,126 @@ You can evaluate this dataset directly as follows:
 ```bash
 euroeval --model <model-id> --dataset valeu-is
 ```
+
+## Grammatical Error Detection
+
+### Unofficial: GerLangMod-is
+
+This dataset is based on the [GerLangMod](https://github.com/noahmanu/gerlangmod)
+collection and derived from the Icelandic Universal Dependencies treebank. Assuming UD
+annotations are accurate and sentences are well-formed, the dataset contains permuted
+versions of these UD sentences where half of the verbs have been misplaced within their
+phrase boundaries. Noun-headed groups of tokens are treated as impermeable units so
+misplaced verbs cannot split them up, and no verb can be placed in the first position of
+the first phrase of each sentence to avoid creating correct polar question syntax.
+
+The original dataset consists of 51,450 samples derived from the
+[UD_Icelandic-IcePaHC](https://github.com/UniversalDependencies/UD_Icelandic-IcePaHC),
+[UD_Icelandic-GC](https://github.com/UniversalDependencies/UD_Icelandic-GC),
+[UD_Icelandic-Modern](https://github.com/UniversalDependencies/UD_Icelandic-Modern) and
+[UD_Icelandic-PUD](https://github.com/UniversalDependencies/UD_Icelandic-PUD) treebanks.
+We use a sample of 1,024 / 256 / 2,048 of these for training, validation and testing,
+respectively.
+
+Here are a few examples from the training split:
+
+```json
+{
+    "tokens": [
+        "þeirra",
+        "hét",
+        "annar",
+        "kleofas",
+        "en",
+        "annar",
+        "hyggja",
+        "menn",
+        "að",
+        "verið",
+        "hafi",
+        "lúkas",
+        "guðspjallamaður"
+    ],
+    "labels": [
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O"
+    ]
+}
+```
+
+```json
+{
+    "tokens": [
+        "sá",
+        "réttlátur",
+        "og",
+        "siðsamur",
+        "og",
+        "heilagur",
+        "andi",
+        "með",
+        "honum",
+        "var",
+        "var"
+    ],
+    "labels": [
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "O",
+        "B-ERR",
+        "I-ERR"
+    ]
+}
+```
+
+When evaluating generative models, we use the following setup (see the
+[methodology](/methodology) for more information on how these are used):
+
+- Number of few-shot examples: 8
+- Prefix prompt:
+
+  ```text
+  Hér fyrir neðan eru setningar og JSON orðabækur með málfræðilegum villum sem koma fyrir í viðkomandi setningu.
+  ```
+
+- Base prompt template:
+
+  ```text
+  Setning: {text}
+  Málfræðilegar villur: {label}
+  ```
+
+- Instruction-tuned prompt template:
+
+  ```text
+  Setning: {text}
+
+  Finndu málfræðilegar villur í setningunni. Þú átt að prenta þetta sem JSON orðabók með lyklinum 'villa'. Gildið á að vera listi yfir rangt staðsett orð, nákvæmlega eins og þau koma fyrir í setningunni.
+  ```
+
+- Label mapping:
+  - `B-ERR` ➡️ `villa`
+  - `I-ERR` ➡️ `villa`
+
+You can evaluate this dataset directly as follows:
+
+```bash
+euroeval --model <model-id> --dataset gerlangmod-is
+```

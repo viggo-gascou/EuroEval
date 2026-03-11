@@ -2,7 +2,18 @@
 
 from ..data_models import DatasetConfig
 from ..languages import ICELANDIC
-from ..tasks import COMMON_SENSE, EUROPEAN_VALUES, KNOW, LA, MCRC, NER, RC, SENT, SUMM
+from ..tasks import (
+    COMMON_SENSE,
+    EUROPEAN_VALUES,
+    GED,
+    KNOW,
+    LA,
+    MCRC,
+    NER,
+    RC,
+    SENT,
+    SUMM,
+)
 
 # Official datasets ###
 
@@ -177,4 +188,13 @@ ICELANDIC_MATH_TESTS_CONFIG = DatasetConfig(
     languages=[ICELANDIC],
     unofficial=True,
     val_split=None,
+)
+
+GERLANGMOD_IS_CONFIG = DatasetConfig(
+    name="gerlangmod-is",
+    pretty_name="GerLangMod-is",
+    source="EuroEval/gerlangmod-is",
+    task=GED,
+    languages=[ICELANDIC],
+    unofficial=True,
 )

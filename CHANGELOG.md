@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   new format structures results into standardised sections (`source_metadata`,
   `model_info`, `eval_library`, `evaluation_results`) and supports lossless round-trips
   via `BenchmarkResult.from_dict()`.
+- - Added the new grammatical error detection task and the Germanic Verb Placement Error
+  Detection datasets for Danish (`gerlangmod-da`), Dutch (`gerlangmod-nl`), Faroese
+  (`gerlangmod-fo`), German (`gerlangmod-de`), Icelandic (`gerlangmod-is`), Norwegian
+  Bokmål (`gerlangmod-nb`), Norwegian Nynorsk (`gerlangmod-nn`), and Swedish
+  (`gerlangmod-sv`), based on the
+  [GerLangMod](https://github.com/noahmanu/gerlangmod) collection. All datasets are
+  marked as unofficial for now.
 - Added the Italian Word-in-Context dataset WiC-ITA, from
   [Evalita 2023](https://www.evalita.it/campaigns/evalita-2023/). The train and
   validation splits (1,024 / 256 samples) are sampled from the original training split,
