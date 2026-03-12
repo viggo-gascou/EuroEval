@@ -1766,7 +1766,11 @@ class LiteLLMModel(BenchmarkModule):
             # case we want to mark the model as a reasoning model.
             if successes and self.generative_type != GenerativeType.REASONING:
                 _, successful_content = successes[0]
-                if successful_content.choices[0].message.reasoning_content is not None:
+                successful_message = successful_content.choices[0].message
+                if (
+                    hasattr(successful_message, "reasoning_content")
+                    and successful_message.reasoning_content is not None
+                ):
                     self.buffer["uses_reasoning_content"] = True
                     generation_kwargs["max_completion_tokens"] = REASONING_MAX_TOKENS
                     generation_kwargs.pop("response_format", None)
