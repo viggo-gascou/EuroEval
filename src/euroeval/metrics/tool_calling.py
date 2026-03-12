@@ -56,11 +56,6 @@ class ToolCallingAccuracy(Metric):
             return sum(results) / len(results)
 
 
-tool_calling_metric = ToolCallingAccuracy(
-    name="tool_calling_accuracy", pretty_name="Tool Calling Accuracy"
-)
-
-
 def _evaluate_function_toolcall_response(
     pred_calls_str: str, ref_calls_str: str, descriptions: list[dict]
 ) -> bool:
@@ -138,3 +133,8 @@ def _evaluate_function_toolcall_response(
             if key not in pred_args or pred_args[key] not in values:
                 return False
     return True
+
+
+tool_calling_accuracy = ToolCallingAccuracy(
+    name="tool_calling_accuracy", pretty_name="Tool Calling Accuracy"
+)
