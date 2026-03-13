@@ -642,14 +642,18 @@ When evaluating generative models, we use the following setup (see the
 - Base prompt template:
 
   ```text
-  {text}
+  Ord: {target}
+  Kontekst 1: {first_context}
+  Kontekst 2: {second_context}
   Samme betydning: {label}
   ```
 
 - Instruction-tuned prompt template:
 
   ```text
-  {text}
+  Ord: {target}
+  Kontekst 1: {first_context}
+  Kontekst 2: {second_context}
 
   Har ordet den samme betydning i de to kontekster? Svar kun med 'ja' eller 'nej', og intet andet.
   ```
