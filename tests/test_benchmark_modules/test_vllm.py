@@ -237,26 +237,14 @@ class TestLoadModelMaxModelLen:
                 MAX_CONTEXT_LENGTH + REASONING_MAX_TOKENS + 1_000,
                 MAX_CONTEXT_LENGTH + REASONING_MAX_TOKENS,
             ),
-            (
-                GenerativeType.REASONING,
-                100,
-                100,
-            ),
+            (GenerativeType.REASONING, 100, 100),
             (
                 GenerativeType.INSTRUCTION_TUNED,
                 MAX_CONTEXT_LENGTH + 1_000,
                 MAX_CONTEXT_LENGTH,
             ),
-            (
-                GenerativeType.INSTRUCTION_TUNED,
-                100,
-                100,
-            ),
-            (
-                GenerativeType.BASE,
-                MAX_CONTEXT_LENGTH + 1_000,
-                MAX_CONTEXT_LENGTH,
-            ),
+            (GenerativeType.INSTRUCTION_TUNED, 100, 100),
+            (GenerativeType.BASE, MAX_CONTEXT_LENGTH + 1_000, MAX_CONTEXT_LENGTH),
         ],
         ids=[
             "reasoning_model_large_context",
