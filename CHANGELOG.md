@@ -65,6 +65,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   `bos_token = None` (e.g., `Qwen/Qwen3.5-2B`). The prompt truncation logic for
   instruction-tuned and reasoning models now guards the `str.replace()` call with a
   `None` check.
+- Removed the `save_safetensors` argument when initialising `TrainingArguments` in
+  `finetuning.py`, as this has been removed from `transformers` and thus causes an error
+  if set.
 
 ### Removed
 
