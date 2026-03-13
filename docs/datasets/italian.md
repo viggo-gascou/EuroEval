@@ -1277,14 +1277,18 @@ When evaluating generative models, we use the following setup (see the
 - Base prompt template:
 
   ```text
-  {text}
+  Parola: {target}
+  Contesto 1: {first_context}
+  Contesto 2: {second_context}
   Stesso significato: {label}
   ```
 
 - Instruction-tuned prompt template:
 
   ```text
-  {text}
+  Parola: {target}
+  Contesto 1: {first_context}
+  Contesto 2: {second_context}
 
   La parola ha lo stesso significato in entrambi i contesti? Rispondere con 'sì' o 'no', e nient'altro.
   ```

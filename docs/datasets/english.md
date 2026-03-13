@@ -284,14 +284,18 @@ When evaluating generative models, we use the following setup (see the
 - Base prompt template:
 
   ```text
-  {text}
+  Word: {target}
+  Context 1: {first_context}
+  Context 2: {second_context}
   Same meaning: {label}
   ```
 
 - Instruction-tuned prompt template:
 
   ```text
-  {text}
+  Word: {target}
+  Context 1: {first_context}
+  Context 2: {second_context}
 
   Does the word have the same meaning in both contexts? Answer with 'yes' or 'no', and nothing else.
   ```
