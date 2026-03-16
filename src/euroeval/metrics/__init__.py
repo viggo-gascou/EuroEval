@@ -3,6 +3,7 @@
 from .bias import *  # noqa: F403
 from .huggingface import *  # noqa: F403
 from .ifeval import *  # noqa: F403
+from .language_detection import *  # noqa: F403
 from .llm_as_a_judge import *  # noqa: F403
 from .pipeline import *  # noqa: F403
 from .sacrebleu import *  # noqa: F403
