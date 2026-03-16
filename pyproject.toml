@@ -50,9 +50,9 @@ dependencies = [
 [project.optional-dependencies]
 generative = [
     "timm>=1.0.19",
-    # vLLM setup for MacOS
-    "vllm==0.11.0; platform_system == 'Darwin'",
-    "vllm-metal>=0.1.0; platform_system == 'Darwin'",
+    # vLLM setup for MacOS (versions specified below in sources)
+    "vllm; platform_system == 'Darwin'",
+    "vllm-metal; platform_system == 'Darwin'",
     # vLLM setup for Linux (assuming CUDA is available here)
     "bitsandbytes>=0.43.1; platform_system == 'Linux'",
     "vllm[flashinfer]>=0.14.1; platform_system == 'Linux'",
@@ -61,14 +61,31 @@ generative = [
 ]
 all = [
     "timm>=1.0.19",
-    # vLLM setup for MacOS
-    "vllm==0.11.0; platform_system == 'Darwin'",
-    "vllm-metal>=0.1.0; platform_system == 'Darwin'",
+    # vLLM setup for MacOS (versions specified below in sources)
+    "vllm; platform_system == 'Darwin'",
+    "vllm-metal; platform_system == 'Darwin'",
     # vLLM setup for Linux (assuming CUDA is available here)
     "bitsandbytes>=0.43.1; platform_system == 'Linux'",
     "vllm[flashinfer]>=0.14.1; platform_system == 'Linux'",
     "ray>=2.53.0; platform_system == 'Linux'",
     "fbgemm-gpu>=1.0.0; platform_system == 'Linux'",
+]
+
+[tool.uv.sources]
+# PyPi releases seem to be lagging behind, so we use git sources directly
+vllm-metal = { git = "https://github.com/vllm-project/vllm-metal.git", marker = "platform_system == 'Darwin'" }
+# vLLM has no official wheels for macos arm64 and flashinfer is a default dep from 0.12.0 (which seems to only be x86_64 + cuda)
+vllm = { git = "https://github.com/vllm-project/vllm.git", tag = "v0.14.1", marker = "platform_system == 'Darwin'" }
+
+[tool.uv]
+environments = [
+  # Only support arm64 macos (dont try to resolve darwin + x86_64 or any other platforms)
+  # specifically for vLLM building since it tries to resolve torch+cpu deps without disallowing darwin annoyingly
+  # (https://github.com/vllm-project/vllm/blob/d7de043d55d1dd629554467e23874097e1c48993/requirements/cpu.txt#L9-L10)
+  # This could be solved by them disallowing darwin in their cpu deps
+  "platform_system == 'Darwin' and platform_machine == 'arm64'",
+  # And any combination of other platforms
+  "platform_system != 'Darwin'",
 ]
 
 [project.urls]
