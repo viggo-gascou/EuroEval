@@ -6,17 +6,24 @@ import typing as t
 from sacrebleu.metrics import CHRF
 
 from .base import Metric
+from .language_detection import language_detector
 
 if t.TYPE_CHECKING:
     from datasets.arrow_dataset import Dataset
 
     from ..data_models import BenchmarkConfig, DatasetConfig
+    from .language_detection import LanguageDetector
 
 
 class ChrF(Metric):
     """The ChrF metric."""
 
-    def __init__(self, word_order: int = 0, beta: int = 2) -> None:
+    def __init__(
+        self,
+        word_order: int = 0,
+        beta: int = 2,
+        language_detector: "LanguageDetector | None" = None,
+    ) -> None:
         """Initialise the ChrF metric.
 
         Args:
@@ -26,6 +33,11 @@ class ChrF(Metric):
             beta (optional):
                 The beta parameter for the ChrF metric. Defaults to 2, which is the
                 original chrF (and chrF++) metric.
+            language_detector (optional):
+                A LanguageDetector instance. If provided, each per-sentence score is
+                multiplied by a binary language penalty (1.0 if the prediction is in
+                the correct language, 0.0 otherwise) before averaging. Defaults to
+                None, which disables language penalization.
         """
         super().__init__(
             name=f"chr_f{beta}" + "p" * word_order,
@@ -34,7 +46,22 @@ class ChrF(Metric):
         )
         self.word_order = word_order
         self.beta = beta
+        self.language_detector = language_detector
         self.metric = CHRF(char_order=6, word_order=self.word_order, beta=self.beta)
+
+    def download(self, cache_dir: str) -> "ChrF":
+        """Download the language detection model if needed.
+
+        Args:
+            cache_dir:
+                The directory where the metric will be downloaded to.
+
+        Returns:
+            The metric object itself.
+        """
+        if self.language_detector is not None:
+            self.language_detector.download()
+        return self
 
     def __call__(
         self,
@@ -60,7 +87,7 @@ class ChrF(Metric):
                 The benchmark configuration.
 
         Returns:
-            The ChrF score.
+            The ChrF score, penalized per-sentence by language correctness.
         """
         scores = [
             self.metric.sentence_score(
@@ -68,12 +95,20 @@ class ChrF(Metric):
             ).score
             for prediction, reference in zip(predictions, references)
         ]
-        return 1.0 if not scores else sum(scores) / len(scores)
+
+        if not scores:
+            return 1.0
+
+        if self.language_detector is not None:
+            penalties = self.language_detector(predictions, dataset_config)
+            scores = [s * p for s, p in zip(scores, penalties)]
+
+        return sum(scores) / len(scores)
 
 
-chrf2_metric = ChrF()
-chrf3_metric = ChrF(beta=3)
-chrf4_metric = ChrF(beta=4)
-chrf2pp_metric = ChrF(word_order=2)
-chrf3pp_metric = ChrF(word_order=2, beta=3)
-chrf4pp_metric = ChrF(word_order=2, beta=4)
+chrf2_metric = ChrF(language_detector=language_detector)
+chrf3_metric = ChrF(beta=3, language_detector=language_detector)
+chrf4_metric = ChrF(beta=4, language_detector=language_detector)
+chrf2pp_metric = ChrF(word_order=2, language_detector=language_detector)
+chrf3pp_metric = ChrF(word_order=2, beta=3, language_detector=language_detector)
+chrf4pp_metric = ChrF(word_order=2, beta=4, language_detector=language_detector)
