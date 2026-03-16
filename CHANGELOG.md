@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v17.0.0] - 2026-03-16
+
 ### Added
 
 - Benchmark results written to `euroeval_benchmark_results.jsonl` now conform to the
