@@ -86,15 +86,15 @@ class LanguageDetector:
 
         return self._detect_language(
             predictions=tuple(predictions),
-            detector_languages=detector_languages,
+            detector_languages=tuple(detector_languages),
             target_language_codes=tuple(target_language_codes),
         )
 
-    @cache_arguments("predictions", "target_language_codes")
+    @cache_arguments()
     def _detect_language(
         self,
         predictions: tuple[str],
-        detector_languages: list[LinguaLanguage],
+        detector_languages: tuple[LinguaLanguage],
         target_language_codes: tuple[str],
     ) -> list[float]:
         """Internal method that performs language detection with caching.
