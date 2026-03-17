@@ -100,7 +100,9 @@ class ChrF(Metric):
             return 1.0
 
         if self.language_detector is not None:
-            penalties = self.language_detector(predictions, dataset_config)
+            penalties = self.language_detector(
+                predictions=predictions, dataset_config=dataset_config
+            )
             scores = [s * p for s, p in zip(scores, penalties)]
 
         return sum(scores) / len(scores)
