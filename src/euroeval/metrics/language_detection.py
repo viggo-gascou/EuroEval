@@ -62,13 +62,19 @@ class LanguageDetector:
         danish_and_norwegian = {DANISH, NORWEGIAN_BOKMÅL, NORWEGIAN_NYNORSK}
         dataset_languages = set(dataset_config.languages)
 
+        # extend with danish_and_norwegian if any are present
         if danish_and_norwegian & dataset_languages:
-            language_codes = [lang.code for lang in danish_and_norwegian]
-        else:
-            language_codes = [lang.code for lang in dataset_config.languages]
+            dataset_languages |= danish_and_norwegian
+
+        # Exclude the source language for translation tasks
+        # as it is tuple for translation tasks, otherwise a single language is returned
+        main_lang = dataset_config.main_language
+        if isinstance(main_lang, tuple):
+            source_lang, _ = main_lang
+            dataset_languages.discard(source_lang)
 
         target_language_codes = get_correct_language_codes(
-            language_codes=language_codes
+            language_codes=[lang.code for lang in dataset_languages]
         )
 
         # Skipping "no" norwegian as lingua does not have a code for it
