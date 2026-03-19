@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Language penalization for ChrF metrics used in translation and summarization tasks: 
+  each per-sentence score is multiplied by a binary language confidence penalty 
+  (1.0 if the prediction is in the correct language, 0.0 otherwise) before averaging, 
+  using the new `lingua-language-detector` dependency. For datasets with Danish or 
+  Norwegian variants (Bokmål/Nynorsk), the confidence scores are summed across all 
+  accepted languages before applying the threshold.
+
+### Changed
+
+- `get_correct_language_codes` has been moved from `benchmark_config_factory.py` to
+  `languages.py`.
+
 ### Fixed
 
 - vLLM has been upgraded from v0.11.0 to v0.14.1 on macOS arm64, fixing generation
