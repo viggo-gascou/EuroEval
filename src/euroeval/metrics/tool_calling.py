@@ -2,6 +2,7 @@
 
 import collections.abc as c
 import json
+import logging
 import typing as t
 
 from ..logging_utils import log_once
@@ -95,7 +96,8 @@ def _evaluate_function_toolcall_response(
         # get predicted function name
         if "function" not in pred_call:
             log_once(
-                "Tool call prediction did not contain required keyword 'function'."
+                "Tool call prediction did not contain required keyword 'function'.",
+                level=logging.DEBUG,
             )
             return False
         else:
@@ -104,7 +106,8 @@ def _evaluate_function_toolcall_response(
         # get predicted arguments
         if "arguments" not in pred_call:
             log_once(
-                "Tool call prediction did not contain required keyword 'arguments'."
+                "Tool call prediction did not contain required keyword 'arguments'.",
+                level=logging.DEBUG,
             )
             return False
         else:
