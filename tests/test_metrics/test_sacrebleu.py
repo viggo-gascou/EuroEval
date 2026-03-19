@@ -44,6 +44,11 @@ class DummyDatasetConfig:
     task = SUMM
     languages: list[Language] = [ENGLISH]
 
+    @property
+    def main_language(self) -> Language:
+        """Return the main language for the dataset."""
+        return self.languages[0]
+
 
 @pytest.fixture
 def dummy_dataset_config() -> t.Generator[DummyDatasetConfig, None, None]:
@@ -64,6 +69,22 @@ class DummyBenchmarkConfig:
 def dummy_benchmark_config() -> t.Generator[DummyBenchmarkConfig, None, None]:
     """Yield a dummy benchmark config (not used by ChrF metric)."""
     yield DummyBenchmarkConfig()
+
+
+@pytest.fixture(autouse=True)
+def disable_chrf_language_detector() -> None:
+    """Disable language detection for all ChrF metrics during tests."""
+    # We disable the language detector and thereby language penalization in tests
+    # because the sentences are too short to detect language reliably
+    for metric in [
+        chrf2_metric,
+        chrf3_metric,
+        chrf4_metric,
+        chrf2pp_metric,
+        chrf3pp_metric,
+        chrf4pp_metric,
+    ]:
+        metric.language_detector = None
 
 
 @pytest.mark.parametrize(

@@ -13,7 +13,7 @@ from .closest_match import get_closest_match
 from .data_models import BenchmarkConfig, BenchmarkConfigParams, DatasetConfig, Task
 from .dataset_configs import get_all_dataset_configs
 from .enums import Device
-from .languages import get_all_languages
+from .languages import get_all_languages, get_correct_language_codes
 from .logging_utils import log
 
 if importlib.util.find_spec("vllm") is not None:
@@ -87,41 +87,6 @@ def build_benchmark_config(
         max_context_length=benchmark_config_params.max_context_length,
         vocabulary_size=benchmark_config_params.vocabulary_size,
     )
-
-
-def get_correct_language_codes(
-    language_codes: str | c.Sequence[str],
-) -> c.Sequence[str]:
-    """Get correct language code(s).
-
-    Args:
-        language_codes:
-            The language codes of the languages to include, both for models and
-            datasets. Here 'no' means both Bokmål (nb) and Nynorsk (nn). Set this
-            to 'all' if all languages should be considered.
-
-    Returns:
-        The correct language codes.
-    """
-    # Create a dictionary that maps languages to their associated language objects
-    language_mapping = get_all_languages()
-
-    # Create the list `languages`
-    if "all" in language_codes:
-        languages = list(language_mapping.keys())
-    elif isinstance(language_codes, str):
-        languages = [language_codes]
-    else:
-        languages = list(language_codes)
-
-    # If `languages` contains 'no' then also include 'nb' and 'nn'. Conversely, if
-    # either 'nb' or 'nn' are specified then also include 'no'.
-    if "no" in languages:
-        languages = list(set(languages) | {"nb", "nn"})
-    elif "nb" in languages or "nn" in languages:
-        languages = list(set(languages) | {"no"})
-
-    return languages
 
 
 def prepare_languages(
