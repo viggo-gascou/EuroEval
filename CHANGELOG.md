@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+- Fixed a logging bug when evaluating models on the tool calling task.
 - vLLM has been upgraded from v0.11.0 to v0.14.1 on macOS arm64, fixing generation
   hanging indefinitely. `vLLM` and `vllm-metal` are now both installed from their git
   sources rather than PyPI, as there are no wheels for macOS available for `vLLM` and
