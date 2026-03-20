@@ -28,6 +28,7 @@ GENERATIVE_PIPELINE_TAGS = [
     "image-text-to-text",
     "audio-text-to-text",
     "video-text-to-text",
+    "any-to-any",
 ]
 
 # Used to disallow non-generative models to be evaluated on these task groups
