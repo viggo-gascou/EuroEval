@@ -9,18 +9,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- Language penalization for ChrF metrics used in translation and summarization tasks:
-  each per-sentence score is multiplied by a binary language confidence penalty
-  (1.0 if the prediction is in the correct language, 0.0 otherwise) before averaging,
-  using the new `lingua-language-detector` dependency. For datasets with Danish or
-  Norwegian variants (Bokmål/Nynorsk), the confidence scores are summed across all
-  accepted languages before applying the threshold.
 - Allow 'none' reasoning effort with GPT-5* models.
 - Added the SICK-NL Dutch Entailment Dataset (`sick-nl`).
   It is marked as unofficial for now. This was added by @Rijgersberg ✨
 
 ### Changed
 
+- Language penalization for ChrF metrics used in translation and summarization tasks:
+  each per-sentence score is multiplied by a binary language confidence penalty (1.0 if
+  the prediction is in the correct language, 0.0 otherwise) before averaging, using the
+  new `lingua-language-detector` dependency. For datasets with Danish or Norwegian
+  variants (Bokmål/Nynorsk), the confidence scores are summed across all accepted
+  languages before applying the threshold.
 - `get_correct_language_codes` has been moved from `benchmark_config_factory.py` to
   `languages.py`.
 
@@ -29,9 +29,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a logging bug when evaluating models on the tool calling task.
 - vLLM has been upgraded from v0.11.0 to v0.14.1 on macOS arm64, fixing generation
   hanging indefinitely. `vLLM` and `vllm-metal` are now both installed from their git
-  sources rather than PyPI, as there are no wheels for macOS available for `vLLM` and
-  `vllm-metal` PyPI releases lag behind.
-  Note that this means that we no longer support macOS x86_64 (Intel Macs).
+  sources rather than PyPI (when on MacOS), as there are no wheels for macOS available
+  for `vLLM` and `vllm-metal` PyPI releases lag behind. Note that this means that we no
+  longer support macOS x86_64 (Intel Macs).
 - Now correctly detects models with the new `any-to-any` HF pipeline tag as generative.
 
 ## [v17.0.0] - 2026-03-16
