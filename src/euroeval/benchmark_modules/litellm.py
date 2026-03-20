@@ -91,7 +91,7 @@ if t.TYPE_CHECKING:
 
 VOCAB_SIZE_MAPPING = {
     # OpenAI models
-    r"gpt-5\.2.*": -1,
+    r"gpt-5\.[234].*": -1,
     r"gpt-5-.*": 100_256,
     r"gpt-4-(32k)?(-[0-9]{4})?": 100_256,
     r"gpt-4-[0-9]{4}-preview": 100_256,
@@ -114,6 +114,8 @@ VOCAB_SIZE_MAPPING = {
 
 MODEL_MAX_LENGTH_MAPPING = {
     # OpenAI models
+    r"gpt-5\.4-(mini|nano)-.*": 400_000,
+    r"gpt-5\.4-.*": 1_050_000,
     r"gpt-5\.2.*": 400_000,
     r"gpt-5-.*": 272_000,
     r"gpt-4(-[0-9]{4})?": 8_191,
@@ -162,6 +164,7 @@ NUM_PARAMS_MAPPING = {
 
 
 REASONING_MODELS = [
+    r"gpt-5.4-.*",
     r"o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?",
     r"(gemini/)?gemini.*thinking.*",
     r"(gemini/)?gemini-2.5.*",
