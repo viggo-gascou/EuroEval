@@ -91,15 +91,15 @@ if t.TYPE_CHECKING:
 
 VOCAB_SIZE_MAPPING = {
     # OpenAI models
-    r"gpt-5\.[234].*": -1,
-    r"gpt-5-.*": 100_256,
-    r"gpt-4-(32k)?(-[0-9]{4})?": 100_256,
-    r"gpt-4-[0-9]{4}-preview": 100_256,
-    r"gpt-4-turbo(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 100_256,
-    r"gpt-4-(vision|turbo)(-preview)?": 100_256,
-    r"gpt-3\.5-turbo-instruct(-[0-9]{4})?": 100_256,
-    r"gpt-4o(-mini)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 200_019,
-    r"o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": -1,
+    r"(openai/)?gpt-5\.[234].*": -1,
+    r"(openai/)?gpt-5-.*": 100_256,
+    r"(openai/)?gpt-4-(32k)?(-[0-9]{4})?": 100_256,
+    r"(openai/)?gpt-4-[0-9]{4}-preview": 100_256,
+    r"(openai/)?gpt-4-turbo(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 100_256,
+    r"(openai/)?gpt-4-(vision|turbo)(-preview)?": 100_256,
+    r"(openai/)?gpt-3\.5-turbo-instruct(-[0-9]{4})?": 100_256,
+    r"(openai/)?gpt-4o(-mini)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 200_019,
+    r"(openai/)?o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": -1,
     # Anthropic models
     r"(anthropic/)?claude-[1-9](-[1-9])?-(opus|sonnet|haiku)-[0-9]{8}": -1,
     # Gemini models
@@ -114,21 +114,21 @@ VOCAB_SIZE_MAPPING = {
 
 MODEL_MAX_LENGTH_MAPPING = {
     # OpenAI models
-    r"gpt-5\.4-(mini|nano)-.*": 400_000,
-    r"gpt-5\.4-.*": 1_050_000,
-    r"gpt-5\.2.*": 400_000,
-    r"gpt-5-.*": 272_000,
-    r"gpt-4(-[0-9]{4})?": 8_191,
-    r"gpt-4-32k(-[0-9]{4})?": 32_767,
-    r"gpt-4-[0-9]{4}-preview": 128_000,
-    r"gpt-4-turbo(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 128_000,
-    r"gpt-4-(vision|turbo)(-preview)?": 128_000,
-    r"gpt-3\.5-turbo-instruct(-[0-9]{4})?": 4_095,
-    r"gpt-4o(-mini)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 128_000,
-    r"o1-(mini|preview)(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 128_000,
-    r"o1(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 200_000,
-    r"o[2-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 200_000,
-    r"gpt-4\.1.*": 1_047_576,
+    r"(openai/)?gpt-5\.4-(mini|nano)-.*": 400_000,
+    r"(openai/)?gpt-5\.4-.*": 1_050_000,
+    r"(openai/)?gpt-5\.2.*": 400_000,
+    r"(openai/)?gpt-5-.*": 272_000,
+    r"(openai/)?gpt-4(-[0-9]{4})?": 8_191,
+    r"(openai/)?gpt-4-32k(-[0-9]{4})?": 32_767,
+    r"(openai/)?gpt-4-[0-9]{4}-preview": 128_000,
+    r"(openai/)?gpt-4-turbo(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 128_000,
+    r"(openai/)?gpt-4-(vision|turbo)(-preview)?": 128_000,
+    r"(openai/)?gpt-3\.5-turbo-instruct(-[0-9]{4})?": 4_095,
+    r"(openai/)?gpt-4o(-mini)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 128_000,
+    r"(openai/)?o1-(mini|preview)(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 128_000,
+    r"(openai/)?o1(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 200_000,
+    r"(openai/)?o[2-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": 200_000,
+    r"(openai/)?gpt-4\.1.*": 1_047_576,
     # Anthropic models
     r"(anthropic/)?claude-[1-9](-[1-9])?-(opus|sonnet|haiku)-[0-9]{8}": 200_000,
     r"(anthropic/)?claude-(opus|sonnet|haiku)-[1-9](-[1-9])?-[0-9]{8}": 200_000,
@@ -146,9 +146,9 @@ MODEL_MAX_LENGTH_MAPPING = {
 
 NUM_PARAMS_MAPPING = {
     # OpenAI models
-    r"gpt-5.*": -1,
-    r"gpt-4.*": -1,
-    r"o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": -1,
+    r"(openai/)?gpt-5.*": -1,
+    r"(openai/)?gpt-4.*": -1,
+    r"(openai/)?o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?": -1,
     # Anthropic models
     r"(anthropic/)?claude-*": -1,
     # Gemini models
@@ -164,8 +164,8 @@ NUM_PARAMS_MAPPING = {
 
 
 REASONING_MODELS = [
-    r"gpt-5.4-.*",
-    r"o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?",
+    r"(openai/)?gpt-5.4-.*",
+    r"(openai/)?o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?",
     r"(gemini/)?gemini.*thinking.*",
     r"(gemini/)?gemini-2.5.*",
     r"(xai/)?grok-3-mini.*",
@@ -174,12 +174,12 @@ REASONING_MODELS = [
 ]
 
 BASE_DECODER_MODELS = [
-    r"gpt-3.5-turbo-instruct.*",
-    r"ada-[0-9]{3}",
-    r"babbage-[0-9]{3}",
-    r"curie-[0-9]{3}",
-    r"davinci-[0-9]{3}",
-    r"text-davinci-[0-9]{3}",
+    r"(openai/)?gpt-3.5-turbo-instruct.*",
+    r"(openai/)?ada-[0-9]{3}",
+    r"(openai/)?babbage-[0-9]{3}",
+    r"(openai/)?curie-[0-9]{3}",
+    r"(openai/)?davinci-[0-9]{3}",
+    r"(openai/)?text-davinci-[0-9]{3}",
 ]
 
 CUSTOM_INFERENCE_API_PREFIXES = [
@@ -203,12 +203,17 @@ class LiteLLMModel(BenchmarkModule):
     high_priority = False
     allowed_params = {
         # OpenAI models
-        re.compile(r"gpt-5.*"): ["none", "minimal", "low", "medium", "high", "xhigh"],
-        re.compile(r"o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?"): [
+        re.compile(r"(openai/)?gpt-5.*"): [
+            "none",
+            "minimal",
             "low",
             "medium",
             "high",
+            "xhigh",
         ],
+        re.compile(
+            r"(openai/)?o[1-9](-mini|-preview)?(-[0-9]{4}-[0-9]{2}-[0-9]{2})?"
+        ): ["low", "medium", "high"],
         # Anthropic models
         re.compile(r"(anthropic/)?claude-3-7-sonnet.*"): ["no-thinking", "thinking"],
         re.compile(r"(anthropic/)?claude-(sonnet|opus)-4.*"): [
@@ -1427,7 +1432,13 @@ class LiteLLMModel(BenchmarkModule):
                     level=logging.WARNING,
                 )
                 sleep(10)
-            except (BadRequestError, NotFoundError):
+            except (BadRequestError, NotFoundError) as e:
+                # Sometimes the error is simply because the completion couldn't finish.
+                # We don't really care about that, since it still shows that the model
+                # exists.
+                if "could not finish the message" in str(e).lower():
+                    return True
+
                 # In case we're using `api_base`, try again with the `/v1` suffix
                 if (
                     benchmark_config.api_base is not None
