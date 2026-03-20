@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   using the new `lingua-language-detector` dependency. For datasets with Danish or
   Norwegian variants (Bokmål/Nynorsk), the confidence scores are summed across all
   accepted languages before applying the threshold.
+- Allow 'none' reasoning effort with GPT-5* models.
 
 ### Changed
 
