@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   Norwegian variants (Bokmål/Nynorsk), the confidence scores are summed across all
   accepted languages before applying the threshold.
 - Allow 'none' reasoning effort with GPT-5* models.
+- Added the SICK-NL Dutch Entailment Dataset (`sick-nl`).
+  It is marked as unofficial for now. This was added by @Rijgersberg ✨
 
 ### Changed
 
