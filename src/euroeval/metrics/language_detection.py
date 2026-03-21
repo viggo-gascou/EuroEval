@@ -1,17 +1,20 @@
 """Language detection module."""
 
 import collections.abc as c
+import logging
 import typing as t
+
+from lingua import IsoCode639_3
 
 from ..caching_utils import cache_arguments
 from ..constants import MIN_LANG_CONFIDENCE_SCORE
 from ..languages import (
     DANISH,
-    NORWEGIAN,
     NORWEGIAN_BOKMÅL,
     NORWEGIAN_NYNORSK,
     get_correct_language_codes,
 )
+from ..logging_utils import log_once
 
 if t.TYPE_CHECKING:
     from lingua import LanguageDetector as LinguaLanguageDetector
@@ -77,25 +80,52 @@ class LanguageDetector:
             language_codes=[lang.code for lang in dataset_languages]
         )
 
-        # Skipping "no" norwegian as lingua does not have a code for it
-        detector_languages = [
-            LinguaLanguage.from_iso_code_639_1(IsoCode639_1.from_str(lang))
-            for lang in target_language_codes
-            if lang != NORWEGIAN.code
-        ]
+        detector_languages: list[LinguaLanguage] = list()
+        for lang in target_language_codes:
+            lang = lang.split("-")[0]
+            match len(lang):
+                case 2:
+                    iso_code = IsoCode639_1.from_str(string=lang)
+                    try:
+                        lingua_language = LinguaLanguage.from_iso_code_639_1(
+                            iso_code=iso_code
+                        )
+                    except ValueError:
+                        log_once(
+                            f"The ISO 639-1 code {lang!r} is not supported by Lingua, "
+                            "skipping",
+                            level=logging.WARNING,
+                        )
+                        continue
+                case 3:
+                    iso_code = IsoCode639_3.from_str(string=lang)
+                    try:
+                        lingua_language = LinguaLanguage.from_iso_code_639_3(
+                            iso_code=iso_code
+                        )
+                    except ValueError:
+                        log_once(
+                            f"The ISO 639-3 code {lang!r} is not supported by Lingua, "
+                            "skipping",
+                            level=logging.WARNING,
+                        )
+                        continue
+                case _:
+                    log_once(
+                        f"Language {lang!r} is neither an ISO 639-1 nor an ISO 639-3 "
+                        "code. Skipping.",
+                        level=logging.WARNING,
+                    )
+                    continue
+            detector_languages.append(lingua_language)
 
         return self._detect_language(
-            predictions=tuple(predictions),
-            detector_languages=tuple(detector_languages),
-            target_language_codes=tuple(target_language_codes),
+            predictions=tuple(predictions), detector_languages=tuple(detector_languages)
         )
 
     @cache_arguments()
     def _detect_language(
-        self,
-        predictions: tuple[str],
-        detector_languages: tuple[LinguaLanguage],
-        target_language_codes: tuple[str],
+        self, predictions: tuple[str], detector_languages: tuple[LinguaLanguage]
     ) -> list[float]:
         """Internal method that performs language detection with caching.
 
@@ -104,8 +134,6 @@ class LanguageDetector:
                 The predictions to detect the language of.
             detector_languages:
                 The detector languages to use for filtering.
-            target_language_codes:
-                The target language codes (used for cache key).
 
         Returns:
             List of binary scores (1.0 or 0.0) for each prediction, where 1.0
@@ -115,7 +143,6 @@ class LanguageDetector:
         """
         if self.model is None:
             self.download()
-
         assert self.model is not None, (
             "Model is not initialized, please call download() first"
         )
@@ -125,8 +152,8 @@ class LanguageDetector:
         )
         scores = []
         for confidence in conf_values:
-            # sum the confidence values so we get a single value for datasets
-            # with 'multiple' languages, like Danish and Norwegian
+            # Sum the confidence values so we get a single value for datasets with
+            # 'multiple' languages, like Danish and Norwegian
             lang_confidence = sum(
                 conf.value for conf in confidence if conf.language in detector_languages
             )
