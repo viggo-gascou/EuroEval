@@ -4,7 +4,8 @@ import collections.abc as c
 import logging
 import typing as t
 
-from lingua import IsoCode639_3
+from lingua import IsoCode639_1, IsoCode639_3, LanguageDetectorBuilder
+from lingua import Language as LinguaLanguage
 
 from ..caching_utils import cache_arguments
 from ..constants import MIN_LANG_CONFIDENCE_SCORE
@@ -20,9 +21,6 @@ if t.TYPE_CHECKING:
     from lingua import LanguageDetector as LinguaLanguageDetector
 
     from ..data_models import DatasetConfig
-
-from lingua import IsoCode639_1, LanguageDetectorBuilder
-from lingua import Language as LinguaLanguage
 
 
 class LanguageDetector:
@@ -85,8 +83,8 @@ class LanguageDetector:
             lang = lang.split("-")[0]
             match len(lang):
                 case 2:
-                    iso_code = IsoCode639_1.from_str(string=lang)
                     try:
+                        iso_code = IsoCode639_1.from_str(string=lang)
                         lingua_language = LinguaLanguage.from_iso_code_639_1(
                             iso_code=iso_code
                         )
@@ -98,8 +96,8 @@ class LanguageDetector:
                         )
                         continue
                 case 3:
-                    iso_code = IsoCode639_3.from_str(string=lang)
                     try:
+                        iso_code = IsoCode639_3.from_str(string=lang)
                         lingua_language = LinguaLanguage.from_iso_code_639_3(
                             iso_code=iso_code
                         )
