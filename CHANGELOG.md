@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v17.1.0] - 2026-03-24
+
 ### Added
 
 - Added the SICK-NL Dutch Entailment Dataset (`sick-nl`). It is marked as unofficial for
