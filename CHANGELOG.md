@@ -34,6 +34,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   longer support macOS x86_64 (Intel Macs).
 - Now correctly detects models with the new `any-to-any` HF pipeline tag as generative.
 
+### Security
+
+- Disallow installing LiteLLM versions 1.82.7 and 1.82.8, as these were victims of a
+  [credential exploit](https://github.com/BerriAI/litellm/issues/24512).
+
 ## [v17.0.0] - 2026-03-16
 
 ### Added
