@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- Allow 'none' reasoning effort with GPT-5* models.
 - Added the SICK-NL Dutch Entailment Dataset (`sick-nl`). It is marked as unofficial for
   now. This was added by @Rijgersberg ✨
+- Allow 'none' reasoning effort with GPT-5* models.
 
 ### Changed
 

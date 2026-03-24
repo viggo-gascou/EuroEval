@@ -1748,7 +1748,14 @@ class LiteLLMModel(BenchmarkModule):
                 f"Disabling thinking mode for model {self.model_config.model_id!r}",
                 level=logging.DEBUG,
             )
-        elif self.model_config.param in {"minimal", "low", "medium", "high"}:
+        elif self.model_config.param in {
+            "none",
+            "minimal",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+        }:
             generation_kwargs["reasoning_effort"] = self.model_config.param
             log_once(
                 f"Enabling reasoning effort {self.model_config.param!r} for model "
