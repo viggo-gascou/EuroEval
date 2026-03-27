@@ -446,6 +446,41 @@ class VLLMModel(HuggingFaceEncoderModel):
 
         return dataset
 
+    def update_dataset_config(self, dataset_config: "DatasetConfig") -> t.Self:
+        """Update the dataset config registered in the benchmark module.
+
+        Args:
+            dataset_config:
+                The new dataset config.
+
+        Returns:
+            The benchmark module.
+
+        Raises:
+            InvalidBenchmark:
+                If the dataset requires logprobs, but we weren't able to update the
+                first label token mapping.
+        """
+        self.dataset_config = dataset_config
+        self.buffer["first_label_token_mapping"] = get_first_label_token_mapping(
+            dataset_config=self.dataset_config,
+            model_config=self.model_config,
+            tokeniser=self._tokeniser,
+            generative_type=self.generative_type,
+            log_metadata=self.log_metadata,
+        )
+        if (
+            not self.buffer["first_label_token_mapping"]
+            and self.dataset_config.task.requires_logprobs
+        ):
+            raise InvalidBenchmark(
+                "The dataset requires logprobs, but we encountered an error when "
+                "trying to get the first token of each label in the dataset. You can "
+                "try running this benchmark with the --verbose flag to see what the "
+                "error was. Skipping this evaluation."
+            )
+        return self
+
     def generate(self, inputs: dict) -> "GenerativeModelOutput":
         """Generate outputs from the model.
 

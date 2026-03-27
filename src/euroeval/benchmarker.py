@@ -800,8 +800,6 @@ class Benchmarker:
                                 - 1
                             )
                             break
-                    else:
-                        loaded_model.dataset_config = dataset_config
 
                     # Skip the benchmark if the model is not of the correct
                     # generative type
@@ -954,6 +952,11 @@ class Benchmarker:
             InvalidModel:
                 If the model is invalid.
         """
+        try:
+            model.update_dataset_config(dataset_config=dataset_config)
+        except InvalidBenchmark as e:
+            return e
+
         for _ in range(num_attempts := 5):
             try:
                 # Set random seeds to enforce reproducibility of the randomly

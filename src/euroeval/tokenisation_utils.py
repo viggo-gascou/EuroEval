@@ -8,6 +8,7 @@ import typing as t
 import torch
 from transformers import BatchEncoding
 
+from .caching_utils import cache_arguments
 from .constants import BOS_TOKENS, EOS_TOKENS, PAD_TOKENS
 from .enums import GenerativeType
 from .exceptions import InvalidModel
@@ -384,6 +385,7 @@ def get_end_of_chat_token_ids(
     return end_of_chat_tokens
 
 
+@cache_arguments("dataset_config", "model_config")
 def get_first_label_token_mapping(
     dataset_config: "DatasetConfig",
     model_config: "ModelConfig",
